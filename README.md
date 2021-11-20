@@ -2,6 +2,8 @@
 
 A Neovim (lua) plugin for working with a markdown zettelkasten, based on telescope.nvim
 
+Find notes by name, daily notes by date, search within all notes, place and follow links to your notes.  Also, creates today's daily note if not present when searching for notes. At the moment, the daily note template is hardcoded though 😁.
+
 ## Install and setup
 
 **MS Windows note:** At the moment, telekasten is unlikely to be able to run on Windows, because it relies on a bash script.  Just sayin.  Since telekasten is a project that scratches my own itch, I am not sure if I will add Windows support any time soon.  Should anyone read this: Pull requests are welcome 😄!  Replacing the daily finder by a proper lua version should do the trick.
@@ -51,7 +53,7 @@ This will download the daily finder into the `bin/` folder of your home director
 The plugin defines the following functions.
 
 - `find_notes()` : find notes by file name (title), via Telescope
-- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope
+- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it will be created with a hardcoded template.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take word under cursor and open a Telescope file finder with it: selects note to open (incl. preview)
@@ -77,7 +79,19 @@ nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
 inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 ```
 
+## The hardcoded stuff
+Currently, many things are hardcoded: 
+- the file format of the daily notes: YYYY-MM-DD.md
+- the template for new daily notes
 
+Here is an example of a newly created daily note:
+
+```markdown
+---
+title: Saturday, November 20th, 2021
+---
+```
+All the hardcoded stuff is in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
 
 
 

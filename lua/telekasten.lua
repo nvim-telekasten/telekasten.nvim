@@ -98,6 +98,7 @@ insert_link = function(opts)
             end)
             return true
         end,
+        find_command = { zkcfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
