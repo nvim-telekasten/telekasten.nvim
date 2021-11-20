@@ -13,7 +13,7 @@ zkcfg = {
      home         = "~/zettelkasten",
      dailies      = "~/zettelkasten/daily",
      extension    = ".md",
-     daily_finder = "undaily_finder.sh",
+     daily_finder = "daily_finder.sh",
      
      -- where to install the daily_finder, 
      -- (must be a dir in your PATH)
