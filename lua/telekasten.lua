@@ -8,12 +8,16 @@ local builtin = require "telescope.builtin"
 local actions = require("telescope.actions")
 local action_state = require "telescope.actions.state"
 
+-- DEFAULT CONFIG
 zkcfg = {
-     home = "/home/rs/zettelkasten",
-     dailies = "/home/rs/zettelkasten/daily",
-     extension = ".md",
+     home         = "~/zettelkasten",
+     dailies      = "~/zettelkasten/daily",
+     extension    = ".md",
      daily_finder = "undaily_finder.sh",
-     my_bin = '/home/rs/bin',   -- where to install the daily_finder
+     
+     -- where to install the daily_finder, 
+     -- (must be a dir in your PATH)
+     my_bin       = '~/bin',   
 
      -- download tool for daily_finder installation: curl or wget
      downloader = 'curl',
