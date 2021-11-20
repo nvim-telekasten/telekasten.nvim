@@ -12,9 +12,29 @@ zkcfg = {
      home = "/home/rs/zettelkasten",
      dailies = "/home/rs/zettelkasten/daily",
      extension = ".md",
-     daily_finder = "daily_finder.sh",
+     daily_finder = "undaily_finder.sh",
+     my_bin = '/home/rs/bin',   -- where to install the daily_finder
+
+     -- download tool for daily_finder installation: curl or wget
+     downloader = 'curl',
+     -- downloader = 'wget',  -- wget is supported, too
  }
 
+local downloader2cmd = {
+    curl = 'curl -o',
+    wget = 'wget -O',
+}
+
+
+-- install_daily_finder
+-- downloads the daily finder scripts to the configured `my_bin` directory
+-- and makes it executable
+install_daily_finder = function()
+    local destpath = zkcfg.my_bin .. '/' .. zkcfg.daily_finder
+    local cmd = downloader2cmd[zkcfg.downloader]
+    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten/main/ext_commands/daily_finder.sh')
+    vim.api.nvim_command('!chmod +x ' .. destpath)
+end
 
 local path_to_linkname = function(p)
     local fn = vim.split(p, "/")
@@ -265,6 +285,7 @@ local M = {
     follow_link = follow_link,
     find_notes = find_filenames,
     setup = setup,
+    install_daily_finder = install_daily_finder,
 }
-print("rene reloaded")
+print("telekasten reloaded")
 return M
