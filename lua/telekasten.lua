@@ -10,14 +10,14 @@ local action_state = require "telescope.actions.state"
 
 -- DEFAULT CONFIG
 zkcfg = {
-     home         = "~/zettelkasten",
-     dailies      = "~/zettelkasten/daily",
+     home         = vim.fn.expand("~/zettelkasten"),
+     dailies      = vim.fn.expand("~/zettelkasten/daily"),
      extension    = ".md",
      daily_finder = "daily_finder.sh",
      
      -- where to install the daily_finder, 
      -- (must be a dir in your PATH)
-     my_bin       = '~/bin',   
+     my_bin       = vim.fn.expand('~/bin'),   
 
      -- download tool for daily_finder installation: curl or wget
      downloader = 'curl',
@@ -57,6 +57,11 @@ local zk_entry_maker = function(entry)
 end
 
 
+local check_local_finder = function()
+    local ret = vim.fn.system(zkcfg.daily_finder .. ' check')
+    return ret ==  "OK\n" 
+    -- return vim.fn.executable(zkcfg.daily_finder) == 1
+end
 
 -- 
 -- find_daily_notes:
@@ -64,14 +69,16 @@ end
 -- Select from daily notes
 -- 
 find_daily_notes = function(opts)
-    builtin.find_files({
-    prompt_title = "Find daily note",
-    cwd = zkcfg.dailies,
-    find_command = { zkcfg.daily_finder },
-    entry_maker = zk_entry_maker,
-   })
+    if (check_local_finder() == true) then 
+            print(zkcfg.dailies)
+            builtin.find_files({
+            prompt_title = "Find daily note",
+            cwd = zkcfg.dailies,
+            find_command = { zkcfg.daily_finder },
+            entry_maker = zk_entry_maker,
+       })
+   end
 end
-
 
 
 -- 
@@ -113,9 +120,11 @@ end
 -- 
 -- find_notes:
 -- 
--- Select from daily notes
+-- Select from notes
 -- 
-local find_notes = function(opts)
+find_notes = function(opts)
+    opts = {} or opts
+ 
   local find_command = opts.find_command
   local hidden = opts.hidden
   local no_ignore = opts.no_ignore
@@ -284,6 +293,7 @@ end
 
 local M = {
     zkcfg = zkcfg,
+    find_notes = find_notes,
     find_daily_notes = find_daily_notes,
     insert_link = insert_link,
     follow_link = follow_link,

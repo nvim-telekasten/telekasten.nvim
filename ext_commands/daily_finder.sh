@@ -6,18 +6,18 @@
 #     - sorted by date 
 #     - creates today's note if not present, with hardcoded template
 
+if [ "$1" == "check" ] ; then 
+    echo OK
+    exit 0
+fi
+
 
 # if called by the plugin, no args are provided, and the current working
 # directory is set instead
-if [ $1 = ""] ; then 
+if [ "$1" == "" ] ; then 
     the_dir=$(pwd)
 else
     the_dir=$1
-fi
-
-if [ $1 = "check" ] ; then 
-    echo OK
-    exit 0
 fi
 
 # function DaySuffix:
@@ -45,10 +45,10 @@ CreateDaily() {
     echo --- >> $dailyfile
 }
 
-if [ $(basename $the_dir) = daily ] ; then 
+if [ "$(basename $the_dir)" == "daily" ] ; then 
     if [ ! -f $dailyfile ] ; then 
         $(CreateDaily)
     fi
 fi
 
-find $the_dir | sort -rn 
+find $the_dir -type f| sort -rn 
