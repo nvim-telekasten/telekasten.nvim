@@ -15,6 +15,11 @@ else
     the_dir=$1
 fi
 
+if [ $1 = "check" ] ; then 
+    echo OK
+    exit 0
+fi
+
 # function DaySuffix:
 # little helper to give us st, nd, th for 1st, 2nd, 3rd, 4th, ...
 DaySuffix() {
