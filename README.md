@@ -31,7 +31,8 @@ require('telekasten').setup({
      -- download tool for daily_finder installation: curl or wget
      downloader = 'curl',
      -- downloader = 'wget',  -- wget is supported, too
-}
+})
+END
 ```
 
 ### 3. Install the daily finder
@@ -67,13 +68,13 @@ To use one of the functions above, just run them with the `:lua ...` command.
 Usually, you would set up some key bindings, though:
 
 ```vimscript
-nnoremap <leader>zf :lua require('telekasten').find_notes()
-nnoremap <leader>zd :lua require('telekasten').find_daily_notes()
-nnoremap <leader>zg :lua require('telekasten').search_notes()
-nnoremap <leader>zz :lua require('telekasten').follow_link()
+nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
+nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
+nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
+nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
 
 " note: we define [[ in **insert mode** to call insert link
-inoremap [[ :lua require('telekasten').insert_link()
+inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 ```
 
 
