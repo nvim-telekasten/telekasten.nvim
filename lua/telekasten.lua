@@ -12,7 +12,7 @@ zkcfg = {
      home = "/home/rs/zettelkasten",
      dailies = "/home/rs/zettelkasten/daily",
      extension = ".md",
-     zkfinder = "shitzk.sh",
+     daily_finder = "daily_finder.sh",
  }
 
 
@@ -43,7 +43,7 @@ find_daily_notes = function(opts)
     builtin.find_files({
     prompt_title = "Find daily note",
     cwd = zkcfg.dailies,
-    find_command = { zkcfg.zkfinder },
+    find_command = { zkcfg.daily_finder },
     entry_maker = zk_entry_maker,
    })
 end
@@ -59,7 +59,6 @@ insert_link = function(opts)
     builtin.find_files({
         prompt_title = "Insert link to note",
         cwd = zkcfg.home,
-        find_command = { zkcfg.zkfinder },
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -82,7 +81,6 @@ follow_link = function(opts)
     builtin.find_files({
         prompt_title = "Follow link to note...",
         cwd = zkcfg.home,
-        find_command = { zkcfg.zkfinder },
         default_text = vim.fn.expand("<cword>"),
         entry_maker = zk_entry_maker,
    })
@@ -241,12 +239,32 @@ end
     return M
 --]]
 
+
+
+-- setup(cfg)
+--
+-- Overrides config with elements from cfg
+-- Valid keys are:
+--     - home : path to zettelkasten folder
+--     - dailies : path to folder of daily notes
+--     - extension : extension of note files (.md)
+--     - daily_finder: executable that finds daily notes and sorts them by date 
+--                     as long as we have no lua equivalent, this will be necessary
+--
+setup = function(cfg) 
+    cfg = cfg or {}
+   for k, v in pairs(cfg) do
+       zkcfg[k] = v
+   end
+end
+
 local M = {
     zkcfg = zkcfg,
     find_daily_notes = find_daily_notes,
     insert_link = insert_link,
     follow_link = follow_link,
     find_notes = find_filenames,
+    setup = setup,
 }
 print("rene reloaded")
 return M
