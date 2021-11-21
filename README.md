@@ -79,11 +79,12 @@ The plugin defines the following functions.
 - `new_note` : prompts for title and creates new note by template, then shows it in Telescope
 - `find_notes()` : find notes by file name (title), via Telescope
 - `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it can be created optionally, honoring the configured template
+- `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note can optionally be created if not present, using the configured template
 - `find_weekly_notes()` : find weekly notes by week (file names, sorted, most recent first), via Telescope.  If this week's weekly note is not present, it can be created optionally, honoring the configured template
+- `goto_thisweek()` : pops up a Telescope window with this week's weekly note pre-selected. This week's note can optionally be created if not present, using the configured template
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
-- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - optional note creation for non-existing notes
-- `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note will be created if not present. 
+- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `install_daily_finder()` : installs the daily finder tool used by the plugin
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -105,8 +106,8 @@ The following table shows which command relies on what config option:
 | `find_daily_notes` | `dailies_create_nonexisting` | today's daily note |
 | `goto_thisweek` | `weeklies_create_nonexisting` | this week's weekly note |
 | `find_weekly_notes` | `weeklies_create_nonexisting` | this week's weekly note |
-| `follow_link` | `follow_creates_nonexisting` |
-| `new_note` | always true |
+| `follow_link` | `follow_creates_nonexisting` | new note |
+| `new_note` | always true | new note |
 
 If the associated option is `true`, non-existing notes will be created.
 
@@ -120,7 +121,7 @@ Currently, the following substitutions will be made during new note creation:
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
 | `{{date}}` | date in iso format | 2021-11-21 |
-| `{{hdate}}` | date in human-readable format | Sunday, November 21st, 2021 |
+| `{{hdate}}` | date in long format | Sunday, November 21st, 2021 |
 | `{{week}}` | week of the year | 46 |
 | `{{year}}` | year | 2021 |
 
@@ -175,6 +176,8 @@ nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
 nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
 nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').goto_today()<CR>
+nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
+nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
 
 " note: we define [[ in **insert mode** to call insert link
 inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
