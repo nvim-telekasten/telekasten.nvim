@@ -32,6 +32,7 @@ lua << END
 require('telekasten').setup({
      home         = vim.fn.expand("~/zettelkasten"),
      dailies      = vim.fn.expand("~/zettelkasten/daily"),
+     weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
      extension    = ".md",
      daily_finder = "daily_finder.sh",
      
@@ -46,12 +47,15 @@ require('telekasten').setup({
      -- following a link to a non-existing note will create it
      follow_creates_nonexisting = true,
      dailies_create_nonexisting = true,
+     weeklies_create_nonexisting = true,
 
-     -- templates for new notes
+     -- template for new notes (new_note, follow_link)
      template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
-     -- currently unused, hardcoded in daily_finder.sh:
+
+     -- template for newly created daily notes (goto_today)
      template_new_daily = ZkCfg.home .. '/' .. 'templates/daily.md',
-     -- currently unused
+
+     -- template for newly created weekly notes (goto_thisweek)
      template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly.md',
 })
 END
@@ -72,8 +76,10 @@ This will download the daily finder into the `bin/` folder of your home director
 
 The plugin defines the following functions.
 
+- `new_note` : prompts for title and creates new note by template, then shows it in Telescope
 - `find_notes()` : find notes by file name (title), via Telescope
-- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it will be created, honoring the configured template
+- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it can be created optionally, honoring the configured template
+- `find_weekly_notes()` : find weekly notes by week (file names, sorted, most recent first), via Telescope.  If this week's weekly note is not present, it can be created optionally, honoring the configured template
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - optional note creation for non-existing notes
@@ -89,15 +95,18 @@ To use one of the functions above, just run them with the `:lua ...` command.
 
 ### Note templates
 
-The functions `find_daily_notes`, `goto_today`, and `follow_link` can create non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
+The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
 
 The following table shows which command relies on what config option:
 
-| telekasten function | config option |
-| --- | --- |
-| `goto_today` | `dailies_create_nonexisting` |
-| `find_daily_notes` | `dailies_create_nonexisting` |
+| telekasten function | config option | creates what |
+| --- | --- | --- |
+| `goto_today` | `dailies_create_nonexisting` | today's daily note |
+| `find_daily_notes` | `dailies_create_nonexisting` | today's daily note |
+| `goto_thisweek` | `weeklies_create_nonexisting` | this week's weekly note |
+| `find_weekly_notes` | `weeklies_create_nonexisting` | this week's weekly note |
 | `follow_link` | `follow_creates_nonexisting` |
+| `new_note` | always true |
 
 If the associated option is `true`, non-existing notes will be created.
 
@@ -112,6 +121,8 @@ Currently, the following substitutions will be made during new note creation:
 | `{{title}}` | the title of the note | My new note |
 | `{{date}}` | date in iso format | 2021-11-21 |
 | `{{hdate}}` | date in human-readable format | Sunday, November 21st, 2021 |
+| `{{week}}` | week of the year | 46 |
+| `{{year}}` | year | 2021 |
 
 As an example, this is my template for new notes:
 
@@ -128,6 +139,31 @@ And I use this one for daily notes:
 ---
 title: {{hdate}}
 ---
+```
+
+And finally, the weekly notes (that I don't use a lot):
+
+```markdown
+---
+title: {{year}}-W{{week}}
+date:  {{hdate}}
+---
+
+# Review Week {{week}} / {{year}}
+
+---
+
+## Highlights
+- **this**!
+- that!
+
+## Monday link
+## Tuesday link
+## Wednesday link
+## Thursday link
+## Friday link
+## Saturday link
+## Sunday link
 ```
 
 ## Bind it 

@@ -13,6 +13,7 @@ local vim = vim
 ZkCfg = {
      home         = vim.fn.expand("~/zettelkasten"),
      dailies      = vim.fn.expand("~/zettelkasten/daily"),
+     weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
      extension    = ".md",
      daily_finder = "daily_finder.sh",
 
@@ -27,13 +28,14 @@ ZkCfg = {
      -- following a link to a non-existing note will create it
      follow_creates_nonexisting = true,
      dailies_create_nonexisting = true,
+     weeklies_create_nonexisting = true,
 
      -- templates for new notes
      template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
      -- currently unused, hardcoded in daily_finder.sh:
      template_new_daily = ZkCfg.home .. '/' .. 'templates/daily_tk.md',
      -- currently unused
-     template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly.md',
+     template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly_tk.md',
 }
 -- ----------------------------------------------------------------------------
 
@@ -47,6 +49,50 @@ local note_type_templates = {
     daily = ZkCfg.template_new_daily,
     weekly = ZkCfg.template_new_weekly,
 }
+
+
+local function file_exists(fname)
+   local f=io.open(fname,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
+
+local function daysuffix(day)
+    if((day == '1') or (day == '21') or (day == '31')) then return 'st' end
+    if((day == '2') or (day == '22')) then return 'nd' end
+    if((day == '3') or (day == '33')) then return 'rd' end
+    return 'th'
+end
+
+local function linesubst(line, title)
+    local substs = {
+        date = os.date('%Y-%m-%d'),
+        hdate = os.date('%A, %B %dx, %Y'):gsub('x', daysuffix(os.date('%d'))),
+        week = os.date('%V'),
+        year = os.date('%Y'),
+        title = title,
+    }
+    for k, v in pairs(substs) do
+        line = line:gsub("{{"..k.."}}", v)
+    end
+
+    return line
+end
+
+local create_note_from_template = function (title, filepath, templatefn)
+    -- first, read the template file
+    local lines = {}
+    for line in io.lines(templatefn) do
+        lines[#lines+1] = line
+    end
+
+    -- now write the output file, substituting vars line by line
+    local ofile = io.open(filepath, 'a')
+    for _, line in pairs(lines) do
+        ofile:write(linesubst(line, title) .. '\n')
+    end
+
+    ofile:close()
+end
 
 
 
@@ -97,10 +143,48 @@ end
 --
 FindDailyNotes = function(opts)
     opts = {} or opts
+
+    local today = os.date("%Y-%m-%d")
+    local fname = ZkCfg.dailies .. '/' .. today .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if ((fexists ~= true) and ((opts.dailies_create_nonexisting == true) or ZkCfg.dailies_create_nonexisting == true)) then
+        create_note_from_template(today, fname, note_type_templates.daily)
+    end
+
     if (check_local_finder() == true) then
             builtin.find_files({
             prompt_title = "Find daily note",
             cwd = ZkCfg.dailies,
+            find_command = { ZkCfg.daily_finder },
+            entry_maker = zk_entry_maker,
+       })
+   else
+       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
+   end
+end
+
+
+
+--
+-- FindWeeklyNotes:
+-- ---------------
+--
+-- Select from daily notes
+--
+FindWeeklyNotes = function(opts)
+    opts = {} or opts
+
+    local title = os.date("%Y-W%V")
+    local fname = ZkCfg.weeklies .. '/' .. title .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if ((fexists ~= true) and ((opts.weeklies_create_nonexisting == true) or ZkCfg.weeklies_create_nonexisting == true)) then
+        create_note_from_template(title, fname, note_type_templates.weekly)
+    end
+
+    if (check_local_finder() == true) then
+            builtin.find_files({
+            prompt_title = "Find weekly note",
+            cwd = ZkCfg.weeklies,
             find_command = { ZkCfg.daily_finder },
             entry_maker = zk_entry_maker,
        })
@@ -149,46 +233,12 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-local function file_exists(fname)
-   local f=io.open(fname,"r")
-   if f~=nil then io.close(f) return true else return false end
-end
-
-local function linesubst(line, title)
-    local substs = {
-        date = os.date('%Y-%m-%d'),
-        title = title,
-    }
-    for k, v in pairs(substs) do
-        line = line:gsub("{{"..k.."}}", v)
-    end
-
-    return line
-end
-
-local create_note_from_template = function (title, filepath, templatefn)
-    -- first, read the template file
-    local lines = {}
-    for line in io.lines(templatefn) do
-        lines[#lines+1] = line
-    end
-
-    -- now write the output file, substituting vars line by line
-    local ofile = io.open(filepath, 'a')
-    for _, line in pairs(lines) do
-        ofile:write(linesubst(line, title) .. '\n')
-    end
-
-    ofile:close()
-end
-
-
 FollowLink = function(opts)
     opts = {} or opts
     vim.cmd('normal yi]')
     local title = vim.fn.getreg('"0')
-    local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
 
+    local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
     local fexists = file_exists(fname)
     if ((fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)) then
         create_note_from_template(title, fname, note_type_templates.normal)
@@ -216,13 +266,18 @@ end
 -- find today's daily note and create it if necessary.
 --
 GotoToday = function(opts)
-    print('local version')
     opts = {} or opts
     local word = os.date("%Y-%m-%d")
 
+    local fname = ZkCfg.dailies .. '/' .. word .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if ((fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)) then
+        create_note_from_template(word, fname, note_type_templates.daily)
+    end
+
     if (check_local_finder() == true) then
         builtin.find_files({
-            prompt_title = "Follow link to note...",
+            prompt_title = "Goto today",
             cwd = ZkCfg.home,
             default_text = word,
             find_command = { ZkCfg.daily_finder },
@@ -277,6 +332,74 @@ end
 
 
 
+--
+-- CreateNote:
+-- ------------
+--
+-- find the file linked to by the word under the cursor
+--
+local function on_create(title)
+    if (title == nil) then return end
+
+    local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if (fexists ~= true) then
+        create_note_from_template(title, fname, note_type_templates.normal)
+    end
+
+    if (check_local_finder() == true) then
+        builtin.find_files({
+            prompt_title = "Created note...",
+            cwd = ZkCfg.home,
+            default_text = title,
+            find_command = { ZkCfg.daily_finder },
+            entry_maker = zk_entry_maker,
+       })
+   else
+       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
+   end
+
+end
+
+CreateNote = function(opts)
+    opts = {} or opts
+    vim.ui.input({prompt = 'Title: '}, on_create)
+end
+
+
+
+--
+-- GotoThisWeek:
+-- ----------
+--
+-- find this week's weekly note and create it if necessary.
+--
+GotoThisWeek = function(opts)
+    print('local version')
+    opts = {} or opts
+
+    local title = os.date("%Y-W%V")
+    local fname = ZkCfg.weeklies .. '/' .. title .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if ((fexists ~= true) and ((opts.weeklies_create_nonexisting == true) or ZkCfg.weeklies_create_nonexisting == true)) then
+        create_note_from_template(title, fname, note_type_templates.weekly)
+    end
+
+    if (check_local_finder() == true) then
+        builtin.find_files({
+            prompt_title = "Goto this week:",
+            cwd = ZkCfg.weeklies,
+            default_text = title,
+            find_command = { ZkCfg.daily_finder },
+            entry_maker = zk_entry_maker,
+       })
+   else
+       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
+   end
+end
+
+
+
 -- Setup(cfg)
 --
 -- Overrides config with elements from cfg
@@ -304,6 +427,9 @@ local M = {
     setup = Setup,
     install_daily_finder = InstallDailyFinder,
     goto_today = GotoToday,
+    new_note = CreateNote,
+    goto_thisweek = GotoThisWeek,
+    find_weekly_notes = FindWeeklyNotes,
 }
 print('local version')
 return M
