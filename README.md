@@ -28,6 +28,8 @@ For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://git
 
 If rg isn't found at `setup()` time, it will not be used. In that case, the sort order of daily and weekly notes are likely to be reversed. I do accept pull requests, though, for a lua implementation 😁!
 
+If you can't use `rg`, I recommend using `goto_today()` and `goto_thisweek()` instead of `find_daily_notes()` and `find_weekly_notes()`, as this pre-fills the search field, and the results list will look a bit more sane.
+
 
 
 ### 1. Install the plugin
