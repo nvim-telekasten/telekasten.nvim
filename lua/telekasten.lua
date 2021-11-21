@@ -322,7 +322,7 @@ end
 -- find the file linked to by the word under the cursor
 --
 SearchNotes = function(opts)
- input   opts = {} or opts
+    opts = {} or opts
 
     if (check_local_finder() == true) then
         builtin.live_grep({
