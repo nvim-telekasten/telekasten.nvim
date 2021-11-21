@@ -322,7 +322,7 @@ end
 -- find the file linked to by the word under the cursor
 --
 SearchNotes = function(opts)
-    opts = {} or opts
+ input   opts = {} or opts
 
     if (check_local_finder() == true) then
         builtin.live_grep({
@@ -438,25 +438,4 @@ local M = {
     find_weekly_notes = FindWeeklyNotes,
 }
 return M
-
-
-
-
---[[
--- interesting snippet:
-      -- set the filename based on the current date
-      local filepath = vim.g['wiki_root']..'journal/'..os.date('%Y-%m-%d')..'.md'
-
-      -- if the file doesn't exist
-      -- then created file and write date to the top of the file
-      if not file_exists(filepath) then
-        file = io.open(filepath, 'a')
-        io.output(file)
-        io.write(os.date("# %a, %d %B '%y"))
-        io.close(file)
-      end
-      api.nvim_command('edit '..filepath)
-    end
-    return M
---]]
 
