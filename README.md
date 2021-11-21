@@ -32,8 +32,8 @@ lua << END
 local home = vim.fn.expand("~/zettelkasten")
 require('telekasten').setup({
      home         = home
-     dailies      = vim.fn.expand("~/zettelkasten/daily"),
-     weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
+     dailies      = home .. '/' .. 'daily',
+     weeklies     = home .. '/' .. 'weekly',
      extension    = ".md",
      daily_finder = "daily_finder.sh",
      
