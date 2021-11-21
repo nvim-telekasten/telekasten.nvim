@@ -17,6 +17,14 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 **MS Windows note:** At the moment, telekasten.nvim is unlikely to be able to run on Windows, because it relies on a bash script.  Just sayin.  Since telekasten.nvim is a project that scratches my own itch, I am not sure if I will add Windows support any time soon.  Should anyone read this: Pull requests are welcome 😄!  Replacing the daily finder by a proper lua version should do the trick.
 
+
+### 0. Prerequisites 
+
+Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
+
+[Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
+
+
 ### 1. Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
 
