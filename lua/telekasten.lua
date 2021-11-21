@@ -378,7 +378,6 @@ end
 -- find this week's weekly note and create it if necessary.
 --
 GotoThisWeek = function(opts)
-    print('local version')
     opts = {} or opts
 
     local title = os.date("%Y-W%V")
@@ -434,7 +433,6 @@ local M = {
     goto_thisweek = GotoThisWeek,
     find_weekly_notes = FindWeeklyNotes,
 }
-print('local version')
 return M
 
 
