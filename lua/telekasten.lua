@@ -36,7 +36,7 @@ local downloader2cmd = {
 install_daily_finder = function()
     local destpath = zkcfg.my_bin .. '/' .. zkcfg.daily_finder
     local cmd = downloader2cmd[zkcfg.downloader]
-    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten/main/ext_commands/daily_finder.sh')
+    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh')
     vim.api.nvim_command('!chmod +x ' .. destpath)
 end
 
