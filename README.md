@@ -57,6 +57,7 @@ The plugin defines the following functions.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview)
+- `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note will be created if not present. 
 - `install_daily_finder()` : installs the daily finder tool used by the plugin
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -74,6 +75,7 @@ nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
 nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
 nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
 nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
+nnoremap <leader>zt :lua require('telekasten').goto_today()<CR>
 
 " note: we define [[ in **insert mode** to call insert link
 inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

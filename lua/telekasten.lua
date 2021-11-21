@@ -121,6 +121,16 @@ follow_link = function(opts)
 end
 
 
+goto_today = function(opts)
+    local word = os.date("%Y-%m-%d")
+    builtin.find_files({
+        prompt_title = "Follow link to note...",
+        cwd = zkcfg.home,
+        default_text = word,
+        find_command = { zkcfg.daily_finder },
+        entry_maker = zk_entry_maker,
+   })
+end
 
 -- 
 -- find_notes:
@@ -207,6 +217,7 @@ local M = {
     follow_link = follow_link,
     setup = setup,
     install_daily_finder = install_daily_finder,
+    goto_today = goto_today,
 }
 print("telekasten reloaded")
 return M
