@@ -1,23 +1,22 @@
-local pickers = require "telescope.pickers"
-local finders = require "telescope.finders"
-local sorters = require "telescope.sorters"
-local previewers = require "telescope.previewers"
-local conf = require("telescope.config").values
 local builtin = require "telescope.builtin"
 
 local actions = require("telescope.actions")
 local action_state = require "telescope.actions.state"
 
+-- declare locals for the nvim api stuff to avoid more lsp warnings
+local vim = vim 
+local api = api
+
 -- DEFAULT CONFIG
-zkcfg = {
+ZkCfg = {
      home         = vim.fn.expand("~/zettelkasten"),
      dailies      = vim.fn.expand("~/zettelkasten/daily"),
      extension    = ".md",
      daily_finder = "daily_finder.sh",
-     
-     -- where to install the daily_finder, 
+
+     -- where to install the daily_finder,
      -- (must be a dir in your PATH)
-     my_bin       = vim.fn.expand('~/bin'),   
+     my_bin       = vim.fn.expand('~/bin'),
 
      -- download tool for daily_finder installation: curl or wget
      downloader = 'curl',
@@ -30,12 +29,12 @@ local downloader2cmd = {
 }
 
 
--- install_daily_finder
+-- InstallDailyFinder
 -- downloads the daily finder scripts to the configured `my_bin` directory
 -- and makes it executable
-install_daily_finder = function()
-    local destpath = zkcfg.my_bin .. '/' .. zkcfg.daily_finder
-    local cmd = downloader2cmd[zkcfg.downloader]
+InstallDailyFinder = function()
+    local destpath = ZkCfg.my_bin .. '/' .. ZkCfg.daily_finder
+    local cmd = downloader2cmd[ZkCfg.downloader]
     vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh')
     vim.api.nvim_command('!chmod +x ' .. destpath)
 end
@@ -43,7 +42,7 @@ end
 local path_to_linkname = function(p)
     local fn = vim.split(p, "/")
     fn = fn[#fn]
-    fn = vim.split(fn, zkcfg.extension)
+    fn = vim.split(fn, ZkCfg.extension)
     fn = fn[1]
     return fn
 end
@@ -58,38 +57,41 @@ end
 
 
 local check_local_finder = function()
-    local ret = vim.fn.system(zkcfg.daily_finder .. ' check')
-    return ret ==  "OK\n" 
-    -- return vim.fn.executable(zkcfg.daily_finder) == 1
+    local ret = vim.fn.system(ZkCfg.daily_finder .. ' check')
+    return ret ==  "OK\n"
+    -- return vim.fn.executable(ZkCfg.daily_finder) == 1
 end
 
--- 
--- find_daily_notes:
--- 
+--
+-- FindDailyNotes:
+--
 -- Select from daily notes
--- 
-find_daily_notes = function(opts)
-    if (check_local_finder() == true) then 
+--
+FindDailyNotes = function(opts)
+    opts = {} or opts
+    if (check_local_finder() == true) then
             builtin.find_files({
             prompt_title = "Find daily note",
-            cwd = zkcfg.dailies,
-            find_command = { zkcfg.daily_finder },
+            cwd = ZkCfg.dailies,
+            find_command = { ZkCfg.daily_finder },
             entry_maker = zk_entry_maker,
        })
    end
 end
 
 
--- 
--- insert_link:
--- 
+--
+-- InsertLink:
+--
 -- Select from all notes and put a link in the current buffer
--- 
-insert_link = function(opts)
+--
+InsertLink = function(opts)
+    opts = {} or opts
     builtin.find_files({
         prompt_title = "Insert link to note",
-        cwd = zkcfg.home,
+        cwd = ZkCfg.home,
         attach_mappings = function(prompt_bufnr, map)
+            map = map -- get rid of lsp error
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
@@ -98,71 +100,96 @@ insert_link = function(opts)
             end)
             return true
         end,
-        find_command = { zkcfg.daily_finder },
+        find_command = { ZkCfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
 
--- 
--- follow_link:
--- 
+--
+-- FollowLink:
+--
 -- find the file linked to by the word under the cursor
--- 
-follow_link = function(opts)
+--
+FollowLink = function(opts)
+    opts = {} or opts
     vim.cmd('normal yi]')
     local word = vim.fn.getreg('"0')
     builtin.find_files({
         prompt_title = "Follow link to note...",
-        cwd = zkcfg.home,
+        cwd = ZkCfg.home,
         default_text = word,
-        find_command = { zkcfg.daily_finder },
+        find_command = { ZkCfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
 
 
-goto_today = function(opts)
+GotoToday = function(opts)
+    print('local version')
+    opts = {} or opts
     local word = os.date("%Y-%m-%d")
     builtin.find_files({
         prompt_title = "Follow link to note...",
-        cwd = zkcfg.home,
+        cwd = ZkCfg.home,
         default_text = word,
-        find_command = { zkcfg.daily_finder },
+        find_command = { ZkCfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
 
--- 
--- find_notes:
--- 
+--
+-- FindNotes:
+--
 -- Select from notes
--- 
-find_notes = function(opts)
+--
+FindNotes = function(opts)
+    opts = {} or opts
     builtin.find_files({
         prompt_title = "Find notes by name",
-        cwd = zkcfg.home,
-        find_command = { zkcfg.daily_finder },
+        cwd = ZkCfg.home,
+        find_command = { ZkCfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
 
--- 
--- search_notes:
--- 
+--
+-- SearchNotes:
+--
 -- find the file linked to by the word under the cursor
--- 
-search_notes = function(opts)
+--
+SearchNotes = function(opts)
+    opts = {} or opts
     builtin.live_grep({
         prompt_title = "Search in notes",
-        cwd = zkcfg.home,
-        search_dirs = { zkcfg.home },
+        cwd = ZkCfg.home,
+        search_dirs = { ZkCfg.home },
         default_text = vim.fn.expand("<cword>"),
-        find_command = { zkcfg.daily_finder },
+        find_command = { ZkCfg.daily_finder },
    })
 end
 
+local function file_exists(name)
+   local f=io.open(name,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
 
---[[ 
+local create_note_by_tilte = function (title)
+  -- set the filename based on the current date
+  -- local filepath = vim.g['wiki_root']..'journal/'..os.date('%Y-%m-%d')..'.md'
+  local filepath = ZkCfg.home
+
+  -- if the file doesn't exist
+  -- then created file and write date to the top of the file
+  if not file_exists(filepath) then
+    local file = io.open(filepath, 'a')
+    io.output(file)
+    io.write(os.date("# %a, %d %B '%y"))
+    io.close(file)
+  end
+  api.nvim_command('edit '..filepath)
+end
+
+--[[
 -- interesting snippet:
     function file_exists(name)
        local f=io.open(name,"r")
@@ -175,7 +202,7 @@ end
 
       -- set the filename based on the current date
       local filepath = vim.g['wiki_root']..'journal/'..os.date('%Y-%m-%d')..'.md'
-      
+
       -- if the file doesn't exist
       -- then created file and write date to the top of the file
       if not file_exists(filepath) then
@@ -198,25 +225,26 @@ end
 --     - home : path to zettelkasten folder
 --     - dailies : path to folder of daily notes
 --     - extension : extension of note files (.md)
---     - daily_finder: executable that finds daily notes and sorts them by date 
+--     - daily_finder: executable that finds daily notes and sorts them by date
 --                     as long as we have no lua equivalent, this will be necessary
 --
-setup = function(cfg) 
+Setup = function(cfg)
     cfg = cfg or {}
    for k, v in pairs(cfg) do
-       zkcfg[k] = v
+       ZkCfg[k] = v
    end
 end
 
 local M = {
-    zkcfg = zkcfg,
-    find_notes = find_notes,
-    find_daily_notes = find_daily_notes,
-    search_notes = search_notes,
-    insert_link = insert_link,
-    follow_link = follow_link,
-    setup = setup,
-    install_daily_finder = install_daily_finder,
-    goto_today = goto_today,
+    ZkCfg = ZkCfg,
+    find_notes = FindNotes,
+    find_daily_notes = FindDailyNotes,
+    search_notes = SearchNotes,
+    insert_link = InsertLink,
+    follow_link = FollowLink,
+    setup = Setup,
+    install_daily_finder = InstallDailyFinder,
+    goto_today = GotoToday,
 }
+print('local version')
 return M
