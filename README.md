@@ -29,8 +29,9 @@ Somewhere in your vim config, put a snippet like this:
 
 ```vimscript
 lua << END
+local home = vim.fn.expand("~/zettelkasten")
 require('telekasten').setup({
-     home         = vim.fn.expand("~/zettelkasten"),
+     home         = home
      dailies      = vim.fn.expand("~/zettelkasten/daily"),
      weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
      extension    = ".md",
@@ -50,13 +51,13 @@ require('telekasten').setup({
      weeklies_create_nonexisting = true,
 
      -- template for new notes (new_note, follow_link)
-     template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
+     template_new_note = home .. '/' .. 'templates/new_note.md',
 
      -- template for newly created daily notes (goto_today)
-     template_new_daily = ZkCfg.home .. '/' .. 'templates/daily.md',
+     template_new_daily = home .. '/' .. 'templates/daily.md',
 
      -- template for newly created weekly notes (goto_thisweek)
-     template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly.md',
+     template_new_weekly= home .. '/' .. 'templates/weekly.md',
 })
 END
 ```

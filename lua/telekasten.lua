@@ -10,34 +10,37 @@ local vim = vim
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
+local home = vim.fn.expand("~/zettelkasten")
+
 ZkCfg = {
-     home         = vim.fn.expand("~/zettelkasten"),
-     dailies      = vim.fn.expand("~/zettelkasten/daily"),
-     weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
-     extension    = ".md",
-     daily_finder = "daily_finder.sh",
+    home         = home,
+    dailies      = vim.fn.expand("~/zettelkasten/daily"),
+    weeklies     = vim.fn.expand("~/zettelkasten/weekly"),
+    extension    = ".md",
+    daily_finder = "daily_finder.sh",
 
-     -- where to install the daily_finder,
-     -- (must be a dir in your PATH)
-     my_bin       = vim.fn.expand('~/bin'),
+    -- where to install the daily_finder,
+    -- (must be a dir in your PATH)
+    my_bin       = vim.fn.expand('~/bin'),
 
-     -- download tool for daily_finder installation: curl or wget
-     downloader = 'curl',
-     -- downloader = 'wget',  -- wget is supported, too
+    -- download tool for daily_finder installation: curl or wget
+    downloader = 'curl',
+    -- downloader = 'wget',  -- wget is supported, too
 
-     -- following a link to a non-existing note will create it
-     follow_creates_nonexisting = true,
-     dailies_create_nonexisting = true,
-     weeklies_create_nonexisting = true,
+    -- following a link to a non-existing note will create it
+    follow_creates_nonexisting = true,
+    dailies_create_nonexisting = true,
+    weeklies_create_nonexisting = true,
 
-     -- templates for new notes
-     template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
-     -- currently unused, hardcoded in daily_finder.sh:
-     template_new_daily = ZkCfg.home .. '/' .. 'templates/daily_tk.md',
-     -- currently unused
-     template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly_tk.md',
+    -- templates for new notes
+    template_new_note   = home .. '/' .. 'templates/new_note.md',
+    template_new_daily  = home .. '/' .. 'templates/daily_tk.md',
+    template_new_weekly = home .. '/' .. 'templates/weekly_tk.md',
 }
+
 -- ----------------------------------------------------------------------------
+
+
 
 local downloader2cmd = {
     curl = 'curl -o',
