@@ -1,11 +1,9 @@
 local builtin = require "telescope.builtin"
-
 local actions = require("telescope.actions") local action_state = require "telescope.actions.state"
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
 
--- TODO : check if rg exists: vim.fn.executable('rg') - if it isn't, don't set the find_command
 
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
