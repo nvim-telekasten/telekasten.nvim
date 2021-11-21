@@ -2,7 +2,7 @@
 
 A Neovim (lua) plugin for working with a markdown zettelkasten, based on telescope.nvim
 
-Find notes by name, daily notes by date, search within all notes, place and follow links to your notes.  Also, creates today's daily note if not present when searching for notes. At the moment, the daily note template is hardcoded though 😁.
+Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional). 
 
 ## Search-based navigation
 
