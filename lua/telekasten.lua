@@ -219,5 +219,4 @@ local M = {
     install_daily_finder = install_daily_finder,
     goto_today = goto_today,
 }
-print("telekasten reloaded")
 return M
