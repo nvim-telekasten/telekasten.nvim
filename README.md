@@ -28,7 +28,7 @@ For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://git
 
 If rg isn't found at `setup()` time, it will not be used. In that case, the sort order of daily and weekly notes are likely to be reversed. I do accept pull requests, though, for a lua implementation 😁!
 
-If you can't use `rg`, I recommend using `goto_today()` and `goto_thisweek()` instead of `find_daily_notes()` and `find_weekly_notes()`, as this pre-fills the search field, and the results list will look a bit more sane.
+If you can't use `rg`, I recommend using `goto_today()` and `goto_thisweek()` instead of `find_daily_notes()` and `find_weekly_notes()`, as this pre-fills the search field, which makes the results list look a bit more sane.
 
 
 
@@ -185,6 +185,6 @@ inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
 ## The hardcoded stuff
 
 Currently, the following things are hardcoded: 
-- the file naming format for daily note files: YYYY-MM-DD.ext (e.g. 2021-11-21.md)
-- the file naming format for weekly note files: YYYY-Www.ext (e.g. 2021-W46.md)
+- the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
+- the file naming format for weekly note files: `YYYY-Www.ext` (e.g. `2021-W46.md`)
 
