@@ -1,11 +1,11 @@
 # Backlog
 
-- [ ] find weekly note
 - extend markdown syntax highlights for [[links]]
 - get rid of `daily_finder.sh`
 - maybe choose template in create note 
 
 ## Dones
+- [x] find weekly note
 - [x] goto week
 - [x] create note, use default template
 - [x] follow links: create non-existing ones 
