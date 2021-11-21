@@ -1,11 +1,11 @@
 local builtin = require "telescope.builtin"
 
-local actions = require("telescope.actions")
-local action_state = require "telescope.actions.state"
+local actions = require("telescope.actions") local action_state = require "telescope.actions.state"
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
 
+-- TODO : check if rg exists: vim.fn.executable('rg') - if it isn't, don't set the find_command
 
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
@@ -17,15 +17,7 @@ ZkCfg = {
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     extension    = ".md",
-    daily_finder = "daily_finder.sh",
 
-    -- where to install the daily_finder,
-    -- (must be a dir in your PATH)
-    my_bin       = vim.fn.expand('~/bin'),
-
-    -- download tool for daily_finder installation: curl or wget
-    downloader = 'curl',
-    -- downloader = 'wget',  -- wget is supported, too
 
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,
@@ -40,25 +32,16 @@ ZkCfg = {
 
 -- ----------------------------------------------------------------------------
 
-
-
-local downloader2cmd = {
-    curl = 'curl -o',
-    wget = 'wget -O',
-}
-
 local note_type_templates = {
     normal = ZkCfg.template_new_note,
     daily = ZkCfg.template_new_daily,
     weekly = ZkCfg.template_new_weekly,
 }
 
-
 local function file_exists(fname)
    local f=io.open(fname,"r")
    if f~=nil then io.close(f) return true else return false end
 end
-
 
 local function daysuffix(day)
     if((day == '1') or (day == '21') or (day == '31')) then return 'st' end
@@ -66,7 +49,6 @@ local function daysuffix(day)
     if((day == '3') or (day == '33')) then return 'rd' end
     return 'th'
 end
-
 
 local function linesubst(line, title)
     local substs = {
@@ -82,7 +64,6 @@ local function linesubst(line, title)
 
     return line
 end
-
 
 local create_note_from_template = function (title, filepath, templatefn)
     -- first, read the template file
@@ -100,7 +81,6 @@ local create_note_from_template = function (title, filepath, templatefn)
     ofile:close()
 end
 
-
 local path_to_linkname = function(p)
     local fn = vim.split(p, "/")
     fn = fn[#fn]
@@ -108,38 +88,6 @@ local path_to_linkname = function(p)
     fn = fn[1]
     return fn
 end
-
-
-local zk_entry_maker = function(entry)
-    return {
-        value = entry,
-        display = path_to_linkname(entry),
-        ordinal = entry,
-    }
-end
-
-
-local check_local_finder = function()
-    local ret = vim.fn.system(ZkCfg.daily_finder .. ' check')
-    return ret ==  "OK\n"
-    -- return vim.fn.executable(ZkCfg.daily_finder) == 1
-end
-
-
---
--- InstallDailyFinder:
--- -------------------
---
--- downloads the daily finder scripts to the configured `my_bin` directory
--- and makes it executable
---
-InstallDailyFinder = function()
-    local destpath = ZkCfg.my_bin .. '/' .. ZkCfg.daily_finder
-    local cmd = downloader2cmd[ZkCfg.downloader]
-    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh')
-    vim.api.nvim_command('!chmod +x ' .. destpath)
-end
-
 
 
 --
@@ -158,18 +106,12 @@ FindDailyNotes = function(opts)
         create_note_from_template(today, fname, note_type_templates.daily)
     end
 
-    if (check_local_finder() == true) then
-            builtin.find_files({
-            prompt_title = "Find daily note",
-            cwd = ZkCfg.dailies,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Find daily note",
+        cwd = ZkCfg.dailies,
+        find_command = ZkCfg.find_command,
+      })
 end
-
 
 
 --
@@ -188,18 +130,12 @@ FindWeeklyNotes = function(opts)
         create_note_from_template(title, fname, note_type_templates.weekly)
     end
 
-    if (check_local_finder() == true) then
-            builtin.find_files({
-            prompt_title = "Find weekly note",
-            cwd = ZkCfg.weeklies,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Find weekly note",
+        cwd = ZkCfg.weeklies,
+        find_command = ZkCfg.find_command,
+      })
 end
-
 
 
 --
@@ -210,28 +146,22 @@ end
 --
 InsertLink = function(opts)
     opts = {} or opts
-    if (check_local_finder() == true) then
-        builtin.find_files({
-            prompt_title = "Insert link to note",
-            cwd = ZkCfg.home,
-            attach_mappings = function(prompt_bufnr, map)
-                map = map -- get rid of lsp error
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    local fn = path_to_linkname(selection.value)
-                    vim.api.nvim_put({ "[["..fn.."]]" }, "", false, true)
-                end)
-                return true
-            end,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Insert link to note",
+        cwd = ZkCfg.home,
+        attach_mappings = function(prompt_bufnr, map)
+            map = map -- get rid of lsp error
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                local fn = path_to_linkname(selection.value)
+                vim.api.nvim_put({ "[["..fn.."]]" }, "", false, true)
+            end)
+            return true
+        end,
+        find_command = ZkCfg.find_command,
+   })
 end
-
 
 
 --
@@ -251,19 +181,13 @@ FollowLink = function(opts)
         create_note_from_template(title, fname, note_type_templates.normal)
     end
 
-    if (check_local_finder() == true) then
-        builtin.find_files({
-            prompt_title = "Follow link to note...",
-            cwd = ZkCfg.home,
-            default_text = title,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Follow link to note...",
+        cwd = ZkCfg.home,
+        default_text = title,
+        find_command = ZkCfg.find_command,
+    })
 end
-
 
 
 --
@@ -282,19 +206,13 @@ GotoToday = function(opts)
         create_note_from_template(word, fname, note_type_templates.daily)
     end
 
-    if (check_local_finder() == true) then
-        builtin.find_files({
-            prompt_title = "Goto today",
-            cwd = ZkCfg.home,
-            default_text = word,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Goto today",
+        cwd = ZkCfg.home,
+        default_text = word,
+        find_command = ZkCfg.find_command,
+    })
 end
-
 
 
 --
@@ -308,11 +226,9 @@ FindNotes = function(opts)
     builtin.find_files({
         prompt_title = "Find notes by name",
         cwd = ZkCfg.home,
-        find_command = { ZkCfg.daily_finder },
-        entry_maker = zk_entry_maker,
+        find_command = ZkCfg.find_command,
    })
 end
-
 
 
 --
@@ -324,19 +240,14 @@ end
 SearchNotes = function(opts)
     opts = {} or opts
 
-    if (check_local_finder() == true) then
-        builtin.live_grep({
-            prompt_title = "Search in notes",
-            cwd = ZkCfg.home,
-            search_dirs = { ZkCfg.home },
-            default_text = vim.fn.expand("<cword>"),
-            find_command = { ZkCfg.daily_finder },
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.live_grep({
+        prompt_title = "Search in notes",
+        cwd = ZkCfg.home,
+        search_dirs = { ZkCfg.home },
+        default_text = vim.fn.expand("<cword>"),
+        find_command = ZkCfg.find_command,
+    })
 end
-
 
 
 --
@@ -354,25 +265,18 @@ local function on_create(title)
         create_note_from_template(title, fname, note_type_templates.normal)
     end
 
-    if (check_local_finder() == true) then
-        builtin.find_files({
-            prompt_title = "Created note...",
-            cwd = ZkCfg.home,
-            default_text = title,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
-
+    builtin.find_files({
+        prompt_title = "Created note...",
+        cwd = ZkCfg.home,
+        default_text = title,
+        find_command = ZkCfg.find_command,
+    })
 end
 
 CreateNote = function(opts)
     opts = {} or opts
     vim.ui.input({prompt = 'Title: '}, on_create)
 end
-
 
 
 --
@@ -391,36 +295,29 @@ GotoThisWeek = function(opts)
         create_note_from_template(title, fname, note_type_templates.weekly)
     end
 
-    if (check_local_finder() == true) then
-        builtin.find_files({
-            prompt_title = "Goto this week:",
-            cwd = ZkCfg.weeklies,
-            default_text = title,
-            find_command = { ZkCfg.daily_finder },
-            entry_maker = zk_entry_maker,
-       })
-   else
-       print("Daily finder not found. Try :lua require('telekasten').install_daily_finder()")
-   end
+    builtin.find_files({
+        prompt_title = "Goto this week:",
+        cwd = ZkCfg.weeklies,
+        default_text = title,
+        find_command = ZkCfg.find_command,
+    })
 end
-
 
 
 -- Setup(cfg)
 --
--- Overrides config with elements from cfg
--- Valid keys are:
---     - home : path to zettelkasten folder
---     - dailies : path to folder of daily notes
---     - extension : extension of note files (.md)
---     - daily_finder: executable that finds daily notes and sorts them by date
---                     as long as we have no lua equivalent, this will be necessary
+-- Overrides config with elements from cfg. See top of file for defaults.
 --
 Setup = function(cfg)
     cfg = cfg or {}
-   for k, v in pairs(cfg) do
+    for k, v in pairs(cfg) do
        ZkCfg[k] = v
-   end
+    end
+    if vim.fn.executable('rg') then
+        ZkCfg.find_command = { 'rg', '--files', '--sortr', 'created',  }
+    else
+        ZkCfg.find_command = nil
+    end
 end
 
 local M = {
@@ -431,7 +328,6 @@ local M = {
     insert_link = InsertLink,
     follow_link = FollowLink,
     setup = Setup,
-    install_daily_finder = InstallDailyFinder,
     goto_today = GotoToday,
     new_note = CreateNote,
     goto_thisweek = GotoThisWeek,

@@ -15,14 +15,19 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 ## Install and setup
 
-**MS Windows note:** At the moment, telekasten.nvim is unlikely to be able to run on Windows, because it relies on a bash script.  Just sayin.  Since telekasten.nvim is a project that scratches my own itch, I am not sure if I will add Windows support any time soon.  Should anyone read this: Pull requests are welcome 😄!  Replacing the daily finder by a proper lua version should do the trick.
-
 
 ### 0. Prerequisites 
 
+#### Telescope
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
 
 [Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
+
+#### Ripgrep
+For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://github.com/BurntSushi/ripgrep)) is required and needs to be installed so that nvim can find it. So make sure, it's in your path. 
+
+If rg isn't found at `setup()` time, it will not be used. In that case, the sort order of daily and weekly notes are likely to be reversed. I do accept pull requests, though, for a lua implementation 😁!
+
 
 
 ### 1. Install the plugin
@@ -31,6 +36,7 @@ Install with your plugin manager of choice.  Mine is [Vundle](https://github.com
 ```vimscript
 Plugin 'renerocksai/telekasten.nvim'
 ```
+
 
 ### 2. Configure telekasten.nvim
 Somewhere in your vim config, put a snippet like this:
@@ -43,15 +49,6 @@ require('telekasten').setup({
      dailies      = home .. '/' .. 'daily',
      weeklies     = home .. '/' .. 'weekly',
      extension    = ".md",
-     daily_finder = "daily_finder.sh",
-     
-     -- where to install the daily_finder, 
-     -- (must be a dir in your PATH)
-     my_bin       = vim.fn.expand('~/bin'),   
-
-     -- download tool for daily_finder installation: curl or wget
-     downloader = 'curl',
-     -- downloader = 'wget',  -- wget is supported, too
 
      -- following a link to a non-existing note will create it
      follow_creates_nonexisting = true,
@@ -70,16 +67,6 @@ require('telekasten').setup({
 END
 ```
 
-### 3. Install the daily finder
-Before using telekasten.nvim, a shell script needs to be installed.  It finds and sorts notes the way we want.  As long as I don't have a lua version for this functionality (this is literally the first time I use lua), we will have to stick with `daily_finder.sh`.
-
-Luckily, the plugin can install the daily finder for you, directly from [GitHub](https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh):
-
-```
-:lua require('telekasten.nvim').install_daily_finder()
-```
-
-This will download the daily finder into the `bin/` folder of your home directory - or the directory you specified as `my_bin` in the step above.
 
 ## Use it
 
@@ -94,7 +81,6 @@ The plugin defines the following functions.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
-- `install_daily_finder()` : installs the daily finder tool used by the plugin
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.  
@@ -199,11 +185,4 @@ inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
 Currently, the following things are hardcoded: 
 - the file naming format for daily note files: YYYY-MM-DD.ext (e.g. 2021-11-21.md)
 - the file naming format for weekly note files: YYYY-Www.ext (e.g. 2021-W46.md)
-
-Finding and sorting notes is contained in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
-
-
-
-
-
 
