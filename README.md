@@ -149,7 +149,8 @@ inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 Currently, the following things are hardcoded: 
 - the file format of the daily notes: YYYY-MM-DD.md
 
-All the hardcoded stuff is in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
+
+Finding and sorting notes is contained in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
 
 
 
