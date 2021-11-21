@@ -1,5 +1,7 @@
 # Backlog
 
+- **!!!!!** recurse subdirs!!!!
+
 - extend markdown syntax highlights for [[links]]
 - get rid of `daily_finder.sh`
 - maybe choose template in create note 

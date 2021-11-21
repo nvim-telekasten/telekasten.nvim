@@ -197,7 +197,8 @@ inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
 ## The hardcoded stuff
 
 Currently, the following things are hardcoded: 
-- the file naming format for note files: YYYY-MM-DD.md
+- the file naming format for daily note files: YYYY-MM-DD.ext (e.g. 2021-11-21.md)
+- the file naming format for weekly note files: YYYY-Www.ext (e.g. 2021-W46.md)
 
 Finding and sorting notes is contained in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
 
