@@ -56,7 +56,7 @@ The plugin defines the following functions.
 - `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it will be created with a hardcoded template.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
-- `follow_link()`: take text between brackets (linked notes) and open a Telescope file finder with it: selects note to open (incl. preview)
+- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview)
 - `install_daily_finder()` : installs the daily finder tool used by the plugin
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
