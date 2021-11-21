@@ -109,14 +109,18 @@ end
 -- find the file linked to by the word under the cursor
 -- 
 follow_link = function(opts)
+    vim.cmd('normal yi]')
+    local word = vim.fn.getreg('"0')
     builtin.find_files({
         prompt_title = "Follow link to note...",
         cwd = zkcfg.home,
-        default_text = vim.fn.expand("<cword>"),
+        default_text = word,
         find_command = { zkcfg.daily_finder },
         entry_maker = zk_entry_maker,
    })
 end
+
+
 
 -- 
 -- find_notes:
