@@ -42,6 +42,16 @@ require('telekasten').setup({
      -- download tool for daily_finder installation: curl or wget
      downloader = 'curl',
      -- downloader = 'wget',  -- wget is supported, too
+
+     -- following a link to a non-existing note will create it
+     follow_creates_nonexisting = true,
+
+     -- templates for new notes
+     template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
+     -- currently unused, hardcoded in daily_finder.sh:
+     template_new_daily = ZkCfg.home .. '/' .. 'templates/daily.md',
+     -- currently unused
+     template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly.md',
 })
 END
 ```
@@ -62,10 +72,10 @@ This will download the daily finder into the `bin/` folder of your home director
 The plugin defines the following functions.
 
 - `find_notes()` : find notes by file name (title), via Telescope
-- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it will be created with a hardcoded template.
+- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it will be created, honoring the configured template
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
-- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview)
+- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - optional note creation for non-existing notes
 - `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note will be created if not present. 
 - `install_daily_finder()` : installs the daily finder tool used by the plugin
 - `setup(opts)`: used for configuring paths, file extension, etc.
@@ -74,6 +84,49 @@ To use one of the functions above, just run them with the `:lua ...` command.
 
 ```vimscript
 :lua require("telekasten").find_daily_notes()
+```
+
+### Note templates
+
+The functions `find_daily_notes`, `goto_today`, and `follow_link` can create non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
+
+The following table shows which command relies on what config option:
+
+| telekasten function | config option |
+| --- | --- |
+| `goto_today` | `dailies_create_nonexisting` |
+| `find_daily_notes` | `dailies_create_nonexisting` |
+| `follow_link` | `follow_creates_nonexisting` |
+
+If the associated option is `true`, non-existing notes will be created.
+
+#### Template files
+
+The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to template text files that are used for creating new notes.
+
+Currently, the following substitutions will be made during new note creation:
+
+| specifier in template | expands to | example |
+| --- | --- | --- |
+| `{{title}}` | the title of the note | My new note |
+| `{{date}}` | date in iso format | 2021-11-21 |
+| `{{hdate}}` | date in human-readable format | Sunday, Nov. 21st, 2021 |
+
+As an example, this is my template for new notes:
+
+```markdown
+---
+title: {{title}}
+date:  {{date}}
+---
+```
+
+And I use this one for daily notes:
+
+```markdown
+---
+title: {{hdate}}
+---
 ```
 
 ## Bind it 

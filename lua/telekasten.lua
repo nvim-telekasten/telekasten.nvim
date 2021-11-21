@@ -26,11 +26,12 @@ ZkCfg = {
 
      -- following a link to a non-existing note will create it
      follow_creates_nonexisting = true,
+     dailies_create_nonexisting = true,
 
      -- templates for new notes
      template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
      -- currently unused, hardcoded in daily_finder.sh:
-     template_new_daily = ZkCfg.home .. '/' .. 'templates/daily.md',
+     template_new_daily = ZkCfg.home .. '/' .. 'templates/daily_tk.md',
      -- currently unused
      template_new_weekly= ZkCfg.home .. '/' .. 'templates/weekly.md',
 }
