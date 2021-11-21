@@ -15,7 +15,7 @@ Install with your plugin manager of choice.  Mine is [Vundle](https://github.com
 Plugin 'renerocksai/telekasten.nvim'
 ```
 
-### 2. Configure telekaste.nvimn
+### 2. Configure telekasten.nvim
 Somewhere in your vim config, put a snippet like this:
 
 ```vimscript
