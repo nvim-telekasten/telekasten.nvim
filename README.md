@@ -45,6 +45,7 @@ require('telekasten').setup({
 
      -- following a link to a non-existing note will create it
      follow_creates_nonexisting = true,
+     dailies_create_nonexisting = true,
 
      -- templates for new notes
      template_new_note = ZkCfg.home .. '/' .. 'templates/new_note.md',
@@ -110,7 +111,7 @@ Currently, the following substitutions will be made during new note creation:
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
 | `{{date}}` | date in iso format | 2021-11-21 |
-| `{{hdate}}` | date in human-readable format | Sunday, Nov. 21st, 2021 |
+| `{{hdate}}` | date in human-readable format | Sunday, November 21st, 2021 |
 
 As an example, this is my template for new notes:
 
@@ -144,17 +145,10 @@ inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 ```
 
 ## The hardcoded stuff
-Currently, many things are hardcoded: 
+
+Currently, the following things are hardcoded: 
 - the file format of the daily notes: YYYY-MM-DD.md
-- the template for new daily notes
 
-Here is an example of a newly created daily note:
-
-```markdown
----
-title: Saturday, November 20th, 2021
----
-```
 All the hardcoded stuff is in the `daily_finder.sh` script - which you can edit to your liking. I recommend making a copy, though. Otherwise your changes get lost with every plugin update. Don't forget to set `daily_finder = "my_edited_daily_finder.sh"` in the `setup()`, provided you named your  copy `my_edited_daily_finder.sh`.
 
 
