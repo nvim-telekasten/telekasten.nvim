@@ -59,12 +59,14 @@ local function file_exists(fname)
    if f~=nil then io.close(f) return true else return false end
 end
 
+
 local function daysuffix(day)
     if((day == '1') or (day == '21') or (day == '31')) then return 'st' end
     if((day == '2') or (day == '22')) then return 'nd' end
     if((day == '3') or (day == '33')) then return 'rd' end
     return 'th'
 end
+
 
 local function linesubst(line, title)
     local substs = {
@@ -80,6 +82,7 @@ local function linesubst(line, title)
 
     return line
 end
+
 
 local create_note_from_template = function (title, filepath, templatefn)
     -- first, read the template file
@@ -98,21 +101,6 @@ local create_note_from_template = function (title, filepath, templatefn)
 end
 
 
-
---
--- InstallDailyFinder:
--- -------------------
---
--- downloads the daily finder scripts to the configured `my_bin` directory
--- and makes it executable
---
-InstallDailyFinder = function()
-    local destpath = ZkCfg.my_bin .. '/' .. ZkCfg.daily_finder
-    local cmd = downloader2cmd[ZkCfg.downloader]
-    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh')
-    vim.api.nvim_command('!chmod +x ' .. destpath)
-end
-
 local path_to_linkname = function(p)
     local fn = vim.split(p, "/")
     fn = fn[#fn]
@@ -120,6 +108,7 @@ local path_to_linkname = function(p)
     fn = fn[1]
     return fn
 end
+
 
 local zk_entry_maker = function(entry)
     return {
@@ -134,6 +123,21 @@ local check_local_finder = function()
     local ret = vim.fn.system(ZkCfg.daily_finder .. ' check')
     return ret ==  "OK\n"
     -- return vim.fn.executable(ZkCfg.daily_finder) == 1
+end
+
+
+--
+-- InstallDailyFinder:
+-- -------------------
+--
+-- downloads the daily finder scripts to the configured `my_bin` directory
+-- and makes it executable
+--
+InstallDailyFinder = function()
+    local destpath = ZkCfg.my_bin .. '/' .. ZkCfg.daily_finder
+    local cmd = downloader2cmd[ZkCfg.downloader]
+    vim.api.nvim_command('!'.. cmd .. ' ' .. destpath .. ' https://raw.githubusercontent.com/renerocksai/telekasten.nvim/main/ext_commands/daily_finder.sh')
+    vim.api.nvim_command('!chmod +x ' .. destpath)
 end
 
 
