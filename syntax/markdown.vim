@@ -1,6 +1,10 @@
 syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ 
-"hi tklink ctermfg=Blue cterm=bold,underline
-"hi tklink ctermfg=109 cterm=bold,underline
 
-hi tklink ctermfg=72 cterm=bold,underline
-hi tkBrackets ctermfg=gray
+" just blue
+" hi tklink ctermfg=Blue cterm=bold,underline
+" hi tkBrackets ctermfg=gray
+
+
+" for gruvbox
+" hi tklink ctermfg=72 cterm=bold,underline
+" hi tkBrackets ctermfg=gray
