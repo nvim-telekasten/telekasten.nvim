@@ -14,6 +14,7 @@ ZkCfg = {
     home         = home,
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
+    templates    = home .. '/' .. 'templates',
     extension    = ".md",
 
 
@@ -270,7 +271,7 @@ end
 -- CreateNote:
 -- ------------
 --
--- find the file linked to by the word under the cursor
+-- Prompts for title and creates note with default template
 --
 local function on_create(title)
     if (title == nil) then return end
@@ -292,6 +293,48 @@ end
 CreateNote = function(opts)
     opts = {} or opts
     vim.ui.input({prompt = 'Title: '}, on_create)
+end
+
+
+--
+-- CreateNoteSelectTemplate()
+-- --------------------------
+--
+-- Prompts for title, then pops up telescope for template selection,
+-- creates the new note by template and opens it
+
+local function on_create_with_template(title)
+    if (title == nil) then return end
+
+    local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
+    local fexists = file_exists(fname)
+    if (fexists == true) then
+        -- open the new note
+        vim.cmd('e ' .. fname)
+        return
+    end
+
+    builtin.find_files({
+        prompt_title = "Select template...",
+        cwd = ZkCfg.templates,
+        find_command = ZkCfg.find_command,
+        attach_mappings = function(prompt_bufnr, map)
+            map = map -- get rid of lsp error
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local template = ZkCfg.templates .. '/' .. action_state.get_selected_entry().value
+                create_note_from_template(title, fname, template)
+                -- open the new note
+                vim.cmd('e ' .. fname)
+            end)
+            return true
+        end,
+    })
+end
+
+CreateNoteSelectTemplate = function(opts)
+    opts = {} or opts
+    vim.ui.input({prompt = 'Title: '}, on_create_with_template)
 end
 
 
@@ -349,6 +392,7 @@ local M = {
     goto_thisweek = GotoThisWeek,
     find_weekly_notes = FindWeeklyNotes,
     yank_notelink = YankLink,
+    create_note_sel_template = CreateNoteSelectTemplate,
 }
 return M
 

@@ -1,8 +1,9 @@
 # Backlog
 
-- maybe choose template in create note 
 
 ## Dones
+- [x] maybe choose template in create note:
+    - `new_templated_note()` first asks for title, then brings up a telescope picker of all template files in new `ZkCfg.template_dir`.
 - [x] highlights oneline
 - [x] highlight for highlighted text : ==asdfasdfasasdf==
 - [x] yank notelink

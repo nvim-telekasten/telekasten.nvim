@@ -50,6 +50,7 @@ require('telekasten').setup({
      home         = home
      dailies      = home .. '/' .. 'daily',
      weeklies     = home .. '/' .. 'weekly',
+     templates    = home .. '/' .. 'templates',
      extension    = ".md",
 
      -- following a link to a non-existing note will create it
@@ -68,6 +69,20 @@ require('telekasten').setup({
 })
 END
 ```
+| setting | description | example |
+| --- | --- | --- | 
+| `home` | path to your zettelkasten folder (folder with markdown files) | ~/zettelkasten |
+| `dailies` | path where your daily notes go | ~/zettelkasten/daily |
+| `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
+| `templates` | path where your note templates go | ~/zettelkasten/templates |
+| `extension` | filename extension of your note files | .md |
+| `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
+| `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
+| `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
+| `template_new_note` | markdown template for new notes | `home .. '/' .. 'templates/new_note.md'` | 
+| `template_new_daily` | markdown template for new daily notes | `home .. '/' .. 'templates/daily.md'` | 
+| `template_new_weekly` | markdown template for new weekly notes | `home .. '/' .. 'templates/weekly.md'` | 
+
 
 ### 3. Configure your own colors
 Telekasten.nvim allows you to color your `[[links]]` by providing two syntax groups:
@@ -99,6 +114,7 @@ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 The plugin defines the following functions.
 
 - `new_note()` : prompts for title and creates new note by template, then shows it in Telescope
+- `new_templated_note()` : prompts for title and then uses telescope for choosing a template. When a template is selected, a new note is created with it and opened. Should the note exist, it is opened immediately
 - `find_notes()` : find notes by file name (title), via Telescope
 - `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it can be created optionally, honoring the configured template
 - `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note can optionally be created if not present, using the configured template
@@ -200,6 +216,7 @@ nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').goto_today()<CR>
 nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
 nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
+nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
 nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
 
 " we could define [[ in **insert mode** to call insert link
