@@ -79,9 +79,9 @@ END
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
 | `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
-| `template_new_note` | markdown template for new notes | `home .. '/' .. 'templates/new_note.md'` | 
-| `template_new_daily` | markdown template for new daily notes | `home .. '/' .. 'templates/daily.md'` | 
-| `template_new_weekly` | markdown template for new weekly notes | `home .. '/' .. 'templates/weekly.md'` | 
+| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md | 
+| `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md | 
+| `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md | 
 
 
 ### 3. Configure your own colors
