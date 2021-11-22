@@ -69,6 +69,24 @@ require('telekasten').setup({
 END
 ```
 
+### 3. Configure your own colors
+Telekasten.nvim allows you to color your `[[links]]` by providing two syntax groups:
+
+- tkLink : the link title inside the brackets
+- tkBrackets : the brackets surrounding the link title
+
+You can assign colors to them like this in your `init.vim`:
+
+```vimscript
+" just blue and gray
+hi tkLink ctermfg=Blue cterm=bold,underline
+hi tkBrackets ctermfg=gray
+
+
+" for gruvbox
+hi tkLink ctermfg=72 cterm=bold,underline
+hi tkBrackets ctermfg=gray
+```
 
 ## Use it
 
