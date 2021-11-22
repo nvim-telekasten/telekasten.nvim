@@ -90,7 +90,7 @@ hi tkBrackets ctermfg=gray
 hi tkLink ctermfg=72 cterm=bold,underline
 hi tkBrackets ctermfg=gray
 
-" Highlight ==highlighted== text 
+" highlight ==highlighted== text 
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
@@ -98,7 +98,7 @@ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 
 The plugin defines the following functions.
 
-- `new_note` : prompts for title and creates new note by template, then shows it in Telescope
+- `new_note()` : prompts for title and creates new note by template, then shows it in Telescope
 - `find_notes()` : find notes by file name (title), via Telescope
 - `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it can be created optionally, honoring the configured template
 - `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note can optionally be created if not present, using the configured template
@@ -107,7 +107,7 @@ The plugin defines the following functions.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
-- `yank_notelink` : yank a link to the current note, ready to paste
+- `yank_notelink()` : yank a link to the current note, ready to paste
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.  
@@ -215,7 +215,7 @@ inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
 hi tkLink ctermfg=72 cterm=bold,underline
 hi tkBrackets ctermfg=gray
 
-" Highlight ==highlighted== text 
+" highlight ==highlighted== text 
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
