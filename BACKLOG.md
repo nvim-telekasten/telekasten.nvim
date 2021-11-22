@@ -4,6 +4,7 @@
 - maybe choose template in create note 
 
 ## Dones
+- [x] avoid creating new note in home dir when following link to daily or weekly
 - [x] get rid of `daily_finder.sh`
 - [x] find weekly note
 - [x] goto week

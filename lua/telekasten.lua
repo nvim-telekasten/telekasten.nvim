@@ -38,6 +38,7 @@ local note_type_templates = {
 
 local function file_exists(fname)
    local f=io.open(fname,"r")
+   print("checking for " .. fname)
    if f~=nil then io.close(f) return true else return false end
 end
 
@@ -173,9 +174,13 @@ FollowLink = function(opts)
     vim.cmd('normal yi]')
     local title = vim.fn.getreg('"0')
 
-    local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
-    local fexists = file_exists(fname)
+    -- check if fname exists anywhere
+    local fexists = file_exists(ZkCfg.weeklies .. '/' .. title .. ZkCfg.extension)
+    fexists = fexists or file_exists(ZkCfg.dailies .. '/' .. title .. ZkCfg.extension)
+    fexists = fexists or file_exists(ZkCfg.home .. '/' .. title .. ZkCfg.extension)
+
     if ((fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)) then
+        local fname = ZkCfg.home .. '/' .. title .. ZkCfg.extension
         create_note_from_template(title, fname, note_type_templates.normal)
     end
 
