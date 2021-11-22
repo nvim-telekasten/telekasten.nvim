@@ -77,7 +77,7 @@ Telekasten.nvim allows you to color your `[[links]]` by providing two syntax gro
 
 You can assign colors to them like this in your `init.vim`:
 
-```vimscript
+```vim
 " just blue and gray
 hi tkLink ctermfg=Blue cterm=bold,underline
 hi tkBrackets ctermfg=gray
@@ -185,7 +185,7 @@ date:  {{hdate}}
 ## Bind it 
 Usually, you would set up some key bindings, though:
 
-```vimscript
+```vim
 nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
 nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
 nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
