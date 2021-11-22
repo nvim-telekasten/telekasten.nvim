@@ -1,9 +1,10 @@
 # Backlog
 
-- extend markdown syntax highlights for [[links]]
 - maybe choose template in create note 
 
 ## Dones
+- [x] yank notelink
+- [x] extend markdown syntax highlights for [[links]]
 - [x] avoid creating new note in home dir when following link to daily or weekly
 - [x] get rid of `daily_finder.sh`
 - [x] find weekly note

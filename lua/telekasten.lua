@@ -194,6 +194,19 @@ end
 
 
 --
+-- YankLink:
+-- -----------
+--
+-- Create and yank a [[link]] from the current note.
+--
+YankLink = function()
+    local title = '[[' .. path_to_linkname(vim.fn.expand('%')) .. ']]'
+    vim.fn.setreg('"', title)
+    print('yanked ' .. title)
+end
+
+
+--
 -- GotoToday:
 -- ----------
 --
@@ -335,6 +348,7 @@ local M = {
     new_note = CreateNote,
     goto_thisweek = GotoThisWeek,
     find_weekly_notes = FindWeeklyNotes,
+    yank_notelink = YankLink,
 }
 return M
 
