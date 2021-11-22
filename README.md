@@ -74,11 +74,14 @@ Telekasten.nvim allows you to color your `[[links]]` by providing two syntax gro
 
 - tkLink : the link title inside the brackets
 - tkBrackets : the brackets surrounding the link title
+- tkHighlight : ==highlighted== text (non-standard markdown)
 
-You can assign colors to them like this in your `init.vim`:
+The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when taking notes 😄.
+
+You can assign colors to the new syntax groups in your `init.vim`:
 
 ```vim
-" just blue and gray
+" just blue and gray links
 hi tkLink ctermfg=Blue cterm=bold,underline
 hi tkBrackets ctermfg=gray
 
@@ -86,6 +89,9 @@ hi tkBrackets ctermfg=gray
 " for gruvbox
 hi tkLink ctermfg=72 cterm=bold,underline
 hi tkBrackets ctermfg=gray
+
+" Highlight ==highlighted== text 
+hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
 ## Use it
@@ -200,6 +206,17 @@ nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 " alternatively: leader [
 inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
+
+
+" ----- the following are for syntax-coloring [[links]] and ==highlighted text== 
+" ----- (see the section about coloring in README.md)
+
+" for gruvbox
+hi tkLink ctermfg=72 cterm=bold,underline
+hi tkBrackets ctermfg=gray
+
+" Highlight ==highlighted== text 
+hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
 ## The hardcoded stuff
