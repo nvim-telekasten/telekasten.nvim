@@ -24,7 +24,7 @@ Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telesc
 [Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
 
 #### Ripgrep
-For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://github.com/BurntSushi/ripgrep)) is required and needs to be installed so that nvim can find it. So make sure, it's in your path. 
+For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://github.com/BurntSushi/ripgrep)) is required and needs to be installed so that nvim can find it. So make sure it's in your path. 
 
 If rg isn't found at `setup()` time, it will not be used. In that case, the sort order of daily and weekly notes are likely to be reversed. I do accept pull requests, though, for a lua implementation 😁!
 
