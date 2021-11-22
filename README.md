@@ -72,9 +72,9 @@ END
 ### 3. Configure your own colors
 Telekasten.nvim allows you to color your `[[links]]` by providing two syntax groups:
 
-- tkLink : the link title inside the brackets
-- tkBrackets : the brackets surrounding the link title
-- tkHighlight : ==highlighted== text (non-standard markdown)
+- `tkLink` : the link title inside the brackets
+- `tkBrackets` : the brackets surrounding the link title
+- `tkHighlight` : ==highlighted== text (non-standard markdown)
 
 The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when taking notes 😄.
 
