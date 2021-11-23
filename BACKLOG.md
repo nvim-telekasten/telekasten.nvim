@@ -1,7 +1,10 @@
 # Backlog
 
+- vimhelp
+- yt video
 
 ## Dones
+- [x] awesome calendar support
 - [x] maybe choose template in create note:
     - `new_templated_note()` first asks for title, then brings up a telescope picker of all template files in new `ZkCfg.template_dir`.
 - [x] highlights oneline

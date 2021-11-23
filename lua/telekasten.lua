@@ -27,6 +27,17 @@ ZkCfg = {
     template_new_note   = home .. '/' .. 'templates/new_note.md',
     template_new_daily  = home .. '/' .. 'templates/daily_tk.md',
     template_new_weekly = home .. '/' .. 'templates/weekly_tk.md',
+
+    -- integrate with calendar-vim
+    plug_into_calendar = true,
+    calendar_opts = {
+        -- calendar week display mode: 1 .. 'WK01', 2 .. 'WK 1', 3 .. 'KW01', 4 .. 'KW 1', 5 .. '1'
+        weeknm = 4,
+        -- use monday as first day of week: 1 .. true, 0 .. false
+        calendar_monday = 1,
+        -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
+        calendar_mark = 'left-fit',
+    }
 }
 
 -- ----------------------------------------------------------------------------
@@ -39,7 +50,7 @@ local note_type_templates = {
 
 local function file_exists(fname)
    local f=io.open(fname,"r")
-   print("checking for " .. fname)
+   -- print("checking for " .. fname)
    if f~=nil then io.close(f) return true else return false end
 end
 
@@ -97,7 +108,7 @@ end
 -- Select from daily notes
 --
 FindDailyNotes = function(opts)
-    opts = {} or opts
+    opts = opts or {}
 
     local today = os.date("%Y-%m-%d")
     local fname = ZkCfg.dailies .. '/' .. today .. ZkCfg.extension
@@ -121,7 +132,7 @@ end
 -- Select from daily notes
 --
 FindWeeklyNotes = function(opts)
-    opts = {} or opts
+    opts = opts or {}
 
     local title = os.date("%Y-W%V")
     local fname = ZkCfg.weeklies .. '/' .. title .. ZkCfg.extension
@@ -145,7 +156,7 @@ end
 -- Select from all notes and put a link in the current buffer
 --
 InsertLink = function(opts)
-    opts = {} or opts
+    opts = opts or {}
     builtin.find_files({
         prompt_title = "Insert link to note",
         cwd = ZkCfg.home,
@@ -171,7 +182,7 @@ end
 -- find the file linked to by the word under the cursor
 --
 FollowLink = function(opts)
-    opts = {} or opts
+    opts = opts or {}
     vim.cmd('normal yi]')
     local title = vim.fn.getreg('"0')
 
@@ -214,8 +225,8 @@ end
 -- find today's daily note and create it if necessary.
 --
 GotoToday = function(opts)
-    opts = {} or opts
-    local word = os.date("%Y-%m-%d")
+    opts = opts or {}
+    local word = opts.today or os.date("%Y-%m-%d")
 
     local fname = ZkCfg.dailies .. '/' .. word .. ZkCfg.extension
     local fexists = file_exists(fname)
@@ -224,10 +235,23 @@ GotoToday = function(opts)
     end
 
     builtin.find_files({
-        prompt_title = "Goto today",
+        prompt_title = "Goto day",
         cwd = ZkCfg.home,
         default_text = word,
         find_command = ZkCfg.find_command,
+        attach_mappings = function(prompt_bufnr, map)
+            map = map -- get rid of lsp error
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+
+                -- open the new note
+                if (opts.calendar == true) then
+                    vim.cmd('wincmd w')
+                end
+                vim.cmd('e ' .. fname)
+            end)
+            return true
+        end,
     })
 end
 
@@ -239,7 +263,7 @@ end
 -- Select from notes
 --
 FindNotes = function(opts)
-    opts = {} or opts
+    opts = opts or {}
     builtin.find_files({
         prompt_title = "Find notes by name",
         cwd = ZkCfg.home,
@@ -255,7 +279,7 @@ end
 -- find the file linked to by the word under the cursor
 --
 SearchNotes = function(opts)
-    opts = {} or opts
+    opts = opts or {}
 
     builtin.live_grep({
         prompt_title = "Search in notes",
@@ -291,7 +315,7 @@ local function on_create(title)
 end
 
 CreateNote = function(opts)
-    opts = {} or opts
+    opts = opts or {}
     vim.ui.input({prompt = 'Title: '}, on_create)
 end
 
@@ -333,19 +357,19 @@ local function on_create_with_template(title)
 end
 
 CreateNoteSelectTemplate = function(opts)
-    opts = {} or opts
+    opts = opts or {}
     vim.ui.input({prompt = 'Title: '}, on_create_with_template)
 end
 
 
 --
 -- GotoThisWeek:
--- ----------
+-- -------------
 --
 -- find this week's weekly note and create it if necessary.
 --
 GotoThisWeek = function(opts)
-    opts = {} or opts
+    opts = opts or {}
 
     local title = os.date("%Y-W%V")
     local fname = ZkCfg.weeklies .. '/' .. title .. ZkCfg.extension
@@ -363,6 +387,85 @@ GotoThisWeek = function(opts)
 end
 
 
+
+--
+-- Calendar Stuff
+-- --------------
+
+-- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
+CalendarSignDay = function(day, month, year)
+    local fn = ZkCfg.dailies .. '/' .. string.format('%04d-%02d-%02d', year, month, day) .. ZkCfg.extension
+    if file_exists(fn) then
+        return 1
+    end
+    return 0
+end
+
+-- action on enter on a specific day: preview in telescope, stay in calendar on cancel, open note in other window on accept
+CalendarAction = function(day, month, year, week, dir)
+    -- lsp
+    week = week
+    dir = dir
+
+    local today = string.format('%04d-%02d-%02d', year, month, day)
+    local opts = {}
+    opts.today = today
+    opts.calendar = true
+    GotoToday(opts)
+end
+
+ShowCalendar = function(opts)
+    local defaults = {}
+    defaults.cmd = 'CalendarVR'
+    defaults.vertical_resize = 1
+
+    opts = opts or defaults
+    vim.cmd(opts.cmd)
+    if (opts.vertical_resize) then
+        vim.cmd('vertical resize +' .. opts.vertical_resize)
+    end
+end
+
+-- set up calendar integration: forward to our lua functions
+SetupCalendar = function(opts)
+    local defaults = ZkCfg.calendar_opts
+    opts = opts or defaults
+
+    local cmd = [[
+        function! MyCalSign(day, month, year)
+            return luaeval('CalendarSignDay(_A[1], _A[2], _A[3])', [a:day, a:month, a:year])
+        endfunction
+
+        function! MyCalAction(day, month, year, weekday, dir)
+            " day : day
+            " month : month
+            " year year 
+            " weekday : day of week (monday=1)
+            " dir : direction of calendar
+            return luaeval('CalendarAction(_A[1], _A[2], _A[3], _A[4], _A[5])', [a:day, a:month, a:year, a:weekday, a:dir]) 
+        endfunction
+
+        function! MyCalBegin()
+            " too early, windown doesn't exist yet
+            " cannot resize
+        endfunction
+
+        let g:calendar_sign = 'MyCalSign'
+        let g:calendar_action = 'MyCalAction'
+        " let g:calendar_begin = 'MyCalBegin'
+
+        let g:calendar_monday = {{calendar_monday}}
+        let g:calendar_mark = '{{calendar_mark}}'
+        let g:calendar_weeknm = {{weeknm}}
+    ]]
+
+    for k, v in pairs(opts) do
+        cmd = cmd:gsub('{{' .. k .. '}}', v)
+    end
+    vim.cmd(cmd)
+end
+
+
 -- Setup(cfg)
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
@@ -370,12 +473,25 @@ end
 Setup = function(cfg)
     cfg = cfg or {}
     for k, v in pairs(cfg) do
-       ZkCfg[k] = v
+        -- merge everything but calendar opts
+        -- they will be merged later
+       if (k ~= 'calendar_opts') then
+           ZkCfg[k] = v
+       end
     end
     if vim.fn.executable('rg') then
         ZkCfg.find_command = { 'rg', '--files', '--sortr', 'created',  }
     else
         ZkCfg.find_command = nil
+    end
+
+    -- this looks a little messy
+    if (ZkCfg.plug_into_calendar) then
+        ZkCfg.calendar_opts = ZkCfg.calendar_opts or {}
+        ZkCfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm or ZkCfg.calendar_opts.weeknm
+        ZkCfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday or ZkCfg.calendar_opts.calendar_monday
+        ZkCfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark or ZkCfg.calendar_opts.calendar_mark
+        SetupCalendar(ZkCfg.calendar_opts)
     end
 end
 
@@ -393,6 +509,7 @@ local M = {
     find_weekly_notes = FindWeeklyNotes,
     yank_notelink = YankLink,
     create_note_sel_template = CreateNoteSelectTemplate,
+    show_calendar = ShowCalendar,
 }
 return M
 

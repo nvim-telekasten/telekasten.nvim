@@ -4,6 +4,8 @@ A Neovim (lua) plugin for working with a markdown zettelkasten, based on telesco
 
 Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional). 
 
+It can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
+
 ## Search-based navigation
 
 Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often likely to show up more than one result, you can preview related notes immediately. 
@@ -30,13 +32,24 @@ If rg isn't found at `setup()` time, it will not be used. In that case, the sort
 
 If you can't use `rg`, I recommend using `goto_today()` and `goto_thisweek()` instead of `find_daily_notes()` and `find_weekly_notes()`, as this pre-fills the search field, which makes the results list look a bit more sane.
 
+#### calendar-vim Plugin (optional)
+
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
+
+See below for installing and using it.
 
 
 ### 1. Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
 
-```vimscript
+```vim
 Plugin 'renerocksai/telekasten.nvim'
+```
+
+I higly recommend using the calendar integration. For that you'll need [calendar-vim](https://github.com/mattn/calendar-vim):
+
+```vim
+Plugin 'mattn/calendar-vim'
 ```
 
 
@@ -47,25 +60,36 @@ Somewhere in your vim config, put a snippet like this:
 lua << END
 local home = vim.fn.expand("~/zettelkasten")
 require('telekasten').setup({
-     home         = home
-     dailies      = home .. '/' .. 'daily',
-     weeklies     = home .. '/' .. 'weekly',
-     templates    = home .. '/' .. 'templates',
-     extension    = ".md",
+    home         = home
+    dailies      = home .. '/' .. 'daily',
+    weeklies     = home .. '/' .. 'weekly',
+    templates    = home .. '/' .. 'templates',
+    extension    = ".md",
 
-     -- following a link to a non-existing note will create it
-     follow_creates_nonexisting = true,
-     dailies_create_nonexisting = true,
-     weeklies_create_nonexisting = true,
+    -- following a link to a non-existing note will create it
+    follow_creates_nonexisting = true,
+    dailies_create_nonexisting = true,
+    weeklies_create_nonexisting = true,
 
-     -- template for new notes (new_note, follow_link)
-     template_new_note = home .. '/' .. 'templates/new_note.md',
+    -- template for new notes (new_note, follow_link)
+    template_new_note = home .. '/' .. 'templates/new_note.md',
 
-     -- template for newly created daily notes (goto_today)
-     template_new_daily = home .. '/' .. 'templates/daily.md',
+    -- template for newly created daily notes (goto_today)
+    template_new_daily = home .. '/' .. 'templates/daily.md',
 
-     -- template for newly created weekly notes (goto_thisweek)
-     template_new_weekly= home .. '/' .. 'templates/weekly.md',
+    -- template for newly created weekly notes (goto_thisweek)
+    template_new_weekly= home .. '/' .. 'templates/weekly.md',
+
+    -- integrate with calendar-vim
+    plug_into_calendar = true,
+    calendar_opts = {
+        -- calendar week display mode: 1 .. 'WK01', 2 .. 'WK 1', 3 .. 'KW01', 4 .. 'KW 1', 5 .. '1'
+        weeknm = 4,
+        -- use monday as first day of week: 1 .. true, 0 .. false
+        calendar_monday = 1,
+        -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
+        calendar_mark = 'left-fit',
+    }
 })
 END
 ```
@@ -79,9 +103,27 @@ END
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
 | `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
-| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md | 
+| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md' | 
 | `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md | 
 | `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md | 
+| `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true | 
+| `calendar_opts` | options for calendar, see below | see below | 
+
+The calendar support has its own options, contained in `calendar_opts`:
+
+| calendar setting | description | example |
+| --- | --- | --- | 
+| `weeknm` | calendar week display mode | 1 | 
+|          | 1 .. 'WK01' | | 
+|          | 2 .. 'WK 1' | | 
+|          | 3 .. 'KW01' | | 
+|          | 4 .. 'KW 1' | | 
+|          | 5 .. '1' | | 
+| `calendar_monday` | use monday as start of week if 1 | 1 | 
+| `calendar_mark` | where to put marks to mark days with daily notes | 'left-fit' | 
+|                 | 'left' : ugly | | 
+|                 | 'left-fit' : mark to the left of the day| | 
+|                 | 'right' : mark to the right of the day| | 
 
 
 ### 3. Configure your own colors
@@ -124,11 +166,12 @@ The plugin defines the following functions.
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `yank_notelink()` : yank a link to the current note, ready to paste
+- `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.  
 
-```vimscript
+```vim
 :lua require("telekasten").find_daily_notes()
 ```
 
@@ -204,6 +247,14 @@ date:  {{hdate}}
 ## Saturday link
 ## Sunday link
 ```
+
+### Using the calendar
+
+When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of vim.
+
+- days that have a daily note associated with them are marked with a + sign and a different color
+- pressing enter on a day will open up a telescope finder with the associated daily note selected and previewed. The daily note will be created if it doesn't exist. If you choose to not open the note, you will return to the calender so you can preview other notes.
+
 
 ## Bind it 
 Usually, you would set up some key bindings, though:
