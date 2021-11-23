@@ -420,14 +420,14 @@ CalendarSignDay = function(day, month, year)
 end
 
 -- action on enter on a specific day: preview in telescope, stay in calendar on cancel, open note in other window on accept
-CalendarAction = function(day, month, year, week, dir)
+CalendarAction = function(day, month, year, weekday, dir)
     -- lsp
     dir = dir
 
     local today = string.format('%04d-%02d-%02d', year, month, day)
     local opts = {}
     opts.date = today
-    opts.hdate = daymap[week] .. ', ' .. monthmap[tonumber(month)] .. ' ' .. day .. daysuffix(day) .. ', ' .. year
+    opts.hdate = daymap[weekday] .. ', ' .. monthmap[tonumber(month)] .. ' ' .. day .. daysuffix(day) .. ', ' .. year
     opts.week = 'n/a'  -- TODO: calculate the week somehow
     opts.month = month
     opts.year = year
