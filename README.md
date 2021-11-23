@@ -6,7 +6,7 @@ Find notes by name, daily and weekly notes by date, search within all notes, pla
 
 Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
 
-After having written [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
+After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
 
 This is the result of my first days of hacking neovim with lua:
 
@@ -113,7 +113,7 @@ END
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
 | `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
-| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md' | 
+| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md | 
 | `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md | 
 | `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md | 
 | `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true | 
