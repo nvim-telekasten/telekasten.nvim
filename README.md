@@ -1,11 +1,14 @@
 # telekasten.nvim
 
-A Neovim (lua) plugin for working with a markdown zettelkasten, based on telescope.nvim
+A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and mixing it with a journal, based on telescope.nvim
 
 Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional). 
 
-It can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
 
+After having written [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md), I have eventually arrived back at my favourite editor: Neovim 😄! 
+
+This is the result of my first days of hacking neovim with lua:
 
 ![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
 
