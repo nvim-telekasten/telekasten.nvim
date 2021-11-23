@@ -487,10 +487,11 @@ Setup = function(cfg)
 
     -- this looks a little messy
     if (ZkCfg.plug_into_calendar) then
+        cfg.calendar_opts = cfg.calendar_opts or {}
         ZkCfg.calendar_opts = ZkCfg.calendar_opts or {}
-        ZkCfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm or ZkCfg.calendar_opts.weeknm
-        ZkCfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday or ZkCfg.calendar_opts.calendar_monday
-        ZkCfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark or ZkCfg.calendar_opts.calendar_mark
+        ZkCfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm or ZkCfg.calendar_opts.weeknm or 1
+        ZkCfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday or ZkCfg.calendar_opts.calendar_monday or 1
+        ZkCfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark or ZkCfg.calendar_opts.calendar_mark or 'left-fit'
         SetupCalendar(ZkCfg.calendar_opts)
     end
 end
