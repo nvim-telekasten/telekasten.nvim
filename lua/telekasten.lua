@@ -61,12 +61,28 @@ local function daysuffix(day)
     return 'th'
 end
 
-local function linesubst(line, title)
+local daymap = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
+local monthmap = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }
+
+local calenderinfo_today = function()
+    local dinfo = os.date("*t")
+    local opts = {}
+    opts.date = os.date("%Y-%m-%d")
+    opts.hdate = daymap[dinfo.wday] .. ', ' .. monthmap[dinfo.month] .. ' ' .. dinfo.day .. daysuffix(dinfo.day) .. ', ' .. dinfo.year
+    opts.week = os.date("%V")
+    opts.month = dinfo.month
+    opts.year = dinfo.year
+    opts.day = dinfo.day
+    return opts
+end
+
+local function linesubst(line, title, calendar_info)
+    local cinfo = calendar_info or calenderinfo_today()
     local substs = {
-        date = os.date('%Y-%m-%d'),
-        hdate = os.date('%A, %B %dx, %Y'):gsub('x', daysuffix(os.date('%d'))),
-        week = os.date('%V'),
-        year = os.date('%Y'),
+        date = cinfo.date,
+        hdate = cinfo.hdate,
+        week = cinfo.week,
+        year = cinfo.year,
         title = title,
     }
     for k, v in pairs(substs) do
@@ -76,7 +92,7 @@ local function linesubst(line, title)
     return line
 end
 
-local create_note_from_template = function (title, filepath, templatefn)
+local create_note_from_template = function (title, filepath, templatefn, calendar_info)
     -- first, read the template file
     local lines = {}
     for line in io.lines(templatefn) do
@@ -86,7 +102,7 @@ local create_note_from_template = function (title, filepath, templatefn)
     -- now write the output file, substituting vars line by line
     local ofile = io.open(filepath, 'a')
     for _, line in pairs(lines) do
-        ofile:write(linesubst(line, title) .. '\n')
+        ofile:write(linesubst(line, title, calendar_info) .. '\n')
     end
 
     ofile:close()
@@ -224,14 +240,16 @@ end
 --
 -- find today's daily note and create it if necessary.
 --
+
+
 GotoToday = function(opts)
-    opts = opts or {}
-    local word = opts.today or os.date("%Y-%m-%d")
+    opts = opts or calenderinfo_today()
+    local word = opts.date or os.date("%Y-%m-%d")
 
     local fname = ZkCfg.dailies .. '/' .. word .. ZkCfg.extension
     local fexists = file_exists(fname)
     if ((fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)) then
-        create_note_from_template(word, fname, note_type_templates.daily)
+        create_note_from_template(word, fname, note_type_templates.daily, opts)
     end
 
     builtin.find_files({
@@ -404,12 +422,16 @@ end
 -- action on enter on a specific day: preview in telescope, stay in calendar on cancel, open note in other window on accept
 CalendarAction = function(day, month, year, week, dir)
     -- lsp
-    week = week
     dir = dir
 
     local today = string.format('%04d-%02d-%02d', year, month, day)
     local opts = {}
-    opts.today = today
+    opts.date = today
+    opts.hdate = daymap[week] .. ', ' .. monthmap[tonumber(month)] .. ' ' .. day .. daysuffix(day) .. ', ' .. year
+    opts.week = 'n/a'  -- TODO: calculate the week somehow
+    opts.month = month
+    opts.year = year
+    opts.day = day
     opts.calendar = true
     GotoToday(opts)
 end

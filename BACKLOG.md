@@ -1,9 +1,10 @@
 # Backlog
 
-- vimhelp
-- yt video
+- [ ] vimhelp
+- [ ] yt video
 
 ## Dones
+- [x] Honor day, month, year etc when creating a note via calendar!
 - [x] awesome calendar support
 - [x] maybe choose template in create note:
     - `new_templated_note()` first asks for title, then brings up a telescope picker of all template files in new `ZkCfg.template_dir`.
