@@ -6,6 +6,9 @@ Find notes by name, daily and weekly notes by date, search within all notes, pla
 
 It can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
 
+![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
+![./img/2021-11-23_04-29.png](img/2021-11-23_04-29.png)
+
 ## Search-based navigation
 
 Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often likely to show up more than one result, you can preview related notes immediately. 
