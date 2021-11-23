@@ -6,8 +6,10 @@ Find notes by name, daily and weekly notes by date, search within all notes, pla
 
 It can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
 
+
 ![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
 
+---
 
 ![./img/2021-11-23_04-29.png](img/2021-11-23_04-29.png)
 
