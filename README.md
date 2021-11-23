@@ -23,7 +23,7 @@ Every navigation action, like following a link, is centered around a Telescope s
 ### The preview is a powerful feature
 Leaving the opening of the note to Telescope, you can decide with one keypress whether you want to open the note in a split or in the current window - or if you've seen enough.
 
-I find that pressing the enter key to confirm the search does not interrupt my flow, and I really enjoy being able to check the preview.  I often get enough information from the it alone so I don't actually have to "visit" every note in terms of being able to edit it.
+I find that pressing the enter key to confirm the search does not interrupt my flow, and I really enjoy being able to check the preview.  I often get enough information from it alone so I don't actually have to "visit" every note in terms of being able to edit it.
 
 ## Install and setup
 
