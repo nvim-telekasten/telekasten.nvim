@@ -276,6 +276,7 @@ nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
 nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
 nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
 nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
+nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
