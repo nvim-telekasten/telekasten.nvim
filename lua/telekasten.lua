@@ -482,7 +482,7 @@ local SetupCalendar = function(opts)
             " year year
             " weekday : day of week (monday=1)
             " dir : direction of calendar
-            return luaeval('require("telekasten").CalendarAction(_A[1], _A[2], _A[3], _A[4], _A[5])', 
+            return luaeval('require("telekasten").CalendarAction(_A[1], _A[2], _A[3], _A[4], _A[5])',
                                                                  \ [a:day, a:month, a:year, a:weekday, a:dir])
         endfunction
 
