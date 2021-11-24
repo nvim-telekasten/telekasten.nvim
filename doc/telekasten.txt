@@ -231,8 +231,9 @@ You can assign colors to the new syntax groups in your `init.vim`:
     hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 <
 
---------------------------------------------------------------------------------
-Section 3: Usage                                             *telekasten.usage*
+
+================================================================================
+Section 3: Usage                                              *telekasten.usage*
 
 Telekasten.nvim is used by calling the following lua functions without
 parameters:
