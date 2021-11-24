@@ -2,9 +2,9 @@
 
 A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
-Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones, with templates.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional). 
+Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones, with templates.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional).
 
-Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
 After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
 
@@ -18,7 +18,7 @@ This is the result of my first days of hacking neovim with lua:
 
 ## Search-based navigation
 
-Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often likely to show up more than one result, you can preview related notes immediately. 
+Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often likely to show up more than one result, you can preview related notes immediately.
 
 ### The preview is a powerful feature
 Leaving the opening of the note to Telescope, you can decide with one keypress whether you want to open the note in a split or in the current window - or if you've seen enough.
@@ -28,7 +28,7 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 ## Install and setup
 
 
-### 0. Prerequisites 
+### 0. Prerequisites
 
 #### Telescope
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
@@ -36,7 +36,7 @@ Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telesc
 [Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
 
 #### Ripgrep
-For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://github.com/BurntSushi/ripgrep)) is required and needs to be installed so that nvim can find it. So make sure it's in your path. 
+For proper sort order of daily notes, the `rg` executable ([Ripgrep](https://github.com/BurntSushi/ripgrep)) is required and needs to be installed so that nvim can find it. So make sure it's in your path.
 
 If rg isn't found at `setup()` time, it will not be used. In that case, the sort order of daily and weekly notes are likely to be reversed or total garbage. I do accept pull requests, though, for a lua implementation 😁!
 
@@ -44,7 +44,7 @@ If you can't use `rg`, I recommend using `goto_today()` and `goto_thisweek()` in
 
 #### calendar-vim Plugin (optional)
 
-Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar. 
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
 See below for installing and using it.
 
@@ -70,7 +70,7 @@ Somewhere in your vim config, put a snippet like this:
 lua << END
 local home = vim.fn.expand("~/zettelkasten")
 require('telekasten').setup({
-    home         = home
+    home         = home,
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     templates    = home .. '/' .. 'templates',
@@ -104,7 +104,7 @@ require('telekasten').setup({
 END
 ```
 | setting | description | example |
-| --- | --- | --- | 
+| --- | --- | --- |
 | `home` | path to your zettelkasten folder (folder with markdown files) | ~/zettelkasten |
 | `dailies` | path where your daily notes go | ~/zettelkasten/daily |
 | `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
@@ -113,27 +113,27 @@ END
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
 | `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
-| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md | 
-| `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md | 
-| `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md | 
-| `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true | 
-| `calendar_opts` | options for calendar, see below | see below | 
+| `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md |
+| `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md |
+| `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md |
+| `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true |
+| `calendar_opts` | options for calendar, see below | see below |
 
 The calendar support has its own options, contained in `calendar_opts`:
 
 | calendar setting | description | example |
-| --- | --- | --- | 
-| `weeknm` | calendar week display mode | 1 | 
-|          | 1 .. 'WK01' | | 
-|          | 2 .. 'WK 1' | | 
-|          | 3 .. 'KW01' | | 
-|          | 4 .. 'KW 1' | | 
-|          | 5 .. '1' | | 
-| `calendar_monday` | use monday as start of week if 1 | 1 | 
-| `calendar_mark` | where to put marks to mark days with daily notes | 'left-fit' | 
-|                 | 'left' : ugly | | 
-|                 | 'left-fit' : mark to the left of the day| | 
-|                 | 'right' : mark to the right of the day| | 
+| --- | --- | --- |
+| `weeknm` | calendar week display mode | 1 |
+|          | 1 .. 'WK01' | |
+|          | 2 .. 'WK 1' | |
+|          | 3 .. 'KW01' | |
+|          | 4 .. 'KW 1' | |
+|          | 5 .. '1' | |
+| `calendar_monday` | use monday as start of week if 1 | 1 |
+| `calendar_mark` | where to put marks to mark days with daily notes | 'left-fit' |
+|                 | 'left' : ugly | |
+|                 | 'left-fit' : mark to the left of the day| |
+|                 | 'right' : mark to the right of the day| |
 
 
 ### 3. Configure your own colors
@@ -157,7 +157,7 @@ hi tkBrackets ctermfg=gray
 hi tkLink ctermfg=72 cterm=bold,underline
 hi tkBrackets ctermfg=gray
 
-" highlight ==highlighted== text 
+" highlight ==highlighted== text
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
@@ -179,7 +179,7 @@ The plugin defines the following functions.
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
-To use one of the functions above, just run them with the `:lua ...` command.  
+To use one of the functions above, just run them with the `:lua ...` command.
 
 ```vim
 :lua require("telekasten").find_daily_notes()
@@ -266,7 +266,7 @@ When invoking `show_calendar()`, a calendar showing the previous, current, and n
 - pressing enter on a day will open up a telescope finder with the associated daily note selected and previewed. The daily note will be created if it doesn't exist. If you choose to not open the note, you will return to the calender so you can preview other notes.
 
 
-## Bind it 
+## Bind it
 Usually, you would set up some key bindings, though:
 
 ```vim
@@ -287,20 +287,19 @@ nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
 inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
 
 
-" ----- the following are for syntax-coloring [[links]] and ==highlighted text== 
+" ----- the following are for syntax-coloring [[links]] and ==highlighted text==
 " ----- (see the section about coloring in README.md)
 
 " for gruvbox
 hi tkLink ctermfg=72 cterm=bold,underline
 hi tkBrackets ctermfg=gray
 
-" highlight ==highlighted== text 
+" highlight ==highlighted== text
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
 ## The hardcoded stuff
 
-Currently, the following things are hardcoded: 
+Currently, the following things are hardcoded:
 - the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
 - the file naming format for weekly note files: `YYYY-Www.ext` (e.g. `2021-W46.md`)
-
