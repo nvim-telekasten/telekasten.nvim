@@ -1,9 +1,9 @@
 # Backlog
 
-- [ ] vimhelp
 - [ ] yt video
 
 ## Dones
+- [x] vimhelp
 - [x] Honor day, month, year etc when creating a note via calendar!
 - [x] awesome calendar support
 - [x] maybe choose template in create note:
