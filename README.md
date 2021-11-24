@@ -161,6 +161,17 @@ hi tkBrackets ctermfg=gray
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
+## Get Help
+Telekasten.nvim now comes with its own help file. So you can always:
+
+```vim
+:h telekasten.nvim
+```
+or
+```vim
+:h telekasten.<TAB>   " or whatever your completion key is there
+```
+
 ## Use it
 
 The plugin defines the following functions.
