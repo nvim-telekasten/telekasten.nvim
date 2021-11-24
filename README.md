@@ -194,11 +194,13 @@ The following table shows which command relies on what config option:
 | telekasten function | config option | creates what |
 | --- | --- | --- |
 | `goto_today` | `dailies_create_nonexisting` | today's daily note |
+| [ENTER] on a day in the calendar | `dailies_create_nonexisting` | selected day's daily note |
 | `find_daily_notes` | `dailies_create_nonexisting` | today's daily note |
 | `goto_thisweek` | `weeklies_create_nonexisting` | this week's weekly note |
 | `find_weekly_notes` | `weeklies_create_nonexisting` | this week's weekly note |
 | `follow_link` | `follow_creates_nonexisting` | new note |
 | `new_note` | always true | new note |
+| `new_templated_note` | always true | new note |
 
 If the associated option is `true`, non-existing notes will be created.
 
