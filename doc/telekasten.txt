@@ -512,8 +512,8 @@ Credits go to:
 * {Conni2461} on GitHub for the awesome pull request and support!
 * {NeoVim} and its awesome community
 * {Telescope.nvim} and its awesome community
-* {ThePrimeagen} and {TJ} aka {teej_dv} aka {TJDeVries} of twitch (and vimconf and...) fame for being awesome
-  and inspiring!
+* {ThePrimeagen} and {TJ} aka {teej_dv} aka {TJDeVries} of twitch 
+  (and vimconf and ...) fame for being awesome and inspiring!
 
 
  vim:tw=78:ts=8:ft=help:norl:
