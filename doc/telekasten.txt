@@ -383,15 +383,15 @@ you jump to today's or this week's note, or when you typed a
 The specific templates and settings used are:
 
   For daily notes:~
-      |telekasten.settings.template_new_daily|
+    - |telekasten.settings.template_new_daily|
     - |telekasten.settings.dailies_create_nonexisting|
 
   For weekly notes:~
-      |telekasten.settings.template_new_weekly|
+    - |telekasten.settings.template_new_weekly|
     - |telekasten.settings.weeklies_create_nonexisting|
 
   For all other notes:~
-      |telekasten.settings.template_new_note|
+    - |telekasten.settings.template_new_note|
     - |telekasten.settings.follow_creates_nonexisting|
 
 See also |telekasten.template_files| below for more on the specific templates.
