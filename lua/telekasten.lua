@@ -1,5 +1,6 @@
 local builtin = require "telescope.builtin"
-local actions = require("telescope.actions") local action_state = require "telescope.actions.state"
+local actions = require("telescope.actions")
+local action_state = require "telescope.actions.state"
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -10,7 +11,7 @@ local vim = vim
 -- ----------------------------------------------------------------------------
 local home = vim.fn.expand("~/zettelkasten")
 
-ZkCfg = {
+local ZkCfg = {
     home         = home,
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
@@ -123,7 +124,7 @@ end
 --
 -- Select from daily notes
 --
-FindDailyNotes = function(opts)
+local FindDailyNotes = function(opts)
     opts = opts or {}
 
     local today = os.date("%Y-%m-%d")
@@ -147,7 +148,7 @@ end
 --
 -- Select from daily notes
 --
-FindWeeklyNotes = function(opts)
+local FindWeeklyNotes = function(opts)
     opts = opts or {}
 
     local title = os.date("%Y-W%V")
@@ -161,7 +162,7 @@ FindWeeklyNotes = function(opts)
         prompt_title = "Find weekly note",
         cwd = ZkCfg.weeklies,
         find_command = ZkCfg.find_command,
-      })
+    })
 end
 
 
@@ -171,13 +172,11 @@ end
 --
 -- Select from all notes and put a link in the current buffer
 --
-InsertLink = function(opts)
-    opts = opts or {}
+local InsertLink = function(_)
     builtin.find_files({
         prompt_title = "Insert link to note",
         cwd = ZkCfg.home,
-        attach_mappings = function(prompt_bufnr, map)
-            map = map -- get rid of lsp error
+        attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
@@ -187,7 +186,7 @@ InsertLink = function(opts)
             return true
         end,
         find_command = ZkCfg.find_command,
-   })
+    })
 end
 
 
@@ -197,7 +196,7 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-FollowLink = function(opts)
+local FollowLink = function(opts)
     opts = opts or {}
     vim.cmd('normal yi]')
     local title = vim.fn.getreg('"0')
@@ -227,7 +226,7 @@ end
 --
 -- Create and yank a [[link]] from the current note.
 --
-YankLink = function()
+local YankLink = function()
     local title = '[[' .. path_to_linkname(vim.fn.expand('%')) .. ']]'
     vim.fn.setreg('"', title)
     print('yanked ' .. title)
@@ -240,9 +239,7 @@ end
 --
 -- find today's daily note and create it if necessary.
 --
-
-
-GotoToday = function(opts)
+local GotoToday = function(opts)
     opts = opts or calenderinfo_today()
     local word = opts.date or os.date("%Y-%m-%d")
 
@@ -257,8 +254,7 @@ GotoToday = function(opts)
         cwd = ZkCfg.home,
         default_text = word,
         find_command = ZkCfg.find_command,
-        attach_mappings = function(prompt_bufnr, map)
-            map = map -- get rid of lsp error
+        attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
 
@@ -280,13 +276,12 @@ end
 --
 -- Select from notes
 --
-FindNotes = function(opts)
-    opts = opts or {}
+local FindNotes = function(_)
     builtin.find_files({
         prompt_title = "Find notes by name",
         cwd = ZkCfg.home,
         find_command = ZkCfg.find_command,
-   })
+    })
 end
 
 
@@ -296,9 +291,7 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-SearchNotes = function(opts)
-    opts = opts or {}
-
+local SearchNotes = function(_)
     builtin.live_grep({
         prompt_title = "Search in notes",
         cwd = ZkCfg.home,
@@ -332,8 +325,7 @@ local function on_create(title)
     })
 end
 
-CreateNote = function(opts)
-    opts = opts or {}
+local CreateNote = function(_)
     vim.ui.input({prompt = 'Title: '}, on_create)
 end
 
@@ -360,8 +352,7 @@ local function on_create_with_template(title)
         prompt_title = "Select template...",
         cwd = ZkCfg.templates,
         find_command = ZkCfg.find_command,
-        attach_mappings = function(prompt_bufnr, map)
-            map = map -- get rid of lsp error
+        attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local template = ZkCfg.templates .. '/' .. action_state.get_selected_entry().value
@@ -374,8 +365,7 @@ local function on_create_with_template(title)
     })
 end
 
-CreateNoteSelectTemplate = function(opts)
-    opts = opts or {}
+local CreateNoteSelectTemplate = function(_)
     vim.ui.input({prompt = 'Title: '}, on_create_with_template)
 end
 
@@ -386,7 +376,7 @@ end
 --
 -- find this week's weekly note and create it if necessary.
 --
-GotoThisWeek = function(opts)
+local GotoThisWeek = function(opts)
     opts = opts or {}
 
     local title = os.date("%Y-W%V")
@@ -411,7 +401,7 @@ end
 -- --------------
 
 -- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
-CalendarSignDay = function(day, month, year)
+local CalendarSignDay = function(day, month, year)
     local fn = ZkCfg.dailies .. '/' .. string.format('%04d-%02d-%02d', year, month, day) .. ZkCfg.extension
     if file_exists(fn) then
         return 1
@@ -420,10 +410,7 @@ CalendarSignDay = function(day, month, year)
 end
 
 -- action on enter on a specific day: preview in telescope, stay in calendar on cancel, open note in other window on accept
-CalendarAction = function(day, month, year, weekday, dir)
-    -- lsp
-    dir = dir
-
+local CalendarAction = function(day, month, year, weekday, _)
     local today = string.format('%04d-%02d-%02d', year, month, day)
     local opts = {}
     opts.date = today
@@ -436,7 +423,7 @@ CalendarAction = function(day, month, year, weekday, dir)
     GotoToday(opts)
 end
 
-ShowCalendar = function(opts)
+local ShowCalendar = function(opts)
     local defaults = {}
     defaults.cmd = 'CalendarVR'
     defaults.vertical_resize = 1
@@ -449,22 +436,22 @@ ShowCalendar = function(opts)
 end
 
 -- set up calendar integration: forward to our lua functions
-SetupCalendar = function(opts)
+local SetupCalendar = function(opts)
     local defaults = ZkCfg.calendar_opts
     opts = opts or defaults
 
     local cmd = [[
         function! MyCalSign(day, month, year)
-            return luaeval('CalendarSignDay(_A[1], _A[2], _A[3])', [a:day, a:month, a:year])
+            return luaeval('require("telekasten").CalendarSignDay(_A[1], _A[2], _A[3])', [a:day, a:month, a:year])
         endfunction
 
         function! MyCalAction(day, month, year, weekday, dir)
             " day : day
             " month : month
-            " year year 
+            " year year
             " weekday : day of week (monday=1)
             " dir : direction of calendar
-            return luaeval('CalendarAction(_A[1], _A[2], _A[3], _A[4], _A[5])', [a:day, a:month, a:year, a:weekday, a:dir]) 
+            return luaeval('require("telekasten").CalendarAction(_A[1], _A[2], _A[3], _A[4], _A[5])', [a:day, a:month, a:year, a:weekday, a:dir])
         endfunction
 
         function! MyCalBegin()
@@ -492,7 +479,7 @@ end
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
 --
-Setup = function(cfg)
+local Setup = function(cfg)
     cfg = cfg or {}
     for k, v in pairs(cfg) do
         -- merge everything but calendar opts
@@ -533,6 +520,7 @@ local M = {
     yank_notelink = YankLink,
     create_note_sel_template = CreateNoteSelectTemplate,
     show_calendar = ShowCalendar,
+    CalendarSignDay = CalendarSignDay,
+    CalendarAction = CalendarAction,
 }
 return M
-
