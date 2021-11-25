@@ -1,5 +1,6 @@
 # Backlog
 
+- [ ] implement sorting of the file list that works as well as the `daily_finder.sh` we abandoned
 - [ ] yt video
 
 ## Dones
