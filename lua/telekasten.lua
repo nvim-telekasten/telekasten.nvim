@@ -633,7 +633,7 @@ local ToggleTodo = function()
 			end
 		end
 	end
-	vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, repline)
+	vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, { repline })
 	-- print('rep: ' .. repl)
 end
 
