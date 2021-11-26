@@ -42,6 +42,15 @@ Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn
 
 See below for installing and using it.
 
+#### For pasting images: xclip (optional)
+Telekasten.nvim supports pasting images from the clipboard. Currently, this is
+only implemented for systems that have the `xclip` utility installed.
+
+On Ubuntu/Debian like systems:
+
+```console
+$ sudo apt-get install xclip
+```
 
 ### 1. Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
@@ -68,6 +77,13 @@ require('telekasten').setup({
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     templates    = home .. '/' .. 'templates',
+
+    -- image subdir for pasting
+    -- subdir name 
+    -- or nil if pasted images shouldn't go into a special subdir
+	image_subdir = "img", 
+
+    -- markdown file extension
     extension    = ".md",
 
     -- following a link to a non-existing note will create it
@@ -83,6 +99,11 @@ require('telekasten').setup({
 
     -- template for newly created weekly notes (goto_thisweek)
     template_new_weekly= home .. '/' .. 'templates/weekly.md',
+
+	-- image link style
+	-- wiki:     ![[image name]]
+	-- markdown: ![image name](image_subdir/xxxxx.png)
+	image_link_style = "wiki",
 
     -- integrate with calendar-vim
     plug_into_calendar = true,
@@ -103,6 +124,11 @@ END
 | `dailies` | path where your daily notes go | ~/zettelkasten/daily |
 | `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
 | `templates` | path where your note templates go | ~/zettelkasten/templates |
+| `image_subdir` | sub-directory where pasted images should go | img |
+| | set to nil if pasted images shouldn't go into a special subdir | img |
+| `image_link_style` | style of img links inserted when pasting images from clipboard | wiki |
+|  | `markdown` ... `![image name](image_subdir/xxxxx.png)` | |
+|  | `wiki` ... `![[image name]]` | |
 | `extension` | filename extension of your note files | .md |
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
@@ -182,6 +208,7 @@ The plugin defines the following functions.
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `yank_notelink()` : yank a link to the current note, ready to paste
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
+- `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
@@ -287,6 +314,7 @@ nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
 nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
 nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
 nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
+nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
@@ -310,3 +338,4 @@ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 Currently, the following things are hardcoded:
 - the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
 - the file naming format for weekly note files: `YYYY-Www.ext` (e.g. `2021-W46.md`)
+- the file naming format for pasted images: `pasted_img_YYYYMMDDhhmmss.png` (e.g. `pasted_img_20211126041108.png`)

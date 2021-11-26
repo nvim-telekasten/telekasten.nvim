@@ -55,6 +55,15 @@ telekasten.setup({opts})
       home = '/path/to/directory',          -- path to main markdown folder 
       daily = '/path/to/directory',         -- path to daily notes
       weekly = '/path/to/directory',        -- path to weekly notes
+
+      -- image subdir for pasting
+      -- subdir name 
+      -- or nil if pasted images shouldn't go into a special subdir
+      image_subdir = "img", 
+
+      -- markdown file extension
+      extension    = ".md",
+
       templates = '/path/to/directory',     -- path to templates
       extension = '.file extension',        -- file extension of note files
 
@@ -62,6 +71,12 @@ telekasten.setup({opts})
       follow_creates_nonexisting = true,    -- create non-existing on follow
       dailies_create_nonexisting = true,    -- create non-existing dailies
       weeklies_create_nonexisting = true,   -- create non-existing weeklies
+
+      -- image link style",
+      -- wiki:     ![[image name]]
+      -- markdown: ![image name](image_subdir/xxxxx.png)
+      image_link_style = "wiki",
+
 
       -- specific note templates
       template_new_note = '/path/to/file',    -- template for new notes
@@ -123,6 +138,23 @@ telekasten.setup({opts})
         Filename extension of your markdown note files.
 
         Default: '.md'
+
+                                        *telekasten.settings.image_subdir*
+    image_subdir: ~
+        Sub-directory where pasted images should go to. Set to `nil` if images
+        should not go into a sub-directory.
+
+        Default: 'img'
+
+                                    *telekasten.settings.image_link_style*
+    image_link_style: ~
+        Style of links to insert when pasting an image.
+
+        Valid options are:
+        - 'wiki' .. places links like this: `![[image_name]]`
+        - 'markdown' .. `![image_name](image_subdir/image_name)`
+
+        Default: 'wiki'
 
                            *telekasten.settings.follow_create_nonexisting*
     follow_creates_nonexisting: ~
@@ -487,6 +519,7 @@ However, here are some suggestions:
     nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
     nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
     nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
+    nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
