@@ -95,7 +95,14 @@ local calenderinfo_today = function()
 	local dinfo = os.date("*t")
 	local opts = {}
 	opts.date = os.date("%Y-%m-%d")
-	opts.hdate = daymap[dinfo.wday]
+	local wday = dinfo.wday - 1
+	if wday == 0 then
+		wday = 7
+	end
+	if wday == 6 then
+		wday = 1
+	end
+	opts.hdate = daymap[wday]
 		.. ", "
 		.. monthmap[dinfo.month]
 		.. " "
