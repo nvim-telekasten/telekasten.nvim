@@ -642,8 +642,8 @@ local Setup = function(cfg)
 			or "left-fit"
 		SetupCalendar(ZkCfg.calendar_opts)
 	end
-    print(vim.inspect(cfg))
-    print(vim.inspect(ZkCfg))
+	-- print(vim.inspect(cfg))
+	-- print(vim.inspect(ZkCfg))
 end
 
 local M = {
