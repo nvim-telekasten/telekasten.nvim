@@ -10,7 +10,7 @@ If you have `xclip` installed, Telekasten.nvim can even **paste images from the 
 
 After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
 
-This is the result of my first days of hacking neovim with lua (more features have been added since, see below)
+This is the result of my first days of hacking neovim with lua (more features have been added since, see below the screenshots):
 
 ![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
 
