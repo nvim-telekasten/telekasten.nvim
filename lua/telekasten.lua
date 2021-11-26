@@ -608,6 +608,35 @@ local SetupCalendar = function(opts)
 	vim.cmd(cmd)
 end
 
+local ToggleTodo = function()
+	-- replace
+	--       by -
+	-- -     by - [ ]
+	-- - [ ] by - [x]
+	-- - [x] by -
+	local linenr = vim.api.nvim_win_get_cursor(0)[1]
+	local curline = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
+	-- if curline.strip().startswith('- ') and not curline.strip.startswith('- [')...
+	-- print('cur: ' .. curline)
+	local stripped = vim.trim(curline)
+	local repline
+	if vim.startswith(stripped, "- ") and not vim.startswith(stripped, "- [") then
+		repline = curline:gsub("- ", "- [ ] ", 1)
+	else
+		if vim.startswith(stripped, "- [ ]") then
+			repline = curline:gsub("- %[ %]", "- [x]", 1)
+		else
+			if vim.startswith(stripped, "- [x]") then
+				repline = curline:gsub("- %[x%]", "-", 1)
+			else
+				repline = curline:gsub("(%S)", "- [ ] %1", 1)
+			end
+		end
+	end
+	vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, repline)
+	-- print('rep: ' .. repl)
+end
+
 -- Setup(cfg)
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
@@ -664,5 +693,6 @@ local M = {
 	CalendarSignDay = CalendarSignDay,
 	CalendarAction = CalendarAction,
 	paste_img_and_link = imgFromClipboard,
+	toggle_todo = ToggleTodo,
 }
 return M

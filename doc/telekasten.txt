@@ -404,6 +404,11 @@ telekasten.show_calendar()~
   See also:~
       - |telekasten.calendar|
 
+                                                   *telekasten.toggle_todo()*
+telekasten.toggle_todo()~
+  Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`, 
+  and `-` .
+
 --------------------------------------------------------------------------------
 Section 3.1: Templates                                    *telekasten.templates*
 
@@ -428,7 +433,7 @@ The specific templates and settings used are:
 
 See also |telekasten.template_files| below for more on the specific templates.
 
-The following table shows you what action creates what kind of non-existing
+The folloet ing table shows you what action creates what kind of non-existing
 note:
 
 +----------------------------------+--------------------------------+
@@ -520,12 +525,13 @@ However, here are some suggestions:
     nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
     nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
     nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
+    nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
     " alternatively: leader [
     inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
-
+    inoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 
     " the following are for syntax-coloring [[links]] and ==highlighted text==
     " (see the section about coloring in README.md)

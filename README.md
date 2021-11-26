@@ -211,6 +211,7 @@ The plugin defines the following functions.
 - `yank_notelink()` : yank a link to the current note, ready to paste
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
+- `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
@@ -317,12 +318,13 @@ nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
 nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
 nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
 nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
+nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 " alternatively: leader [
 inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
-
+inoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 
 " ----- the following are for syntax-coloring [[links]] and ==highlighted text==
 " ----- (see the section about coloring in README.md)
