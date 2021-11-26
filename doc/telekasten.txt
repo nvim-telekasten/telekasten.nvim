@@ -264,8 +264,8 @@ telekasten.find_notes()~
 
                                               *telekasten.find_daily_notes()*
 telekasten.find_daily_notes()~
-  Find daily notes by date, via Telescope. File names are sorted by file
-  creation time, most recent file first. 
+  Find daily notes by date, via Telescope. File names are sorted by file name,
+  most recent file first. 
 
   If today's daily note is not present, will be created if
   `dailies_create_nonexisting` is set to `true`. 
@@ -302,7 +302,7 @@ telekasten.goto_today()~
                                              *telekasten.find_weekly_notes()*
 telekasten.find_weekly_notes()~
   Find weekly notes by week, via Telescope. File names are sorted by file
-  creation time, most recent file first. 
+  name, most recent file first. 
 
   If this week's daily note is not present, will be created if
   `weeklies_create_nonexisting` is set to `true`. 

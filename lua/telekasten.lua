@@ -1,6 +1,10 @@
 local builtin = require("telescope.builtin")
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
+local scan = require("plenary.scandir")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -146,6 +150,24 @@ local path_to_linkname = function(p)
 	return fn
 end
 
+local order_numeric = function(a, b)
+	return a > b
+end
+
+local find_files_sorted = function(opts)
+	opts = opts or {}
+
+	local file_list = scan.scan_dir(opts.cwd, {})
+	table.sort(file_list, order_numeric)
+	pickers.new(opts, {
+		finder = finders.new_table({
+			results = file_list,
+		}),
+		sorter = conf.generic_sorter(opts),
+		previewer = conf.file_previewer(opts),
+	}):find()
+end
+
 --
 -- FindDailyNotes:
 -- ---------------
@@ -164,7 +186,8 @@ local FindDailyNotes = function(opts)
 		create_note_from_template(today, fname, note_type_templates.daily)
 	end
 
-	builtin.find_files({
+	-- builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Find daily note",
 		cwd = ZkCfg.dailies,
 		find_command = ZkCfg.find_command,
@@ -189,7 +212,8 @@ local FindWeeklyNotes = function(opts)
 		create_note_from_template(title, fname, note_type_templates.weekly)
 	end
 
-	builtin.find_files({
+	-- builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Find weekly note",
 		cwd = ZkCfg.weeklies,
 		find_command = ZkCfg.find_command,
@@ -280,7 +304,8 @@ local GotoToday = function(opts)
 		create_note_from_template(word, fname, note_type_templates.daily, opts)
 	end
 
-	builtin.find_files({
+	-- builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Goto day",
 		cwd = ZkCfg.home,
 		default_text = word,
@@ -418,7 +443,8 @@ local GotoThisWeek = function(opts)
 		create_note_from_template(title, fname, note_type_templates.weekly)
 	end
 
-	builtin.find_files({
+	-- builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Goto this week:",
 		cwd = ZkCfg.weeklies,
 		default_text = title,
@@ -519,6 +545,8 @@ local Setup = function(cfg)
 			ZkCfg[k] = v
 		end
 	end
+
+	-- TODO: this is obsolete:
 	if vim.fn.executable("rg") then
 		ZkCfg.find_command = { "rg", "--files", "--sortr", "created" }
 	else

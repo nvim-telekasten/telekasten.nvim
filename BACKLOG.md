@@ -1,9 +1,13 @@
 # Backlog
 
-- [ ] implement sorting of the file list that works as well as the `daily_finder.sh` we abandoned
+- [ ]: (silly idea) check if we can paste imgs into nvim
+
+
 - [ ] yt video
 
 ## Dones
+- [x] implement sorting of the file list that works as well as the `daily_finder.sh` we abandoned
+    - `plenary.scan_dir()` to the rescue!
 - [x] vimhelp
 - [x] Honor day, month, year etc when creating a note via calendar!
 - [x] awesome calendar support
