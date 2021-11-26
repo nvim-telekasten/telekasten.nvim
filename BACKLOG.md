@@ -3,6 +3,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] bugfixed and PRed calendar-vim: passing proper `week`(day) param from :CalendarT
 - [x] toggle todo
 - [x]: (silly idea) check if we can paste imgs into nvim
   - not so silly: with xclip, it's possible!
