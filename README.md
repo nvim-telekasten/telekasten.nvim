@@ -4,7 +4,7 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 
 Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones, with templates.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional).
 
-Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
 If you have `xclip` installed, Telekasten.nvim can even **paste images from the clipboard** into a dedicated sub-directory and insert a wiki or markdown link at the current cursor position!
 
@@ -40,7 +40,7 @@ Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telesc
 
 #### calendar-vim Plugin (optional)
 
-Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/mattn/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
+Telekasten.nvim can optionally plug into **my bugfixed version of** [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
 See below for installing and using it.
 
@@ -61,10 +61,10 @@ Install with your plugin manager of choice.  Mine is [Vundle](https://github.com
 Plugin 'renerocksai/telekasten.nvim'
 ```
 
-I higly recommend using the calendar integration. For that you'll need [calendar-vim](https://github.com/mattn/calendar-vim):
+I higly recommend using the calendar integration. For that you'll need [calendar-vim](https://github.com/renerocksai/calendar-vim):
 
 ```vim
-Plugin 'mattn/calendar-vim'
+Plugin 'renerocksai/calendar-vim'
 ```
 
 
@@ -302,6 +302,12 @@ When invoking `show_calendar()`, a calendar showing the previous, current, and n
 - days that have a daily note associated with them are marked with a + sign and a different color
 - pressing enter on a day will open up a telescope finder with the associated daily note selected and previewed. The daily note will be created if it doesn't exist. If you choose to not open the note, you will return to the calender so you can preview other notes.
 
+If you want to see a big calendar showing the current month that fills your entire window, you can issue the following
+command in vim:
+
+```vim
+:CalendarT
+```
 
 ## Bind it
 Usually, you would set up some key bindings, though:
@@ -317,6 +323,7 @@ nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
 nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
 nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
 nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
+nnoremap <leader>zC :CalendarT<CR>
 nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 

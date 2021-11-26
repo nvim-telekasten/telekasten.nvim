@@ -507,6 +507,15 @@ next month is shown at the right side of vim.
   if it doesn't exist. If you choose to not open the note, you will return to
   the calender so you can preview other notes.
 
+If you want to see a big calendar showing the current month that fills your
+entire window, you can issue the following command in vim:
+>
+    :CalendarT
+<
+Note:~
+  Calendar functions are only available if you have the plugin `calendar-vim`
+  installed, which you can find at https://github.com/renerocksai/calendar-vim 
+
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*
 
@@ -524,6 +533,7 @@ However, here are some suggestions:
     nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
     nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
     nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
+    nnoremap <leader>zC :CalendarT<CR>
     nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
     nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 
