@@ -105,7 +105,7 @@ require('telekasten').setup({
 	-- image link style
 	-- wiki:     ![[image name]]
 	-- markdown: ![](image_subdir/xxxxx.png)
-	image_link_style = "wiki",
+	image_link_style = "markdown",
 
     -- integrate with calendar-vim
     plug_into_calendar = true,
@@ -128,7 +128,7 @@ END
 | `templates` | path where your note templates go | ~/zettelkasten/templates |
 | `image_subdir` | sub-directory where pasted images should go | img |
 | | set to nil if pasted images shouldn't go into a special subdir | img |
-| `image_link_style` | style of img links inserted when pasting images from clipboard | wiki |
+| `image_link_style` | style of img links inserted when pasting images from clipboard | markdown |
 |  | `markdown` ... `![](image_subdir/xxxxx.png)` | |
 |  | `wiki` ... `![[image name]]` | |
 | `extension` | filename extension of your note files | .md |

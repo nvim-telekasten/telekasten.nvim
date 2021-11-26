@@ -23,7 +23,7 @@ local ZkCfg = {
 	-- image subdir for pasting
 	-- subdir name
 	-- or nil if pasted images shouldn't go into a special subdir
-	image_subdir = "img",
+	image_subdir = nil,
 
 	-- markdown file extension
 	extension = ".md",
@@ -41,7 +41,7 @@ local ZkCfg = {
 	-- image link style
 	-- wiki:     ![[image name]]
 	-- markdown: ![](image_subdir/xxxxx.png)
-	image_link_style = "wiki",
+	image_link_style = "markdown",
 
 	-- integrate with calendar-vim
 	plug_into_calendar = true,
@@ -642,6 +642,8 @@ local Setup = function(cfg)
 			or "left-fit"
 		SetupCalendar(ZkCfg.calendar_opts)
 	end
+    print(vim.inspect(cfg))
+    print(vim.inspect(ZkCfg))
 end
 
 local M = {

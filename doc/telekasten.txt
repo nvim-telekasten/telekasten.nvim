@@ -144,7 +144,7 @@ telekasten.setup({opts})
         Sub-directory where pasted images should go to. Set to `nil` if images
         should not go into a sub-directory.
 
-        Default: 'img'
+        Default: `nil`
 
                                     *telekasten.settings.image_link_style*
     image_link_style: ~
@@ -154,7 +154,7 @@ telekasten.setup({opts})
         - 'wiki' .. places links like this: `![[image_name]]`
         - 'markdown' .. `![](image_subdir/image_name)`
 
-        Default: 'wiki'
+        Default: 'markdown'
 
                            *telekasten.settings.follow_create_nonexisting*
     follow_creates_nonexisting: ~
