@@ -40,7 +40,7 @@ local ZkCfg = {
 
 	-- image link style
 	-- wiki:     ![[image name]]
-	-- markdown: ![image name](image_subdir/xxxxx.png)
+	-- markdown: ![](image_subdir/xxxxx.png)
 	image_link_style = "wiki",
 
 	-- integrate with calendar-vim
@@ -117,7 +117,7 @@ local imgFromClipboard = function()
 	os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
 	if file_exists(pngpath) then
 		if ZkCfg.image_link_style == "markdown" then
-			vim.api.nvim_put({ "![" .. pngname .. "](" .. relpath .. "]" }, "", false, true)
+			vim.api.nvim_put({ "![](" .. relpath .. "]" }, "", false, true)
 		else
 			vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", false, true)
 		end

@@ -104,7 +104,7 @@ require('telekasten').setup({
 
 	-- image link style
 	-- wiki:     ![[image name]]
-	-- markdown: ![image name](image_subdir/xxxxx.png)
+	-- markdown: ![](image_subdir/xxxxx.png)
 	image_link_style = "wiki",
 
     -- integrate with calendar-vim
@@ -129,7 +129,7 @@ END
 | `image_subdir` | sub-directory where pasted images should go | img |
 | | set to nil if pasted images shouldn't go into a special subdir | img |
 | `image_link_style` | style of img links inserted when pasting images from clipboard | wiki |
-|  | `markdown` ... `![image name](image_subdir/xxxxx.png)` | |
+|  | `markdown` ... `![](image_subdir/xxxxx.png)` | |
 |  | `wiki` ... `![[image name]]` | |
 | `extension` | filename extension of your note files | .md |
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |

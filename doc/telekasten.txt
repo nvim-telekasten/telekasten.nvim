@@ -74,7 +74,7 @@ telekasten.setup({opts})
 
       -- image link style",
       -- wiki:     ![[image name]]
-      -- markdown: ![image name](image_subdir/xxxxx.png)
+      -- markdown: ![](image_subdir/xxxxx.png)
       image_link_style = "wiki",
 
 
@@ -152,7 +152,7 @@ telekasten.setup({opts})
 
         Valid options are:
         - 'wiki' .. places links like this: `![[image_name]]`
-        - 'markdown' .. `![image_name](image_subdir/image_name)`
+        - 'markdown' .. `![](image_subdir/image_name)`
 
         Default: 'wiki'
 
