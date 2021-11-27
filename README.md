@@ -342,6 +342,7 @@ nnoremap <leader>zC :CalendarT<CR>
 nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
+nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
