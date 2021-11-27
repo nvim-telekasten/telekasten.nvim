@@ -13,7 +13,7 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
-- show back-links and notes also referencing links
+- show other notes that link to the same note as the link under the cursor
 
 ---
 
