@@ -331,7 +331,7 @@ nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 " alternatively: leader [
 inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
-inoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
+inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo()<CR>
 
 " ----- the following are for syntax-coloring [[links]] and ==highlighted text==
 " ----- (see the section about coloring in README.md)
