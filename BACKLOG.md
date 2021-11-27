@@ -3,6 +3,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] find_friends()
 - [x] show_backlinks() : issue #3
 - [x] replaced `vim.ui.input` by `vim.fn.input`, as the former was causing problems on nvim 0.5.x
   - might not report on all closed issues here in the future as they are available in the issue tracker anyway
