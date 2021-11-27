@@ -58,7 +58,6 @@ M.Cfg = {
 
 local function file_exists(fname)
 	local f = io.open(fname, "r")
-	-- print("checking for " .. fname)
 	if f ~= nil then
 		io.close(f)
 		return true
@@ -66,6 +65,7 @@ local function file_exists(fname)
 		return false
 	end
 end
+
 
 -- ----------------------------------------------------------------------------
 -- image stuff
@@ -255,7 +255,6 @@ local FindDailyNotes = function(opts)
 	opts = opts or {}
 
 	local today = os.date("%Y-%m-%d")
-	print("dailies: ", M.Cfg.dailies)
 	local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if
@@ -430,6 +429,25 @@ local SearchNotes = function(_)
 		cwd = M.Cfg.home,
 		search_dirs = { M.Cfg.home },
 		default_text = vim.fn.expand("<cword>"),
+		find_command = M.Cfg.find_command,
+	})
+end
+
+--
+-- ShowBacklinks:
+-- ------------
+--
+-- Find all notes linking to this one
+--
+local ShowBacklinks = function(_)
+	local title = path_to_linkname(vim.fn.expand('%'))
+	-- or vim.api.nvim_buf_get_name(0)
+	builtin.live_grep({
+		results_title = "Backlinks to " .. title,
+        prompt_title = "Search",
+		cwd = M.Cfg.home,
+		search_dirs = { M.Cfg.home },
+		default_text = '\\[\\[' .. title .. '\\]\\]',
 		find_command = M.Cfg.find_command,
 	})
 end
@@ -630,8 +648,6 @@ local ToggleTodo = function()
 	-- - [x] by -
 	local linenr = vim.api.nvim_win_get_cursor(0)[1]
 	local curline = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
-	-- if curline.strip().startswith('- ') and not curline.strip.startswith('- [')...
-	-- print('cur: ' .. curline)
 	local stripped = vim.trim(curline)
 	local repline
 	if vim.startswith(stripped, "- ") and not vim.startswith(stripped, "- [") then
@@ -648,7 +664,6 @@ local ToggleTodo = function()
 		end
 	end
 	vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, { repline })
-	-- print('rep: ' .. repl)
 end
 
 -- Setup(cfg)
@@ -721,5 +736,6 @@ M.CalendarSignDay = CalendarSignDay
 M.CalendarAction = CalendarAction
 M.paste_img_and_link = imgFromClipboard
 M.toggle_todo = ToggleTodo
+M.show_backlinks = ShowBacklinks
 
 return M

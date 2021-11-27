@@ -409,6 +409,10 @@ telekasten.toggle_todo()~
   Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`, 
   and `-` .
 
+                                                *telekasten.show_backlinks()*
+telekasten.show_backlinks()~
+  Opens a telescope search for notes that `[[link]]` back to the current note.
+
 --------------------------------------------------------------------------------
 Section 3.1: Templates                                    *telekasten.templates*
 
@@ -536,6 +540,7 @@ However, here are some suggestions:
     nnoremap <leader>zC :CalendarT<CR>
     nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
     nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
+    nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
 
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

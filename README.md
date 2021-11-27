@@ -2,7 +2,19 @@
 
 A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
-Find notes by name, daily and weekly notes by date, search within all notes, place and follow links to your notes or create new ones, with templates.  Current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies.  Following a link to a non-existing note can also create the missing note (optional).
+#### Highlights:
+
+- Find notes by name, daily and weekly notes by date 
+- search within all notes 
+- place and follow links to your notes or create new ones, with templates
+- current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies
+- following a link to a non-existing note can also create the missing note (optional)
+- find notes **that link back to your notes**
+- calendar support
+- paste images from clipboard
+- toggle [ ] todo status of line
+
+---
 
 Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
@@ -212,6 +224,7 @@ The plugin defines the following functions.
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
+- `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
@@ -326,6 +339,7 @@ nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
 nnoremap <leader>zC :CalendarT<CR>
 nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
+nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
