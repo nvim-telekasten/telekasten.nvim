@@ -15,6 +15,8 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - paste images from clipboard
 - toggle [ ] todo status of line
 
+##### New features are being announced in the [discussions](https://github.com/renerocksai/telekasten.nvim/discussions)!
+
 ---
 
 Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
@@ -206,6 +208,8 @@ or
 ```vim
 :h telekasten.<TAB>   " or whatever your completion key is there
 ```
+
+or .. **just use telescope**: `:Telescope help_tags` and search for `telekasten`.
 
 ## Use it
 
