@@ -10,10 +10,10 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies
 - following a link to a non-existing note can also create the missing note (optional)
 - find notes **that link back to your notes**
+- find other notes that link to the same note as the link under the cursor
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
-- show other notes that link to the same note as the link under the cursor
 
 ---
 
