@@ -460,7 +460,12 @@ local function on_create(title)
 end
 
 local CreateNote = function(_)
-	vim.ui.input({ prompt = "Title: " }, on_create)
+	-- vim.ui.input causes ppl problems - see issue #4
+	-- vim.ui.input({ prompt = "Title: " }, on_create)
+	local title = vim.fn.input("Title: ")
+	if #title > 0 then
+		on_create(title)
+	end
 end
 
 --
@@ -501,7 +506,12 @@ local function on_create_with_template(title)
 end
 
 local CreateNoteSelectTemplate = function(_)
-	vim.ui.input({ prompt = "Title: " }, on_create_with_template)
+	-- vim.ui.input causes ppl problems - see issue #4
+	-- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
+	local title = vim.fn.input("Title: ")
+	if #title > 0 then
+		on_create_with_template(title)
+	end
 end
 
 --
