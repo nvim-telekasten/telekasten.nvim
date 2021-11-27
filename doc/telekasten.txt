@@ -374,9 +374,18 @@ telekasten.search_notes()~
   under the cursor.
 
                                                    *telekasten.insert_link()*
-telekasten.insert_link()~
+telekasten.insert_link({opts})~
   Select a note by title (file name), via Telescope, and place a `[[link]]` at
   the current cursor position. 
+
+  Valid keys for {opts}
+   
+  i:~
+    If `true`, it will enter input mode by pressing the <A> key. This is useful
+    when being used in a simple `inoremap` key mapping like shown in
+    |telekasten.mappings|.
+
+    Default: `nil`
 
                                                    *telekasten.follow_link()*
 telekasten.insert_link()~
@@ -405,9 +414,18 @@ telekasten.show_calendar()~
       - |telekasten.calendar|
 
                                                    *telekasten.toggle_todo()*
-telekasten.toggle_todo()~
+telekasten.toggle_todo({opts})~
   Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`, 
   and `-` .
+
+  Valid keys for {opts}
+   
+  i:~
+    If `true`, it will enter input mode by pressing the <A> key. This is useful
+    when being used in a simple `inoremap` key mapping like shown in
+    |telekasten.mappings|.
+
+    Default: `nil`
 
                                                 *telekasten.show_backlinks()*
 telekasten.show_backlinks()~
@@ -551,8 +569,8 @@ However, here are some suggestions:
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
     " alternatively: leader [
-    inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
-    inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo()<CR>
+    inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
+    inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
 
     " the following are for syntax-coloring [[links]] and ==highlighted text==
     " (see the section about coloring in README.md)

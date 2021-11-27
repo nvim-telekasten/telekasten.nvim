@@ -3,6 +3,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] added option parameter `i` to `toggle_todo(opts)` and `insert_link(opts)` to enter insert mode.
 - [x] find_friends()
 - [x] show_backlinks() : issue #3
 - [x] replaced `vim.ui.input` by `vim.fn.input`, as the former was causing problems on nvim 0.5.x

@@ -70,7 +70,7 @@ end
 -- image stuff
 local imgFromClipboard = function()
 	if vim.fn.executable("xclip") == 0 then
-		print("No xclip installed!")
+		vim.api.nvim_err_write("No xclip installed!\n")
 		return
 	end
 
@@ -303,7 +303,8 @@ end
 --
 -- Select from all notes and put a link in the current buffer
 --
-local InsertLink = function(_)
+local InsertLink = function(opts)
+	opts = opts or {}
 	builtin.find_files({
 		prompt_title = "Insert link to note",
 		cwd = M.Cfg.home,
@@ -313,6 +314,9 @@ local InsertLink = function(_)
 				local selection = action_state.get_selected_entry()
 				local fn = path_to_linkname(selection.value)
 				vim.api.nvim_put({ "[[" .. fn .. "]]" }, "", false, true)
+				if opts.i then
+					vim.api.nvim_feedkeys("A", "m", false)
+				end
 			end)
 			return true
 		end,
@@ -657,12 +661,14 @@ local SetupCalendar = function(opts)
 	vim.cmd(cmd)
 end
 
-local ToggleTodo = function()
+local ToggleTodo = function(opts)
 	-- replace
 	--       by -
 	-- -     by - [ ]
 	-- - [ ] by - [x]
 	-- - [x] by -
+	-- enter insert mode if opts.i == true
+	opts = opts or {}
 	local linenr = vim.api.nvim_win_get_cursor(0)[1]
 	local curline = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
 	local stripped = vim.trim(curline)
@@ -681,6 +687,9 @@ local ToggleTodo = function()
 		end
 	end
 	vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, { repline })
+	if opts.i then
+		vim.api.nvim_feedkeys("A", "m", false)
+	end
 end
 
 -- Setup(cfg)

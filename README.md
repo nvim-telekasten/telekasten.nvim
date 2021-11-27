@@ -220,11 +220,17 @@ The plugin defines the following functions.
 - `goto_thisweek()` : pops up a Telescope window with this week's weekly note pre-selected. This week's note can optionally be created if not present, using the configured template
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
+  - **note**: 
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#bind-it).
+    - example: `insert_link({ i=true })`
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `yank_notelink()` : yank a link to the current note, ready to paste
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
+  - **note**:
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#bind-it).
+    - example: `toggle_todo({ i=true })`
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
 - `setup(opts)`: used for configuring paths, file extension, etc.
@@ -347,8 +353,8 @@ nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
 " alternatively: leader [
-inoremap <leader>[ <ESC>:lua require('telekasten').insert_link()<CR>
-inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo()<CR>
+inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
+inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
 
 " ----- the following are for syntax-coloring [[links]] and ==highlighted text==
 " ----- (see the section about coloring in README.md)
