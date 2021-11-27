@@ -413,6 +413,11 @@ telekasten.toggle_todo()~
 telekasten.show_backlinks()~
   Opens a telescope search for notes that `[[link]]` back to the current note.
 
+                                                  *telekasten.find_friends()*
+telekasten.find_friends()~
+  Opens a telescope search for notes that also `[[link]]` to the link under the
+  cursor.
+
 --------------------------------------------------------------------------------
 Section 3.1: Templates                                    *telekasten.templates*
 

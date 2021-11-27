@@ -66,7 +66,6 @@ local function file_exists(fname)
 	end
 end
 
-
 -- ----------------------------------------------------------------------------
 -- image stuff
 local imgFromClipboard = function()
@@ -353,6 +352,24 @@ local FollowLink = function(opts)
 end
 
 --
+-- FindFriends:
+-- -----------
+--
+-- Find notes also linking to the link under cursor
+--
+local FindFriends = function()
+	vim.cmd("normal yi]")
+	local title = vim.fn.getreg('"0')
+
+	builtin.live_grep({
+		prompt_title = "Notes referencing `" .. title .. "`",
+		cwd = M.Cfg.home,
+		default_text = "\\[\\[" .. title .. "\\]\\]",
+		find_command = M.Cfg.find_command,
+	})
+end
+
+--
 -- YankLink:
 -- -----------
 --
@@ -440,14 +457,14 @@ end
 -- Find all notes linking to this one
 --
 local ShowBacklinks = function(_)
-	local title = path_to_linkname(vim.fn.expand('%'))
+	local title = path_to_linkname(vim.fn.expand("%"))
 	-- or vim.api.nvim_buf_get_name(0)
 	builtin.live_grep({
 		results_title = "Backlinks to " .. title,
-        prompt_title = "Search",
+		prompt_title = "Search",
 		cwd = M.Cfg.home,
 		search_dirs = { M.Cfg.home },
-		default_text = '\\[\\[' .. title .. '\\]\\]',
+		default_text = "\\[\\[" .. title .. "\\]\\]",
 		find_command = M.Cfg.find_command,
 	})
 end
@@ -737,5 +754,6 @@ M.CalendarAction = CalendarAction
 M.paste_img_and_link = imgFromClipboard
 M.toggle_todo = ToggleTodo
 M.show_backlinks = ShowBacklinks
+M.find_friends = FindFriends
 
 return M

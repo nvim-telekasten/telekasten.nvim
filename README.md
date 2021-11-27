@@ -13,6 +13,7 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
+- show back-links and notes also referencing links
 
 ---
 
@@ -225,6 +226,7 @@ The plugin defines the following functions.
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
+- `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
