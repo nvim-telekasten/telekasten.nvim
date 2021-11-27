@@ -13,8 +13,9 @@ local vim = vim
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
 local home = vim.fn.expand("~/zettelkasten")
+local M = {}
 
-local ZkCfg = {
+M.Cfg = {
 	home = home,
 	dailies = home .. "/" .. "daily",
 	weeklies = home .. "/" .. "weekly",
@@ -106,17 +107,17 @@ local imgFromClipboard = function()
 	-- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
 	local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-	local pngpath = ZkCfg.home
+	local pngpath = M.Cfg.home
 	local relpath = pngname
 
-	if ZkCfg.image_subdir then
-		relpath = ZkCfg.image_subdir .. "/" .. pngname
+	if M.Cfg.image_subdir then
+		relpath = M.Cfg.image_subdir .. "/" .. pngname
 	end
 	pngpath = pngpath .. "/" .. pngname
 
 	os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
 	if file_exists(pngpath) then
-		if ZkCfg.image_link_style == "markdown" then
+		if M.Cfg.image_link_style == "markdown" then
 			vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", false, true)
 		else
 			vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", false, true)
@@ -125,10 +126,10 @@ local imgFromClipboard = function()
 end
 -- end of image stuff
 
-local note_type_templates = {
-	normal = ZkCfg.template_new_note,
-	daily = ZkCfg.template_new_daily,
-	weekly = ZkCfg.template_new_weekly,
+M.note_type_templates = {
+	normal = M.Cfg.template_new_note,
+	daily = M.Cfg.template_new_daily,
+	weekly = M.Cfg.template_new_weekly,
 }
 
 local function daysuffix(day)
@@ -221,7 +222,7 @@ end
 local path_to_linkname = function(p)
 	local fn = vim.split(p, "/")
 	fn = fn[#fn]
-	fn = vim.split(fn, ZkCfg.extension)
+	fn = vim.split(fn, M.Cfg.extension)
 	fn = fn[1]
 	return fn
 end
@@ -254,19 +255,20 @@ local FindDailyNotes = function(opts)
 	opts = opts or {}
 
 	local today = os.date("%Y-%m-%d")
-	local fname = ZkCfg.dailies .. "/" .. today .. ZkCfg.extension
+	print("dailies: ", M.Cfg.dailies)
+	local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if
-		(fexists ~= true) and ((opts.dailies_create_nonexisting == true) or ZkCfg.dailies_create_nonexisting == true)
+		(fexists ~= true) and ((opts.dailies_create_nonexisting == true) or M.Cfg.dailies_create_nonexisting == true)
 	then
-		create_note_from_template(today, fname, note_type_templates.daily)
+		create_note_from_template(today, fname, M.note_type_templates.daily)
 	end
 
 	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Find daily note",
-		cwd = ZkCfg.dailies,
-		find_command = ZkCfg.find_command,
+		cwd = M.Cfg.dailies,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -280,19 +282,20 @@ local FindWeeklyNotes = function(opts)
 	opts = opts or {}
 
 	local title = os.date("%Y-W%V")
-	local fname = ZkCfg.weeklies .. "/" .. title .. ZkCfg.extension
+	local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if
-		(fexists ~= true) and ((opts.weeklies_create_nonexisting == true) or ZkCfg.weeklies_create_nonexisting == true)
+		(fexists ~= true)
+		and ((opts.weeklies_create_nonexisting == true) or M.Cfg.weeklies_create_nonexisting == true)
 	then
-		create_note_from_template(title, fname, note_type_templates.weekly)
+		create_note_from_template(title, fname, M.note_type_templates.weekly)
 	end
 
 	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Find weekly note",
-		cwd = ZkCfg.weeklies,
-		find_command = ZkCfg.find_command,
+		cwd = M.Cfg.weeklies,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -305,7 +308,7 @@ end
 local InsertLink = function(_)
 	builtin.find_files({
 		prompt_title = "Insert link to note",
-		cwd = ZkCfg.home,
+		cwd = M.Cfg.home,
 		attach_mappings = function(prompt_bufnr, _)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
@@ -315,7 +318,7 @@ local InsertLink = function(_)
 			end)
 			return true
 		end,
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -331,22 +334,22 @@ local FollowLink = function(opts)
 	local title = vim.fn.getreg('"0')
 
 	-- check if fname exists anywhere
-	local fexists = file_exists(ZkCfg.weeklies .. "/" .. title .. ZkCfg.extension)
-	fexists = fexists or file_exists(ZkCfg.dailies .. "/" .. title .. ZkCfg.extension)
-	fexists = fexists or file_exists(ZkCfg.home .. "/" .. title .. ZkCfg.extension)
+	local fexists = file_exists(M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension)
+	fexists = fexists or file_exists(M.Cfg.dailies .. "/" .. title .. M.Cfg.extension)
+	fexists = fexists or file_exists(M.Cfg.home .. "/" .. title .. M.Cfg.extension)
 
 	if
-		(fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)
+		(fexists ~= true) and ((opts.follow_creates_nonexisting == true) or M.Cfg.follow_creates_nonexisting == true)
 	then
-		local fname = ZkCfg.home .. "/" .. title .. ZkCfg.extension
-		create_note_from_template(title, fname, note_type_templates.normal)
+		local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
+		create_note_from_template(title, fname, M.note_type_templates.normal)
 	end
 
 	builtin.find_files({
 		prompt_title = "Follow link to note...",
-		cwd = ZkCfg.home,
+		cwd = M.Cfg.home,
 		default_text = title,
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -372,20 +375,20 @@ local GotoToday = function(opts)
 	opts = opts or calenderinfo_today()
 	local word = opts.date or os.date("%Y-%m-%d")
 
-	local fname = ZkCfg.dailies .. "/" .. word .. ZkCfg.extension
+	local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if
-		(fexists ~= true) and ((opts.follow_creates_nonexisting == true) or ZkCfg.follow_creates_nonexisting == true)
+		(fexists ~= true) and ((opts.follow_creates_nonexisting == true) or M.Cfg.follow_creates_nonexisting == true)
 	then
-		create_note_from_template(word, fname, note_type_templates.daily, opts)
+		create_note_from_template(word, fname, M.note_type_templates.daily, opts)
 	end
 
 	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Goto day",
-		cwd = ZkCfg.home,
+		cwd = M.Cfg.home,
 		default_text = word,
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 		attach_mappings = function(prompt_bufnr, _)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
@@ -410,8 +413,8 @@ end
 local FindNotes = function(_)
 	builtin.find_files({
 		prompt_title = "Find notes by name",
-		cwd = ZkCfg.home,
-		find_command = ZkCfg.find_command,
+		cwd = M.Cfg.home,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -424,10 +427,10 @@ end
 local SearchNotes = function(_)
 	builtin.live_grep({
 		prompt_title = "Search in notes",
-		cwd = ZkCfg.home,
-		search_dirs = { ZkCfg.home },
+		cwd = M.Cfg.home,
+		search_dirs = { M.Cfg.home },
 		default_text = vim.fn.expand("<cword>"),
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -442,17 +445,17 @@ local function on_create(title)
 		return
 	end
 
-	local fname = ZkCfg.home .. "/" .. title .. ZkCfg.extension
+	local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if fexists ~= true then
-		create_note_from_template(title, fname, note_type_templates.normal)
+		create_note_from_template(title, fname, M.note_type_templates.normal)
 	end
 
 	builtin.find_files({
 		prompt_title = "Created note...",
-		cwd = ZkCfg.home,
+		cwd = M.Cfg.home,
 		default_text = title,
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -472,7 +475,7 @@ local function on_create_with_template(title)
 		return
 	end
 
-	local fname = ZkCfg.home .. "/" .. title .. ZkCfg.extension
+	local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if fexists == true then
 		-- open the new note
@@ -482,12 +485,12 @@ local function on_create_with_template(title)
 
 	builtin.find_files({
 		prompt_title = "Select template...",
-		cwd = ZkCfg.templates,
-		find_command = ZkCfg.find_command,
+		cwd = M.Cfg.templates,
+		find_command = M.Cfg.find_command,
 		attach_mappings = function(prompt_bufnr, _)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
-				local template = ZkCfg.templates .. "/" .. action_state.get_selected_entry().value
+				local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
 				create_note_from_template(title, fname, template)
 				-- open the new note
 				vim.cmd("e " .. fname)
@@ -511,20 +514,21 @@ local GotoThisWeek = function(opts)
 	opts = opts or {}
 
 	local title = os.date("%Y-W%V")
-	local fname = ZkCfg.weeklies .. "/" .. title .. ZkCfg.extension
+	local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
 	local fexists = file_exists(fname)
 	if
-		(fexists ~= true) and ((opts.weeklies_create_nonexisting == true) or ZkCfg.weeklies_create_nonexisting == true)
+		(fexists ~= true)
+		and ((opts.weeklies_create_nonexisting == true) or M.Cfg.weeklies_create_nonexisting == true)
 	then
-		create_note_from_template(title, fname, note_type_templates.weekly)
+		create_note_from_template(title, fname, M.note_type_templates.weekly)
 	end
 
 	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Goto this week:",
-		cwd = ZkCfg.weeklies,
+		cwd = M.Cfg.weeklies,
 		default_text = title,
-		find_command = ZkCfg.find_command,
+		find_command = M.Cfg.find_command,
 	})
 end
 
@@ -534,7 +538,7 @@ end
 
 -- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
 local CalendarSignDay = function(day, month, year)
-	local fn = ZkCfg.dailies .. "/" .. string.format("%04d-%02d-%02d", year, month, day) .. ZkCfg.extension
+	local fn = M.Cfg.dailies .. "/" .. string.format("%04d-%02d-%02d", year, month, day) .. M.Cfg.extension
 	if file_exists(fn) then
 		return 1
 	end
@@ -570,7 +574,7 @@ end
 
 -- set up calendar integration: forward to our lua functions
 local SetupCalendar = function(opts)
-	local defaults = ZkCfg.calendar_opts
+	local defaults = M.Cfg.calendar_opts
 	opts = opts or defaults
 
 	local cmd = [[
@@ -643,56 +647,69 @@ end
 --
 local Setup = function(cfg)
 	cfg = cfg or {}
+	local debug = cfg.debug
 	for k, v in pairs(cfg) do
 		-- merge everything but calendar opts
 		-- they will be merged later
 		if k ~= "calendar_opts" then
-			ZkCfg[k] = v
+			M.Cfg[k] = v
+			if debug then
+				print("Setup() setting `" .. k .. "`   ->   `" .. tostring(v) .. "`")
+			end
 		end
 	end
 
 	-- TODO: this is obsolete:
 	if vim.fn.executable("rg") then
-		ZkCfg.find_command = { "rg", "--files", "--sortr", "created" }
+		M.Cfg.find_command = { "rg", "--files", "--sortr", "created" }
 	else
-		ZkCfg.find_command = nil
+		M.Cfg.find_command = nil
 	end
+
+	-- refresh templates
+	M.note_type_templates = {
+		normal = M.Cfg.template_new_note,
+		daily = M.Cfg.template_new_daily,
+		weekly = M.Cfg.template_new_weekly,
+	}
 
 	-- this looks a little messy
-	if ZkCfg.plug_into_calendar then
+	if M.Cfg.plug_into_calendar then
 		cfg.calendar_opts = cfg.calendar_opts or {}
-		ZkCfg.calendar_opts = ZkCfg.calendar_opts or {}
-		ZkCfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm or ZkCfg.calendar_opts.weeknm or 1
-		ZkCfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday
-			or ZkCfg.calendar_opts.calendar_monday
+		M.Cfg.calendar_opts = M.Cfg.calendar_opts or {}
+		M.Cfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm or M.Cfg.calendar_opts.weeknm or 1
+		M.Cfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday
+			or M.Cfg.calendar_opts.calendar_monday
 			or 1
-		ZkCfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark
-			or ZkCfg.calendar_opts.calendar_mark
+		M.Cfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark
+			or M.Cfg.calendar_opts.calendar_mark
 			or "left-fit"
-		SetupCalendar(ZkCfg.calendar_opts)
+		SetupCalendar(M.Cfg.calendar_opts)
 	end
 	-- print(vim.inspect(cfg))
-	-- print(vim.inspect(ZkCfg))
+	if debug then
+		print("Resulting config:")
+		print("-----------------")
+		print(vim.inspect(M.Cfg))
+	end
 end
 
-local M = {
-	ZkCfg = ZkCfg,
-	find_notes = FindNotes,
-	find_daily_notes = FindDailyNotes,
-	search_notes = SearchNotes,
-	insert_link = InsertLink,
-	follow_link = FollowLink,
-	setup = Setup,
-	goto_today = GotoToday,
-	new_note = CreateNote,
-	goto_thisweek = GotoThisWeek,
-	find_weekly_notes = FindWeeklyNotes,
-	yank_notelink = YankLink,
-	create_note_sel_template = CreateNoteSelectTemplate,
-	show_calendar = ShowCalendar,
-	CalendarSignDay = CalendarSignDay,
-	CalendarAction = CalendarAction,
-	paste_img_and_link = imgFromClipboard,
-	toggle_todo = ToggleTodo,
-}
+M.find_notes = FindNotes
+M.find_daily_notes = FindDailyNotes
+M.search_notes = SearchNotes
+M.insert_link = InsertLink
+M.follow_link = FollowLink
+M.setup = Setup
+M.goto_today = GotoToday
+M.new_note = CreateNote
+M.goto_thisweek = GotoThisWeek
+M.find_weekly_notes = FindWeeklyNotes
+M.yank_notelink = YankLink
+M.create_note_sel_template = CreateNoteSelectTemplate
+M.show_calendar = ShowCalendar
+M.CalendarSignDay = CalendarSignDay
+M.CalendarAction = CalendarAction
+M.paste_img_and_link = imgFromClipboard
+M.toggle_todo = ToggleTodo
+
 return M
