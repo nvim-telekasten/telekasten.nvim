@@ -3,6 +3,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] replaced `vim.ui.input` by `vim.fn.input`, as the former was causing problems on nvim 0.5.x
+  - might not report on all closed issues here in the future as they are available in the issue tracker anyway
 - [x] bugfixed and PRed calendar-vim: passing proper `week`(day) param from :CalendarT
 - [x] toggle todo
 - [x]: (silly idea) check if we can paste imgs into nvim
