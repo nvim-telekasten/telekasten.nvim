@@ -42,6 +42,28 @@ Leaving the opening of the note to Telescope, you can decide with one keypress w
 
 I find that pressing the enter key to confirm the search does not interrupt my flow, and I really enjoy being able to check the preview.  I often get enough information from it alone so I don't actually have to "visit" every note in terms of being able to edit it.
 
+
+## Contents
+<!-- vim-markdown-toc GFM -->
+
+* [Install and setup](#install-and-setup)
+    * [0. Prerequisites](#0-prerequisites)
+        * [Telescope](#telescope)
+        * [calendar-vim Plugin (optional)](#calendar-vim-plugin-optional)
+        * [For pasting images: xclip (optional)](#for-pasting-images-xclip-optional)
+    * [1. Install the plugin](#1-install-the-plugin)
+    * [2. Configure telekasten.nvim](#2-configure-telekastennvim)
+    * [3. Configure your own colors](#3-configure-your-own-colors)
+* [Get Help](#get-help)
+* [Use it](#use-it)
+    * [Note templates](#note-templates)
+        * [Template files](#template-files)
+    * [Using the calendar](#using-the-calendar)
+* [Bind it](#bind-it)
+* [The hardcoded stuff](#the-hardcoded-stuff)
+
+<!-- vim-markdown-toc -->
+
 ## Install and setup
 
 
