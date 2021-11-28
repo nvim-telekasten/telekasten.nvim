@@ -44,6 +44,8 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 
 ## Contents
+
+
 <!-- vim-markdown-toc GFM -->
 
 * [Install and setup](#install-and-setup)
@@ -52,6 +54,7 @@ I find that pressing the enter key to confirm the search does not interrupt my f
         * [calendar-vim Plugin (optional)](#calendar-vim-plugin-optional)
         * [For pasting images: xclip (optional)](#for-pasting-images-xclip-optional)
     * [1. Install the plugin](#1-install-the-plugin)
+        * [Other useful plugins](#other-useful-plugins)
     * [2. Configure telekasten.nvim](#2-configure-telekastennvim)
     * [3. Configure your own colors](#3-configure-your-own-colors)
 * [Get Help](#get-help)
@@ -104,6 +107,13 @@ I higly recommend using the calendar integration. For that you'll need [calendar
 Plugin 'renerocksai/calendar-vim'
 ```
 
+#### Other useful plugins
+
+Other plugins I find useful in my day-to-day zettelkasten work:
+
+- [vim-emoji-complete](https://github.com/kyuhi/vim-emoji-complete)
+- [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim)
+- [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc)
 
 ### 2. Configure telekasten.nvim
 Somewhere in your vim config, put a snippet like this:
