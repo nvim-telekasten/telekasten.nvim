@@ -238,6 +238,9 @@ local find_files_sorted = function(opts)
 	pickers.new(opts, {
 		finder = finders.new_table({
 			results = file_list,
+            entry_maker = function(entry)
+                return { value = entry, display = path_to_linkname(entry), ordinal = entry, }
+            end,
 		}),
 		sorter = conf.generic_sorter(opts),
 		previewer = conf.file_previewer(opts),
