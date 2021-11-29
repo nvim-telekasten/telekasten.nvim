@@ -114,6 +114,7 @@ Other plugins I find useful in my day-to-day zettelkasten work:
 - [vim-emoji-complete](https://github.com/kyuhi/vim-emoji-complete)
 - [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim)
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc)
+- [telescope-media-files](https://github.com/nvim-telescope/telescope-media-files.nvim)
 
 ### 2. Configure telekasten.nvim
 Somewhere in your vim config, put a snippet like this:
