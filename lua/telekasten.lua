@@ -260,6 +260,7 @@ end
 -- like builtin.find_files, but:
 --     - uses plenary.scan_dir synchronously instead of external jobs
 --     - pre-sorts the file list in descending order (nice for dates, most recent first)
+--     - filters for allowed file types by extension
 --     - (also supports devicons)
 --     - displays subdirs if necessary
 --         - e.g. when searching for daily notes, no subdirs are displayed
