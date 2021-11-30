@@ -1,6 +1,7 @@
 # telekasten.nvim
 
-A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
+A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and
+mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
 #### Highlights:
 
@@ -21,13 +22,22 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 
 ---
 
-Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
+Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in
+the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep
+browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the
+calendar.
 
-If you have `xclip` installed, Telekasten.nvim can even **paste images from the clipboard** into a dedicated sub-directory and insert a wiki or markdown link at the current cursor position!
+If you have `xclip` installed, Telekasten.nvim can even **paste images from the clipboard** into a dedicated
+sub-directory and insert a wiki or markdown link at the current cursor position!
 
-After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
+After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved
+on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried 
+[Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have
+eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now,
+not only for writing code.
 
-This is the result of my first days of hacking neovim with lua (more features have been added since, see [Use it](#2-use-it) below the screenshots):
+This is the result of my first days of hacking neovim with lua (more features have been added since, see 
+[Use it](#2-use-it) below the screenshots):
 
 ![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
 
@@ -37,12 +47,18 @@ This is the result of my first days of hacking neovim with lua (more features ha
 
 ## Search-based navigation
 
-Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often likely to show up more than one result, you can preview related notes immediately.
+Every navigation action, like following a link, is centered around a Telescope search: a Telescope search popup is
+opened, and in the case of following a link, the search-text is pre-filled with the target.  So, instead of opening the
+linked note, you get a preview in Telescope and can decide if you actually want to go there. Since the search is often
+likely to show up more than one result, you can preview related notes immediately.
 
 ### The preview is a powerful feature
-Leaving the opening of the note to Telescope, you can decide with one keypress whether you want to open the note in a split or in the current window - or if you've seen enough.
+Leaving the opening of the note to Telescope, you can decide with one keypress whether you want to open the note in a
+split or in the current window - or if you've seen enough.
 
-I find that pressing the enter key to confirm the search does not interrupt my flow, and I really enjoy being able to check the preview.  I often get enough information from it alone so I don't actually have to "visit" every note in terms of being able to edit it.
+I find that pressing the enter key to confirm the search does not interrupt my flow, and I really enjoy being able to
+check the preview.  I often get enough information from it alone so I don't actually have to "visit" every note in terms
+of being able to edit it.
 
 
 ## Contents
@@ -78,21 +94,25 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 #### 0.0.1 Telescope
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
 
-[Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
+[Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required
+for `telescope.nvim` to work.
 
 ---
 
 #### 0.0.2 calendar-vim Plugin (optional)
 
-Telekasten.nvim can optionally plug into **my bugfixed version of** [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
+Telekasten.nvim can optionally plug into **my bugfixed version of**
+[calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope
+search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't
+exist.  Days with daily notes get marked in the calendar.
 
 See below for installing and using it.
 
 ---
 
 #### 0.0.3 For pasting images: xclip (optional)
-Telekasten.nvim supports pasting images from the clipboard. Currently, this is
-only implemented for systems that have the `xclip` utility installed.
+Telekasten.nvim supports pasting images from the clipboard. Currently, this is only implemented for systems that have
+the `xclip` utility installed.
 
 On Ubuntu/Debian like systems:
 
@@ -113,7 +133,7 @@ This extension has its own list of prerequisites, of which I recommend (and use)
 
 * [Überzug](https://github.com/seebye/ueberzug) (required for image support)
 * [ffmpegthumbnailer](https://github.com/dirkvdb/ffmpegthumbnailer) (optional, for video preview support)
-* [pdftoppm](https://linux.die.net/man/1/pdftoppm) (optional, for pdf preview support. Available in the AUR as **poppler** package.)
+* [pdftoppm](https://linux.die.net/man/1/pdftoppm) (optional, for pdf preview support)
 
 Here is a demo from the original authors of
 [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim):
@@ -129,7 +149,8 @@ Install with your plugin manager of choice.  Mine is [Vundle](https://github.com
 Plugin 'renerocksai/telekasten.nvim'
 ```
 
-I higly recommend using the calendar integration. For that you'll need [calendar-vim](https://github.com/renerocksai/calendar-vim):
+I higly recommend using the calendar integration. For that you'll need 
+[calendar-vim](https://github.com/renerocksai/calendar-vim):
 
 ```vim
 Plugin 'renerocksai/calendar-vim'
@@ -241,7 +262,8 @@ Telekasten.nvim allows you to color your `[[links]]` by providing two syntax gro
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
 
-The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when taking notes 😄.
+The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when
+taking notes 😄.
 
 You can assign colors to the new syntax groups in your `init.vim`:
 
@@ -277,33 +299,46 @@ or .. **just use telescope**: `:Telescope help_tags` and search for `telekasten`
 The plugin defines the following functions.
 
 - `new_note()` : prompts for title and creates new note by template, then shows it in Telescope
-- `new_templated_note()` : prompts for title and then uses telescope for choosing a template. When a template is selected, a new note is created with it and opened. Should the note exist, it is opened immediately
+- `new_templated_note()` : prompts for title and then uses telescope for choosing a template. When a template is
+  selected, a new note is created with it and opened. Should the note exist, it is opened immediately
 - `find_notes()` : find notes by file name (title), via Telescope
-- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's daily note is not present, it can be created optionally, honoring the configured template
-- `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note can optionally be created if not present, using the configured template
-- `find_weekly_notes()` : find weekly notes by week (file names, sorted, most recent first), via Telescope.  If this week's weekly note is not present, it can be created optionally, honoring the configured template
-- `goto_thisweek()` : pops up a Telescope window with this week's weekly note pre-selected. This week's note can optionally be created if not present, using the configured template
+- `find_daily_notes()` : find daily notes by date (file names, sorted, most recent first), via Telescope.  If today's
+  daily note is not present, it can be created optionally, honoring the configured template
+- `goto_today()` : pops up a Telescope window with today's daily note pre-selected. Today's note can optionally be
+  created if not present, using the configured template
+- `find_weekly_notes()` : find weekly notes by week (file names, sorted, most recent first), via Telescope.  If this
+  week's weekly note is not present, it can be created optionally, honoring the configured template
+- `goto_thisweek()` : pops up a Telescope window with this week's weekly note pre-selected. This week's note can
+  optionally be created if not present, using the configured template
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
   - **note**: 
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
+      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
     - example: `insert_link({ i=true })`
-- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
+- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to
+  open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `yank_notelink()` : yank a link to the current note, ready to paste
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
-- `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
+- `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it
+  at the current cursor position
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
   - **note**:
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
+      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
     - example: `toggle_todo({ i=true })`
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
-- `insert_img_link()` : opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and places a markdown image link to the picked one at the cursor position.
+- `insert_img_link()` : opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and places a markdown
+  image link to the picked one at the cursor position.
   - **note**: 
-    - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given** during the search.
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful for being able to continue to type after link insertion. See also: [Bind it](#4-bind-it).
+    - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given**
+      during the search.
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
+      useful for being able to continue to type after link insertion. See also: [Bind it](#4-bind-it).
     - example: `insert_link({ i=true })`
-- `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
+- `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor
+  of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -315,7 +350,9 @@ To use one of the functions above, just run them with the `:lua ...` command.
 
 ### 3. Note templates
 
-The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
+The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create
+non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
+type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
 
 The following table shows which command relies on what config option:
 
@@ -334,7 +371,8 @@ If the associated option is `true`, non-existing notes will be created.
 
 #### 3.1 Template files
 
-The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to template text files that are used for creating new notes.
+The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to
+template text files that are used for creating new notes.
 
 Currently, the following substitutions will be made during new note creation:
 
@@ -390,10 +428,13 @@ date:  {{hdate}}
 
 ### 3.2 Using the calendar
 
-When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of vim.
+When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of
+vim.
 
 - days that have a daily note associated with them are marked with a + sign and a different color
-- pressing enter on a day will open up a telescope finder with the associated daily note selected and previewed. The daily note will be created if it doesn't exist. If you choose to not open the note, you will return to the calender so you can preview other notes.
+- pressing enter on a day will open up a telescope finder with the associated daily note selected and previewed. The
+  daily note will be created if it doesn't exist. If you choose to not open the note, you will return to the calender so
+  you can preview other notes.
 
 If you want to see a big calendar showing the current month that fills your entire window, you can issue the following
 command in vim:
