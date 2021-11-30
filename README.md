@@ -26,7 +26,7 @@ If you have `xclip` installed, Telekasten.nvim can even **paste images from the 
 
 After having written the infamous [sublime_zk](https://github.com/renerocksai/sublime_zk) for SublimeText, having moved on to my standalone [sublimeless_zk](https://github.com/renerocksai/sublimeless_zk), having tried [Roam Research](https://roamresearch.com) and [Obsidian.md](https://obsidian.md) (which I still use sparingly), I have eventually arrived back at the editor I feel at home the most: Neovim 😄! I can literally **live** inside of nvim now, not only for writing code.
 
-This is the result of my first days of hacking neovim with lua (more features have been added since, see [Use it](#use-it) below the screenshots):
+This is the result of my first days of hacking neovim with lua (more features have been added since, see [Use it](#2-use-it) below the screenshots):
 
 ![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
 
@@ -49,39 +49,39 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 <!-- vim-markdown-toc GFM -->
 
-* [Install and setup](#install-and-setup)
-    * [0. Prerequisites](#0-prerequisites)
-        * [0.1 Telescope](#01-telescope)
-        * [0.2 calendar-vim Plugin (optional)](#02-calendar-vim-plugin-optional)
-        * [0.3 For pasting images: xclip (optional)](#03-for-pasting-images-xclip-optional)
-        * [0.4 For image previews: telescope-media-files.nvim (optional)](#04-for-image-previews-telescope-media-filesnvim-optional)
-    * [1. Install the plugin](#1-install-the-plugin)
-        * [Other useful plugins](#other-useful-plugins)
-    * [2. Configure telekasten.nvim](#2-configure-telekastennvim)
-    * [3. Configure your own colors](#3-configure-your-own-colors)
-* [Get Help](#get-help)
-* [Use it](#use-it)
-    * [Note templates](#note-templates)
-        * [Template files](#template-files)
-    * [Using the calendar](#using-the-calendar)
-* [Bind it](#bind-it)
-* [The hardcoded stuff](#the-hardcoded-stuff)
+* [0. Install and setup](#0-install-and-setup)
+    * [0.0 Prerequisites](#00-prerequisites)
+        * [0.0.1 Telescope](#001-telescope)
+        * [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
+        * [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
+        * [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
+    * [0.1 Install the plugin](#01-install-the-plugin)
+        * [0.1.0 Other useful plugins](#010-other-useful-plugins)
+    * [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
+    * [0.3 Configure your own colors](#03-configure-your-own-colors)
+* [1. Get Help](#1-get-help)
+* [2. Use it](#2-use-it)
+    * [3. Note templates](#3-note-templates)
+        * [3.1 Template files](#31-template-files)
+    * [3.2 Using the calendar](#32-using-the-calendar)
+* [4. Bind it](#4-bind-it)
+* [5. The hardcoded stuff](#5-the-hardcoded-stuff)
 
 <!-- vim-markdown-toc -->
 
-## Install and setup
+## 0. Install and setup
 
 
-### 0. Prerequisites
+### 0.0 Prerequisites
 
-#### 0.1 Telescope
+#### 0.0.1 Telescope
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
 
 [Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
 
 ---
 
-#### 0.2 calendar-vim Plugin (optional)
+#### 0.0.2 calendar-vim Plugin (optional)
 
 Telekasten.nvim can optionally plug into **my bugfixed version of** [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
@@ -89,7 +89,7 @@ See below for installing and using it.
 
 ---
 
-#### 0.3 For pasting images: xclip (optional)
+#### 0.0.3 For pasting images: xclip (optional)
 Telekasten.nvim supports pasting images from the clipboard. Currently, this is
 only implemented for systems that have the `xclip` utility installed.
 
@@ -101,7 +101,7 @@ $ sudo apt-get install xclip
 
 ---
 
-#### 0.4 For image previews: telescope-media-files.nvim (optional)
+#### 0.0.4 For image previews: telescope-media-files.nvim (optional)
 
 **ONLY supported on Linux**
 
@@ -121,7 +121,7 @@ Here is a demo from the original authors of
 
 ---
 
-### 1. Install the plugin
+### 0.1 Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
 
 ```vim
@@ -134,7 +134,7 @@ I higly recommend using the calendar integration. For that you'll need [calendar
 Plugin 'renerocksai/calendar-vim'
 ```
 
-#### Other useful plugins
+#### 0.1.0 Other useful plugins
 
 Other plugins I find useful in my day-to-day zettelkasten work:
 
@@ -143,7 +143,7 @@ Other plugins I find useful in my day-to-day zettelkasten work:
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc)
 - [telescope-media-files](https://github.com/nvim-telescope/telescope-media-files.nvim)
 
-### 2. Configure telekasten.nvim
+### 0.2 Configure telekasten.nvim
 Somewhere in your vim config, put a snippet like this:
 
 ```lua
@@ -233,7 +233,7 @@ The calendar support has its own options, contained in `calendar_opts`:
 |                 | 'right' : mark to the right of the day| |
 
 
-### 3. Configure your own colors
+### 0.3 Configure your own colors
 Telekasten.nvim allows you to color your `[[links]]` by providing two syntax groups:
 
 - `tkLink` : the link title inside the brackets
@@ -258,7 +258,7 @@ hi tkBrackets ctermfg=gray
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
-## Get Help
+## 1. Get Help
 Telekasten.nvim now comes with its own help file. So you can always:
 
 ```vim
@@ -271,7 +271,7 @@ or
 
 or .. **just use telescope**: `:Telescope help_tags` and search for `telekasten`.
 
-## Use it
+## 2. Use it
 
 The plugin defines the following functions.
 
@@ -285,7 +285,7 @@ The plugin defines the following functions.
 - `search_notes()`: live grep for word under cursor in all notes (search in notes), via Telescope
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
   - **note**: 
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#bind-it).
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
     - example: `insert_link({ i=true })`
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
 - `yank_notelink()` : yank a link to the current note, ready to paste
@@ -293,14 +293,14 @@ The plugin defines the following functions.
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it at the current cursor position
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
   - **note**:
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#bind-it).
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
     - example: `toggle_todo({ i=true })`
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
 - `insert_img_link()` : opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and places a markdown image link to the picked one at the cursor position.
   - **note**: 
     - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given** during the search.
-    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful for being able to continue to type after link insertion. See also: [Bind it](#bind-it).
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful for being able to continue to type after link insertion. See also: [Bind it](#4-bind-it).
     - example: `insert_link({ i=true })`
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -310,7 +310,7 @@ To use one of the functions above, just run them with the `:lua ...` command.
 :lua require("telekasten").find_daily_notes()
 ```
 
-### Note templates
+### 3. Note templates
 
 The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
 
@@ -329,7 +329,7 @@ The following table shows which command relies on what config option:
 
 If the associated option is `true`, non-existing notes will be created.
 
-#### Template files
+#### 3.1 Template files
 
 The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to template text files that are used for creating new notes.
 
@@ -385,7 +385,7 @@ date:  {{hdate}}
 ## Sunday link
 ```
 
-### Using the calendar
+### 3.2 Using the calendar
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of vim.
 
@@ -399,7 +399,7 @@ command in vim:
 :CalendarT
 ```
 
-## Bind it
+## 4. Bind it
 Usually, you would set up some key bindings, though:
 
 ```vim
@@ -437,7 +437,7 @@ hi tkBrackets ctermfg=gray
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
-## The hardcoded stuff
+## 5. The hardcoded stuff
 
 Currently, the following things are hardcoded:
 - the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
