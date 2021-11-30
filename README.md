@@ -98,7 +98,7 @@ $ sudo apt-get install xclip
 
 #### For image previews: telescope-media-files.nvim (optional)
 
-**ONLY SUPPORTED ON LINUX**
+**ONLY supported on Linux**
 
 To preview images, PDFs, etc. in Telescope while searching for an image to insert a link to, you need to install the
 Telescope extension [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim).
