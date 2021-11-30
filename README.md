@@ -51,10 +51,10 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 * [Install and setup](#install-and-setup)
     * [0. Prerequisites](#0-prerequisites)
-        * [Telescope](#telescope)
-        * [calendar-vim Plugin (optional)](#calendar-vim-plugin-optional)
-        * [For pasting images: xclip (optional)](#for-pasting-images-xclip-optional)
-        * [For image previews: telescope-media-files.nvim (optional)](#for-image-previews-telescope-media-filesnvim-optional)
+        * [0.1 Telescope](#01-telescope)
+        * [0.2 calendar-vim Plugin (optional)](#02-calendar-vim-plugin-optional)
+        * [0.3 For pasting images: xclip (optional)](#03-for-pasting-images-xclip-optional)
+        * [0.4 For image previews: telescope-media-files.nvim (optional)](#04-for-image-previews-telescope-media-filesnvim-optional)
     * [1. Install the plugin](#1-install-the-plugin)
         * [Other useful plugins](#other-useful-plugins)
     * [2. Configure telekasten.nvim](#2-configure-telekastennvim)
@@ -74,19 +74,22 @@ I find that pressing the enter key to confirm the search does not interrupt my f
 
 ### 0. Prerequisites
 
-#### Telescope
+#### 0.1 Telescope
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
 
 [Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required for `telescope.nvim` to work.
 
+---
 
-#### calendar-vim Plugin (optional)
+#### 0.2 calendar-vim Plugin (optional)
 
 Telekasten.nvim can optionally plug into **my bugfixed version of** [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the calendar.
 
 See below for installing and using it.
 
-#### For pasting images: xclip (optional)
+---
+
+#### 0.3 For pasting images: xclip (optional)
 Telekasten.nvim supports pasting images from the clipboard. Currently, this is
 only implemented for systems that have the `xclip` utility installed.
 
@@ -96,7 +99,9 @@ On Ubuntu/Debian like systems:
 $ sudo apt-get install xclip
 ```
 
-#### For image previews: telescope-media-files.nvim (optional)
+---
+
+#### 0.4 For image previews: telescope-media-files.nvim (optional)
 
 **ONLY supported on Linux**
 
@@ -114,7 +119,7 @@ Here is a demo from the original authors of
 
 ![Demo](https://i.imgur.com/wEO04TK.gif)
 
-
+---
 
 ### 1. Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
