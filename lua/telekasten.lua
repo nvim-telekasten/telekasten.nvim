@@ -5,6 +5,7 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local scan = require("plenary.scandir")
+local utils = require("telescope.utils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -68,7 +69,7 @@ end
 
 -- ----------------------------------------------------------------------------
 -- image stuff
-local imgFromClipboard = function()
+local function imgFromClipboard()
 	if vim.fn.executable("xclip") == 0 then
 		vim.api.nvim_err_write("No xclip installed!\n")
 		return
@@ -160,7 +161,7 @@ local monthmap = {
 	"December",
 }
 
-local calenderinfo_today = function()
+local function calenderinfo_today()
 	local dinfo = os.date("*t")
 	local opts = {}
 	opts.date = os.date("%Y-%m-%d")
@@ -202,7 +203,7 @@ local function linesubst(line, title, calendar_info)
 	return line
 end
 
-local create_note_from_template = function(title, filepath, templatefn, calendar_info)
+local function create_note_from_template(title, filepath, templatefn, calendar_info)
 	-- first, read the template file
 	local lines = {}
 	for line in io.lines(templatefn) do
@@ -218,7 +219,7 @@ local create_note_from_template = function(title, filepath, templatefn, calendar
 	ofile:close()
 end
 
-local path_to_linkname = function(p)
+local function path_to_linkname(p)
 	local fn = vim.split(p, "/")
 	fn = fn[#fn]
 	fn = vim.split(fn, M.Cfg.extension)
@@ -226,21 +227,82 @@ local path_to_linkname = function(p)
 	return fn
 end
 
-local order_numeric = function(a, b)
+local function order_numeric(a, b)
 	return a > b
 end
 
-local find_files_sorted = function(opts)
+-- local function endswith(s, ending)
+-- 	return ending == "" or s:sub(-#ending) == ending
+-- end
+
+local function file_extension(fname)
+	return fname:match("^.+(%..+)$")
+end
+
+local function filter_filetypes(flist, ftypes)
+	local new_fl = {}
+	ftypes = ftypes or { M.Cfg.extension }
+
+	local ftypeok = {}
+	for _, ft in pairs(ftypes) do
+		ftypeok[ft] = true
+	end
+
+	for _, fn in pairs(flist) do
+		if ftypeok[file_extension(fn)] then
+			table.insert(new_fl, fn)
+		end
+	end
+	return new_fl
+end
+
+-- find_files_sorted(opts)
+-- like builtin.find_files, but:
+--     - uses plenary.scan_dir synchronously instead of external jobs
+--     - pre-sorts the file list in descending order (nice for dates, most recent first)
+--     - (also supports devicons)
+--     - displays subdirs if necessary
+--         - e.g. when searching for daily notes, no subdirs are displayed
+--         - but when entering a date in find_notes, the daily/ and weekly/ subdirs are displayed
+local function find_files_sorted(opts)
 	opts = opts or {}
 
 	local file_list = scan.scan_dir(opts.cwd, {})
+	file_list = filter_filetypes(file_list, M.Cfg.filter_extensions)
 	table.sort(file_list, order_numeric)
+
+	-- display with devicons
+	local function iconic_display(display_entry)
+		local display_opts = {
+			path_display = function(_, e)
+				return e:gsub(opts.cwd .. "/", "")
+			end,
+		}
+
+		local hl_group
+		local display = utils.transform_path(display_opts, display_entry.value)
+
+		display, hl_group = utils.transform_devicons(display_entry.value, display, false)
+
+		if hl_group then
+			return display, { { { 1, 3 }, hl_group } }
+		else
+			return display
+		end
+	end
+
+	local function make_entry(entry)
+		local iconic_entry = {}
+		iconic_entry.value = entry
+		iconic_entry.ordinal = entry
+		iconic_entry.display = iconic_display
+		return iconic_entry
+	end
+
 	pickers.new(opts, {
 		finder = finders.new_table({
 			results = file_list,
-            entry_maker = function(entry)
-                return { value = entry, display = path_to_linkname(entry), ordinal = entry, }
-            end,
+			entry_maker = make_entry,
 		}),
 		sorter = conf.generic_sorter(opts),
 		previewer = conf.file_previewer(opts),
@@ -253,7 +315,7 @@ end
 --
 -- Select from daily notes
 --
-local FindDailyNotes = function(opts)
+local function FindDailyNotes(opts)
 	opts = opts or {}
 
 	local today = os.date("%Y-%m-%d")
@@ -265,7 +327,6 @@ local FindDailyNotes = function(opts)
 		create_note_from_template(today, fname, M.note_type_templates.daily)
 	end
 
-	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Find daily note",
 		cwd = M.Cfg.dailies,
@@ -279,7 +340,7 @@ end
 --
 -- Select from daily notes
 --
-local FindWeeklyNotes = function(opts)
+local function FindWeeklyNotes(opts)
 	opts = opts or {}
 
 	local title = os.date("%Y-W%V")
@@ -292,7 +353,6 @@ local FindWeeklyNotes = function(opts)
 		create_note_from_template(title, fname, M.note_type_templates.weekly)
 	end
 
-	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Find weekly note",
 		cwd = M.Cfg.weeklies,
@@ -306,9 +366,9 @@ end
 --
 -- Select from all notes and put a link in the current buffer
 --
-local InsertLink = function(opts)
+local function InsertLink(opts)
 	opts = opts or {}
-	builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Insert link to note",
 		cwd = M.Cfg.home,
 		attach_mappings = function(prompt_bufnr, _)
@@ -333,7 +393,7 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-local FollowLink = function(opts)
+local function FollowLink(opts)
 	opts = opts or {}
 	vim.cmd("normal yi]")
 	local title = vim.fn.getreg('"0')
@@ -350,7 +410,7 @@ local FollowLink = function(opts)
 		create_note_from_template(title, fname, M.note_type_templates.normal)
 	end
 
-	builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Follow link to note...",
 		cwd = M.Cfg.home,
 		default_text = title,
@@ -364,7 +424,7 @@ end
 --
 -- Find notes also linking to the link under cursor
 --
-local FindFriends = function()
+local function FindFriends()
 	vim.cmd("normal yi]")
 	local title = vim.fn.getreg('"0')
 
@@ -382,7 +442,7 @@ end
 --
 -- Create and yank a [[link]] from the current note.
 --
-local YankLink = function()
+local function YankLink()
 	local title = "[[" .. path_to_linkname(vim.fn.expand("%")) .. "]]"
 	vim.fn.setreg('"', title)
 	print("yanked " .. title)
@@ -394,7 +454,7 @@ end
 --
 -- find today's daily note and create it if necessary.
 --
-local GotoToday = function(opts)
+local function GotoToday(opts)
 	opts = opts or calenderinfo_today()
 	local word = opts.date or os.date("%Y-%m-%d")
 
@@ -406,7 +466,6 @@ local GotoToday = function(opts)
 		create_note_from_template(word, fname, M.note_type_templates.daily, opts)
 	end
 
-	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Goto day",
 		cwd = M.Cfg.home,
@@ -433,8 +492,8 @@ end
 --
 -- Select from notes
 --
-local FindNotes = function(_)
-	builtin.find_files({
+local function FindNotes(_)
+	find_files_sorted({
 		prompt_title = "Find notes by name",
 		cwd = M.Cfg.home,
 		find_command = M.Cfg.find_command,
@@ -447,7 +506,7 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-local SearchNotes = function(_)
+local function SearchNotes(_)
 	builtin.live_grep({
 		prompt_title = "Search in notes",
 		cwd = M.Cfg.home,
@@ -463,7 +522,7 @@ end
 --
 -- Find all notes linking to this one
 --
-local ShowBacklinks = function(_)
+local function ShowBacklinks(_)
 	local title = path_to_linkname(vim.fn.expand("%"))
 	-- or vim.api.nvim_buf_get_name(0)
 	builtin.live_grep({
@@ -493,7 +552,7 @@ local function on_create(title)
 		create_note_from_template(title, fname, M.note_type_templates.normal)
 	end
 
-	builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Created note...",
 		cwd = M.Cfg.home,
 		default_text = title,
@@ -501,7 +560,7 @@ local function on_create(title)
 	})
 end
 
-local CreateNote = function(_)
+local function CreateNote(_)
 	-- vim.ui.input causes ppl problems - see issue #4
 	-- vim.ui.input({ prompt = "Title: " }, on_create)
 	local title = vim.fn.input("Title: ")
@@ -530,14 +589,15 @@ local function on_create_with_template(title)
 		return
 	end
 
-	builtin.find_files({
+	find_files_sorted({
 		prompt_title = "Select template...",
 		cwd = M.Cfg.templates,
 		find_command = M.Cfg.find_command,
 		attach_mappings = function(prompt_bufnr, _)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
-				local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
+				-- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
+				local template = action_state.get_selected_entry().value
 				create_note_from_template(title, fname, template)
 				-- open the new note
 				vim.cmd("e " .. fname)
@@ -547,7 +607,7 @@ local function on_create_with_template(title)
 	})
 end
 
-local CreateNoteSelectTemplate = function(_)
+local function CreateNoteSelectTemplate(_)
 	-- vim.ui.input causes ppl problems - see issue #4
 	-- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
 	local title = vim.fn.input("Title: ")
@@ -562,7 +622,7 @@ end
 --
 -- find this week's weekly note and create it if necessary.
 --
-local GotoThisWeek = function(opts)
+local function GotoThisWeek(opts)
 	opts = opts or {}
 
 	local title = os.date("%Y-W%V")
@@ -575,7 +635,6 @@ local GotoThisWeek = function(opts)
 		create_note_from_template(title, fname, M.note_type_templates.weekly)
 	end
 
-	-- builtin.find_files({
 	find_files_sorted({
 		prompt_title = "Goto this week:",
 		cwd = M.Cfg.weeklies,
@@ -589,7 +648,7 @@ end
 -- --------------
 
 -- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
-local CalendarSignDay = function(day, month, year)
+local function CalendarSignDay(day, month, year)
 	local fn = M.Cfg.dailies .. "/" .. string.format("%04d-%02d-%02d", year, month, day) .. M.Cfg.extension
 	if file_exists(fn) then
 		return 1
@@ -599,7 +658,7 @@ end
 
 -- action on enter on a specific day:
 -- preview in telescope, stay in calendar on cancel, open note in other window on accept
-local CalendarAction = function(day, month, year, weekday, _)
+local function CalendarAction(day, month, year, weekday, _)
 	local today = string.format("%04d-%02d-%02d", year, month, day)
 	local opts = {}
 	opts.date = today
@@ -612,7 +671,7 @@ local CalendarAction = function(day, month, year, weekday, _)
 	GotoToday(opts)
 end
 
-local ShowCalendar = function(opts)
+local function ShowCalendar(opts)
 	local defaults = {}
 	defaults.cmd = "CalendarVR"
 	defaults.vertical_resize = 1
@@ -625,7 +684,7 @@ local ShowCalendar = function(opts)
 end
 
 -- set up calendar integration: forward to our lua functions
-local SetupCalendar = function(opts)
+local function SetupCalendar(opts)
 	local defaults = M.Cfg.calendar_opts
 	opts = opts or defaults
 
@@ -664,7 +723,7 @@ local SetupCalendar = function(opts)
 	vim.cmd(cmd)
 end
 
-local ToggleTodo = function(opts)
+local function ToggleTodo(opts)
 	-- replace
 	--       by -
 	-- -     by - [ ]
@@ -699,7 +758,7 @@ end
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
 --
-local Setup = function(cfg)
+local function Setup(cfg)
 	cfg = cfg or {}
 	local debug = cfg.debug
 	for k, v in pairs(cfg) do
@@ -740,7 +799,10 @@ local Setup = function(cfg)
 			or "left-fit"
 		SetupCalendar(M.Cfg.calendar_opts)
 	end
-	-- print(vim.inspect(cfg))
+
+	-- setup extensions to filter for
+	M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
+
 	if debug then
 		print("Resulting config:")
 		print("-----------------")
@@ -759,7 +821,8 @@ M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
-M.create_note_sel_template = CreateNoteSelectTemplate
+M.create_note_sel_template = CreateNoteSelectTemplate -- documented wrongly, let's keep it for the moment
+M.new_templated_note = CreateNoteSelectTemplate
 M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
 M.CalendarAction = CalendarAction
