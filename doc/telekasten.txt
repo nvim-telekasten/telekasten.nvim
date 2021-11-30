@@ -454,6 +454,15 @@ telekasten.insert_img_link({opts})~
 
     Default: `nil`
 
+                                                   *telekasten.preview_img()*
+telekasten.preview_img()~
+  Uses the `telescope-media-files.nvim` extension to preview the image / media
+  file under the cursor of a markdown image link: `![](path/to/img.png)`. The
+  cursor must be between `(the two parenthesis)`.
+
+  Note:~
+    This requires the `telescope-media-files.nvim` plugin to be installed.
+
 --------------------------------------------------------------------------------
 Section 3.1: Templates                                    *telekasten.templates*
 
@@ -584,6 +593,7 @@ However, here are some suggestions:
     nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
     nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
     nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
+    nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

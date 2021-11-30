@@ -3,6 +3,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] preview images
 - [x] insert link to image, with preview
 - [x] sorting file picker: devicons, ...
 - [x] dailies and weeklies: don't display whole paths: fix entries: display values

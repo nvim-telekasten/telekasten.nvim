@@ -472,6 +472,40 @@ local function FollowLink(opts)
 end
 
 --
+-- PreviewImg:
+-- -----------
+--
+-- preview media
+--
+local function PreviewImg(_)
+	vim.cmd("normal yi)")
+	local fname = vim.fn.getreg('"0')
+
+	-- check if fname exists anywhere
+	local fexists = file_exists(M.Cfg.home .. "/" .. fname)
+
+	if fexists == true then
+		find_files_sorted({
+			prompt_title = "Preview image/media",
+			cwd = M.Cfg.home,
+			default_text = fname,
+			find_command = M.Cfg.find_command,
+			filter_extensions = { ".png", ".jpg", ".bmp", ".gif", ".pdf", ".mp4", ".webm" },
+			preview_type = "media",
+
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					actions.close(prompt_bufnr)
+				end)
+				return true
+			end,
+		})
+	else
+		print("File not found: " .. M.Cfg.home .. "/" .. fname)
+	end
+end
+
+--
 -- FindFriends:
 -- -----------
 --
@@ -557,7 +591,7 @@ end
 -- InsertImgLink:
 -- --------------
 --
--- Select from notes
+-- Insert link to image / media, with optional preview
 --
 local function InsertImgLink(opts)
 	opts = opts or {}
@@ -915,5 +949,6 @@ M.toggle_todo = ToggleTodo
 M.show_backlinks = ShowBacklinks
 M.find_friends = FindFriends
 M.insert_img_link = InsertImgLink
+M.preview_img = PreviewImg
 
 return M

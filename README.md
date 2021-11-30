@@ -14,7 +14,8 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
-- insert links to images, with **image previews**, via extension _(Linux only)_
+- insert links to images
+- **image previews**, via extension _(Linux only)_
 
 ##### New features are being announced in the [discussions](https://github.com/renerocksai/telekasten.nvim/discussions)!
 
@@ -302,6 +303,8 @@ The plugin defines the following functions.
     - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given** during the search.
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful for being able to continue to type after link insertion. See also: [Bind it](#4-bind-it).
     - example: `insert_link({ i=true })`
+- `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
+    - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
@@ -419,6 +422,7 @@ nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
 nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
+nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
