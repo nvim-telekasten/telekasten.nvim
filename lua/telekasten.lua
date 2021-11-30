@@ -220,12 +220,31 @@ local function create_note_from_template(title, filepath, templatefn, calendar_i
 	ofile:close()
 end
 
+local function num_path_elems(p)
+	return #vim.split(p, "/")
+end
+
 local function path_to_linkname(p)
-	local fn = vim.split(p, "/")
-	fn = fn[#fn]
-	fn = vim.split(fn, M.Cfg.extension)
-	fn = fn[1]
-	return fn
+	local ln
+
+	local special_dir = false
+	if num_path_elems(p:gsub(M.Cfg.dailies .. "/", "")) == 1 then
+		ln = p:gsub(M.Cfg.dailies .. "/", "")
+		special_dir = true
+	end
+
+	if num_path_elems(p:gsub(M.Cfg.weeklies .. "/", "")) == 1 then
+		ln = p:gsub(M.Cfg.weeklies .. "/", "")
+		special_dir = true
+	end
+
+	if special_dir == false then
+		ln = p:gsub(M.Cfg.home .. "/", "")
+	end
+
+	local title = vim.split(ln, M.Cfg.extension)
+	title = title[1]
+	return title
 end
 
 local function order_numeric(a, b)
