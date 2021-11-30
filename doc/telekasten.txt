@@ -436,6 +436,24 @@ telekasten.find_friends()~
   Opens a telescope search for notes that also `[[link]]` to the link under the
   cursor.
 
+                                               *telekasten.insert_img_link()*
+telekasten.insert_img_link({opts})~
+  Opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and
+  places a markdown image link to the picked one at the cursor position.
+
+  Note:~
+    If the `telescope-media-files.nvim` plugin is installed, a preview of
+    images / media files will be given during the search.
+
+  Valid keys for {opts}
+   
+  i:~
+    If `true`, it will enter input mode by pressing the <A> key. This is useful
+    for being able to continue typing after the link has been inserted.
+    See also: |telekasten.mappings|
+
+    Default: `nil`
+
 --------------------------------------------------------------------------------
 Section 3.1: Templates                                    *telekasten.templates*
 
@@ -565,6 +583,7 @@ However, here are some suggestions:
     nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
     nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
     nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
+    nnoremap <leader>zI <ESC>:lua require('telekasten').insert_img_link({ i=true })<CR>
 
     " we could define [[ in **insert mode** to call insert link
     " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

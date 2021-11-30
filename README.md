@@ -14,6 +14,7 @@ A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](htt
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
+- insert links to images, with **image previews**, via extension _(Linux only)_
 
 ##### New features are being announced in the [discussions](https://github.com/renerocksai/telekasten.nvim/discussions)!
 
@@ -53,6 +54,7 @@ I find that pressing the enter key to confirm the search does not interrupt my f
         * [Telescope](#telescope)
         * [calendar-vim Plugin (optional)](#calendar-vim-plugin-optional)
         * [For pasting images: xclip (optional)](#for-pasting-images-xclip-optional)
+        * [For image previews: telescope-media-files.nvim (optional)](#for-image-previews-telescope-media-filesnvim-optional)
     * [1. Install the plugin](#1-install-the-plugin)
         * [Other useful plugins](#other-useful-plugins)
     * [2. Configure telekasten.nvim](#2-configure-telekastennvim)
@@ -93,6 +95,26 @@ On Ubuntu/Debian like systems:
 ```console
 $ sudo apt-get install xclip
 ```
+
+#### For image previews: telescope-media-files.nvim (optional)
+
+**ONLY SUPPORTED ON LINUX**
+
+To preview images, PDFs, etc. in Telescope while searching for an image to insert a link to, you need to install the
+Telescope extension [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim).
+
+This extension has its own list of prerequisites, of which I recommend (and use) the following:
+
+* [Überzug](https://github.com/seebye/ueberzug) (required for image support)
+* [ffmpegthumbnailer](https://github.com/dirkvdb/ffmpegthumbnailer) (optional, for video preview support)
+* [pdftoppm](https://linux.die.net/man/1/pdftoppm) (optional, for pdf preview support. Available in the AUR as **poppler** package.)
+
+Here is a demo from the original authors of
+[telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim):
+
+![Demo](https://i.imgur.com/wEO04TK.gif)
+
+
 
 ### 1. Install the plugin
 Install with your plugin manager of choice.  Mine is [Vundle](https://github.com/VundleVim/Vundle.vim).
@@ -270,6 +292,11 @@ The plugin defines the following functions.
     - example: `toggle_todo({ i=true })`
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
+- `insert_img_link()` : opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and places a markdown image link to the picked one at the cursor position.
+  - **note**: 
+    - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given** during the search.
+    - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is useful for being able to continue to type after link insertion. See also: [Bind it](#bind-it).
+    - example: `insert_link({ i=true })`
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
 To use one of the functions above, just run them with the `:lua ...` command.
@@ -386,6 +413,7 @@ nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
 nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
 nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
 nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
+nnoremap <leader>zI <ESC>:lua require('telekasten').insert_img_link({ i=true })<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
