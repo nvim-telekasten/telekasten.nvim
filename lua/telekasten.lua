@@ -582,7 +582,6 @@ end
 local function PreviewImg(_)
 	vim.cmd("normal yi)")
 	local fname = vim.fn.getreg('"0')
-	fname = fname:gsub("^(%[)(.+)(%])$", "%2")
 
 	-- check if fname exists anywhere
 	local fexists = file_exists(M.Cfg.home .. "/" .. fname)
