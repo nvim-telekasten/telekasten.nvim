@@ -9,6 +9,9 @@
 - [ ] yt video
 
 ## Dones
+- [x] preview images
+- [x] insert link to image, with preview
+- [x] sorting file picker: devicons, ...
 - [x] dailies and weeklies: don't display whole paths: fix entries: display values
 - [x] added option parameter `i` to `toggle_todo(opts)` and `insert_link(opts)` to enter insert mode.
 - [x] find_friends()

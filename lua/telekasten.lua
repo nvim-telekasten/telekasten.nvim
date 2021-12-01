@@ -6,6 +6,7 @@ local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
+local previewers = require("telescope.previewers")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -219,12 +220,31 @@ local function create_note_from_template(title, filepath, templatefn, calendar_i
 	ofile:close()
 end
 
+local function num_path_elems(p)
+	return #vim.split(p, "/")
+end
+
 local function path_to_linkname(p)
-	local fn = vim.split(p, "/")
-	fn = fn[#fn]
-	fn = vim.split(fn, M.Cfg.extension)
-	fn = fn[1]
-	return fn
+	local ln
+
+	local special_dir = false
+	if num_path_elems(p:gsub(M.Cfg.dailies .. "/", "")) == 1 then
+		ln = p:gsub(M.Cfg.dailies .. "/", "")
+		special_dir = true
+	end
+
+	if num_path_elems(p:gsub(M.Cfg.weeklies .. "/", "")) == 1 then
+		ln = p:gsub(M.Cfg.weeklies .. "/", "")
+		special_dir = true
+	end
+
+	if special_dir == false then
+		ln = p:gsub(M.Cfg.home .. "/", "")
+	end
+
+	local title = vim.split(ln, M.Cfg.extension)
+	title = title[1]
+	return title
 end
 
 local function order_numeric(a, b)
@@ -256,6 +276,33 @@ local function filter_filetypes(flist, ftypes)
 	return new_fl
 end
 
+local media_files_base_directory = "../telescope-media-files.nvim"
+local defaulter = utils.make_default_callable
+local media_preview = defaulter(function(opts)
+	local preview_cmd = media_files_base_directory .. "/scripts/vimg"
+	if vim.fn.executable(preview_cmd) == 0 then
+		return conf.file_previewer(opts)
+	end
+	return previewers.new_termopen_previewer({
+		get_command = opts.get_command or function(entry)
+			local tmp_table = vim.split(entry.value, "\t")
+			local preview = opts.get_preview_window()
+			opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.loop.cwd()
+			if vim.tbl_isempty(tmp_table) then
+				return { "echo", "" }
+			end
+			return {
+				preview_cmd,
+				tmp_table[1],
+				preview.col,
+				preview.line + 1,
+				preview.width,
+				preview.height,
+			}
+		end,
+	})
+end, {})
+
 -- find_files_sorted(opts)
 -- like builtin.find_files, but:
 --     - uses plenary.scan_dir synchronously instead of external jobs
@@ -265,11 +312,14 @@ end
 --     - displays subdirs if necessary
 --         - e.g. when searching for daily notes, no subdirs are displayed
 --         - but when entering a date in find_notes, the daily/ and weekly/ subdirs are displayed
+--     - optionally previews media (pdf, images, mp4, webm)
+--         - this requires the telescope-media-files.nvim extension
 local function find_files_sorted(opts)
 	opts = opts or {}
 
 	local file_list = scan.scan_dir(opts.cwd, {})
-	file_list = filter_filetypes(file_list, M.Cfg.filter_extensions)
+	local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
+	file_list = filter_filetypes(file_list, filter_extensions)
 	table.sort(file_list, order_numeric)
 
 	-- display with devicons
@@ -292,6 +342,12 @@ local function find_files_sorted(opts)
 		end
 	end
 
+	-- for media_files
+	local popup_opts = {}
+	opts.get_preview_window = function()
+		return popup_opts.preview
+	end
+
 	local function make_entry(entry)
 		local iconic_entry = {}
 		iconic_entry.value = entry
@@ -300,14 +356,29 @@ local function find_files_sorted(opts)
 		return iconic_entry
 	end
 
-	pickers.new(opts, {
+	local previewer = conf.file_previewer(opts)
+	if opts.preview_type == "media" then
+		previewer = media_preview.new(opts)
+	end
+
+	local picker = pickers.new(opts, {
 		finder = finders.new_table({
 			results = file_list,
 			entry_maker = make_entry,
 		}),
 		sorter = conf.generic_sorter(opts),
-		previewer = conf.file_previewer(opts),
-	}):find()
+
+		previewer = previewer,
+	})
+
+	-- for media_files:
+	local line_count = vim.o.lines - vim.o.cmdheight
+	if vim.o.laststatus ~= 0 then
+		line_count = line_count - 1
+	end
+	popup_opts = picker:get_window_options(vim.o.columns, line_count)
+
+	picker:find()
 end
 
 --
@@ -420,6 +491,40 @@ local function FollowLink(opts)
 end
 
 --
+-- PreviewImg:
+-- -----------
+--
+-- preview media
+--
+local function PreviewImg(_)
+	vim.cmd("normal yi)")
+	local fname = vim.fn.getreg('"0')
+
+	-- check if fname exists anywhere
+	local fexists = file_exists(M.Cfg.home .. "/" .. fname)
+
+	if fexists == true then
+		find_files_sorted({
+			prompt_title = "Preview image/media",
+			cwd = M.Cfg.home,
+			default_text = fname,
+			find_command = M.Cfg.find_command,
+			filter_extensions = { ".png", ".jpg", ".bmp", ".gif", ".pdf", ".mp4", ".webm" },
+			preview_type = "media",
+
+			attach_mappings = function(prompt_bufnr, _)
+				actions.select_default:replace(function()
+					actions.close(prompt_bufnr)
+				end)
+				return true
+			end,
+		})
+	else
+		print("File not found: " .. M.Cfg.home .. "/" .. fname)
+	end
+end
+
+--
 -- FindFriends:
 -- -----------
 --
@@ -498,6 +603,37 @@ local function FindNotes(_)
 		prompt_title = "Find notes by name",
 		cwd = M.Cfg.home,
 		find_command = M.Cfg.find_command,
+	})
+end
+
+--
+-- InsertImgLink:
+-- --------------
+--
+-- Insert link to image / media, with optional preview
+--
+local function InsertImgLink(opts)
+	opts = opts or {}
+	find_files_sorted({
+		prompt_title = "Find image/media",
+		cwd = M.Cfg.home,
+		find_command = M.Cfg.find_command,
+		filter_extensions = { ".png", ".jpg", ".bmp", ".gif", ".pdf", ".mp4", ".webm" },
+		preview_type = "media",
+
+		attach_mappings = function(prompt_bufnr, _)
+			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+				local selection = action_state.get_selected_entry()
+				local fn = selection.value
+				fn = fn:gsub(M.Cfg.home .. "/", "")
+				vim.api.nvim_put({ "![](" .. fn .. ")" }, "", false, true)
+				if opts.i then
+					vim.api.nvim_feedkeys("A", "m", false)
+				end
+			end)
+			return true
+		end,
 	})
 end
 
@@ -774,7 +910,7 @@ local function Setup(cfg)
 	end
 
 	-- TODO: this is obsolete:
-	if vim.fn.executable("rg") then
+	if vim.fn.executable("rg") == 1 then
 		M.Cfg.find_command = { "rg", "--files", "--sortr", "created" }
 	else
 		M.Cfg.find_command = nil
@@ -831,5 +967,7 @@ M.paste_img_and_link = imgFromClipboard
 M.toggle_todo = ToggleTodo
 M.show_backlinks = ShowBacklinks
 M.find_friends = FindFriends
+M.insert_img_link = InsertImgLink
+M.preview_img = PreviewImg
 
 return M
