@@ -383,8 +383,31 @@ be previewed.
 - ![optional title](path/to/file) ... links to the file `path/to/file`
 ```
 
-Note that notes linked to with headings or paragraph IDs **will not be created automatically**. 
+You can `follow_link()` all of the above, with the exception of media links, which you can `preview_img()`.
 
+Note that notes linked to with headings or paragraph IDs **will not be created automatically**. Non-existing notes will
+be ignored, a global search will be performed instead.
+
+For now, you have to create such links yourself.  You can edit existing links and append headings, for example: From `[[The note]]` to `[[The note#Some heading or subheading]]`.
+
+Regarding linking to paragraphs: The `^blockid` notation is supported by more and more tools now. It works like this:
+
+- at the end of a line / paragraph you want to link to, you put some block id marker in the form of `^block-id`.
+- typically, block ids are tool-generated - but no one can stop you defining your own.
+    - tool-generated block ids look like this: `^xAcSh-xxr`. 
+- instead of linking to a heading, you use the block id as heading: `[[Some note#^block-id]]`.
+- instead of putting the block id at the end of a line, you can also make a line break and put it in the next line, like
+  illustrated below.
+
+  ```markdown
+  Here we have a line or even a paragraph. 
+  We don't want to have a block id dangling
+  at the end of a line. So instead, we just
+  put it in the next one.
+  ^xxxblkxx
+
+  Here goes the next paragraph.
+  ```
 
 ### 2.1 Note templates
 
