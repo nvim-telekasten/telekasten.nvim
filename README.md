@@ -388,7 +388,8 @@ You can `follow_link()` all of the above, with the exception of media links, whi
 Note that notes linked to with headings or paragraph IDs **will not be created automatically**. Non-existing notes will
 be ignored, a global search will be performed instead.
 
-For now, you have to create such links yourself.  You can edit existing links and append headings, for example: From `[[The note]]` to `[[The note#Some heading or subheading]]`.
+For now, you have to create such links yourself.  You can edit existing links and append headings, for example: From
+`[[The note]]` to `[[The note#Some heading or subheading]]`.
 
 Regarding linking to paragraphs: The `^blockid` notation is supported by more and more tools now. It works like this:
 

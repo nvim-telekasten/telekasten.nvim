@@ -473,7 +473,7 @@ local function FollowLink(opts)
 	local search_mode = "files"
 
 	local parts = vim.split(title, "#")
-	local filename
+	local filename = ''
 
 	-- if there is a #
 	if #parts ~= 1 then
@@ -560,6 +560,7 @@ local function FollowLink(opts)
 			cwd = cwd,
 			prompt_title = "Notes referencing `" .. title .. "`",
 			default_text = search_pattern,
+			-- link to specific file (a daily file): [[2021-02-22]]
 			-- link to heading in specific file (a daily file): [[2021-02-22#Touchpoint]]
 			-- link to heading globally [[#Touchpoint]]
 			-- link to heading in specific file (a daily file): [[The cool note#^xAcSh-xxr]]
