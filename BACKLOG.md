@@ -1,14 +1,15 @@
 # Backlog
 
-- [ ] really good support for special links
-  - links to headings
-  - links to paragraphs
+- [ ] really good support for special links: inserting, yanking, ...
 - can  we add image pre-viewing capabilities from `telescope-media-files` to the standard previewer or a self-written
   pre-viewer (config)?
 
 - [ ] yt video
 
 ## Dones
+- [x] initial support for special links
+  - links to headings
+  - links to paragraphs
 - [x] preview images
 - [x] insert link to image, with preview
 - [x] sorting file picker: devicons, ...
