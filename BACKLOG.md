@@ -1,5 +1,10 @@
 # Backlog
 
+- [ ] some cool buffer showing backlinks (and stuff?)
+    - maybe another one where we dot-render a graph of linked notes and 
+      display it via vimg from telescope_media_files or sth similar
+    - these buffers / this buffer should keep its size even when resizing other
+      splits (like the calendar)
 - [ ] really good support for special links: inserting, yanking, ...
 - can  we add image pre-viewing capabilities from `telescope-media-files` to the standard previewer or a self-written
   pre-viewer (config)?
