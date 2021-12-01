@@ -46,44 +46,28 @@
 
 ## Special links
 
-- like this
-   - [[2021-11-27#Make it]]
-   - [[2021-11-27# it]]
-   - [[2021-11-27#^4ba88c]]
-     - block references only need to be local to the file
-     - for grepping, it makes sense for them to rather not collide
-     - we could use hex format of current time when creating them
-     - or some hash of the block - plus some time info
+Everything behind a # is a search!
 
-- also provide highlighting 
-- yank link to this heading
-- yank link to this paragraph
-  - warning: appends ^xxxxxx to the paragraph, if not present
+- [[#some heading]] -- will search for the heading 'some heading' 
 
-- can we jump to a specific line (col) from telescope?
-- how can we jump to the heading / para in the preview?
-- can we use live_grep or file_finder?
-  - con for live_grep: will find any file with the same heading
-    - --> pressing enter might jump to a wrong default
-  - con for file finder:
-    - maybe not possible to move preview to correct line
-      - better previewer?
-- or shall everything be custom?
-  - only 1 file or a list of files containing the same heading, with the one under the link as default
-  - and a pre-viewer at correct line (cat new or so)
+- [[some note#some heading]] -- will search for 'some note' in filns and within it the heading 'some heading' 
 
-`require('telescope.previewers').vim_buffer_vimgrep()`:
-A previewer that is used to display a file and jump to the provided line.
-It uses the `buffer_previewer` interface. To integrate this one into your
-own picker make sure that the field `path` or `filename` and `lnum` is set
-in each entry. If the latter is not present, it will default to the first
-line. The preferred way of using this previewer is like this
-`require('telescope.config').values.grep_previewer` This will respect user
-configuration and will use `termopen_previewer` in case it's configured
-that way.
+- [[#^some-para-id]] -- will search for the ^para-id
+- [[some note#^some-para-id]] -- will search for the ^para-id in the note whose filn matches some note
 
-Also interesting: termopen_previewer!
-`vim.fn.search` to jump to a specific line
+If note is specified and cannot be found, it will be ignored and a global search triggered instead
 
-> Start typing a link like you would normally. When the note you want is highlighted, press # instead of Enter and you'll see a list of headings in that file. Continue typing or navigate with arrow keys as before, press # again at each subheading you want to add, and Enter to complete the link.
+## Supportive features
+
+- Yank link to heading
+- Yank link to paragraph
+
+### Insert links...?
+Maybe as an extra action: link with heading -> telescope popup for headings
+Maybe as an extra action: link with paragraph -> telescope popup for paragraphs
+
+Global: link to heading: search through all headings
+Global: link to paragraphs: search all paragraphs: maybe overkill
+Global: link to already postfixed paragraphs
+Global: Place paragraph id
 

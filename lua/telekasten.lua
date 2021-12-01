@@ -7,6 +7,7 @@ local conf = require("telescope.config").values
 local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
+local make_entry = require("telescope.make_entry")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -348,7 +349,7 @@ local function find_files_sorted(opts)
 		return popup_opts.preview
 	end
 
-	local function make_entry(entry)
+	local function entry_maker(entry)
 		local iconic_entry = {}
 		iconic_entry.value = entry
 		iconic_entry.ordinal = entry
@@ -364,7 +365,7 @@ local function find_files_sorted(opts)
 	local picker = pickers.new(opts, {
 		finder = finders.new_table({
 			results = file_list,
-			entry_maker = make_entry,
+			entry_maker = entry_maker,
 		}),
 		sorter = conf.generic_sorter(opts),
 
@@ -469,25 +470,103 @@ local function FollowLink(opts)
 	opts = opts or {}
 	vim.cmd("normal yi]")
 	local title = vim.fn.getreg('"0')
+	local search_mode = "files"
 
-	-- check if fname exists anywhere
-	local fexists = file_exists(M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension)
-	fexists = fexists or file_exists(M.Cfg.dailies .. "/" .. title .. M.Cfg.extension)
-	fexists = fexists or file_exists(M.Cfg.home .. "/" .. title .. M.Cfg.extension)
+	local parts = vim.split(title, "#")
+	local filename
 
-	if
-		(fexists ~= true) and ((opts.follow_creates_nonexisting == true) or M.Cfg.follow_creates_nonexisting == true)
-	then
-		local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
-		create_note_from_template(title, fname, M.note_type_templates.normal)
+	-- if there is a #
+	if #parts ~= 1 then
+		search_mode = "heading"
+		title = parts[2]
+		filename = parts[1]
+		parts = vim.split(title, "%^")
+		if #parts ~= 1 then
+			search_mode = "para"
+			title = parts[2]
+		end
 	end
 
-	find_files_sorted({
-		prompt_title = "Follow link to note...",
-		cwd = M.Cfg.home,
-		default_text = title,
-		find_command = M.Cfg.find_command,
-	})
+	if #filename > 0 then
+		local fexists = false
+		if file_exists(M.Cfg.weeklies .. "/" .. filename .. M.Cfg.extension) then
+			filename = M.Cfg.weeklies .. "/" .. filename .. M.Cfg.extension
+			fexists = true
+		end
+		if file_exists(M.Cfg.dailies .. "/" .. filename .. M.Cfg.extension) then
+			filename = M.Cfg.dailies .. "/" .. filename .. M.Cfg.extension
+			fexists = true
+		end
+		if file_exists(M.Cfg.home .. "/" .. filename .. M.Cfg.extension) then
+			filename = M.Cfg.home .. "/" .. filename .. M.Cfg.extension
+			fexists = true
+		end
+
+		if fexists == false then
+			-- print("error")
+			filename = ""
+		end
+	end
+
+	if search_mode == "files" then
+		-- check if fname exists anywhere
+		local fexists = file_exists(M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension)
+		fexists = fexists or file_exists(M.Cfg.dailies .. "/" .. title .. M.Cfg.extension)
+		fexists = fexists or file_exists(M.Cfg.home .. "/" .. title .. M.Cfg.extension)
+
+		if
+			(fexists ~= true)
+			and ((opts.follow_creates_nonexisting == true) or M.Cfg.follow_creates_nonexisting == true)
+		then
+			local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
+			create_note_from_template(title, fname, M.note_type_templates.normal)
+		end
+
+		find_files_sorted({
+			prompt_title = "Follow link to note...",
+			cwd = M.Cfg.home,
+			default_text = title,
+			find_command = M.Cfg.find_command,
+		})
+	end
+
+	if search_mode ~= "files" then
+		local search_pattern = title
+		local cwd = M.Cfg.home
+
+		opts.cwd = cwd
+
+		local live_grepper = finders.new_job(function(prompt)
+			if not prompt or prompt == "" then
+				return nil
+			end
+
+			local search_command = { "rg", "--vimgrep", "-e", "^#+\\s" .. prompt, "--" }
+			if search_mode == "para" then
+				search_command = { "rg", "--vimgrep", "-e", "\\^" .. prompt, "--" }
+			end
+
+			if #filename > 0 then
+				table.insert(search_command, filename)
+			else
+				table.insert(search_command, cwd)
+			end
+
+			local ret = vim.tbl_flatten({ search_command })
+			return ret
+		end, make_entry.gen_from_vimgrep(opts), opts.max_results, opts.cwd)
+
+		builtin.live_grep({
+			cwd = cwd,
+			prompt_title = "Notes referencing `" .. title .. "`",
+			default_text = search_pattern,
+			-- link to heading in specific file (a daily file): [[2021-02-22#Touchpoint]]
+			-- link to heading globally [[#Touchpoint]]
+			-- link to heading in specific file (a daily file): [[The cool note#^xAcSh-xxr]]
+			-- link to paragraph globally [[#^xAcSh-xxr]]
+			finder = live_grepper,
+		})
+	end
 end
 
 --

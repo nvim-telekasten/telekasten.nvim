@@ -12,6 +12,8 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 - following a link to a non-existing note can also create the missing note (optional)
 - find notes **that link back to your notes**
 - find other notes that link to the same note as the link under the cursor
+- support for **links to headings or specific paragraphs** within specific notes or globally (see [link
+  notation](#20-link-notation))
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
@@ -78,11 +80,12 @@ of being able to edit it.
     * [0.3 Configure your own colors](#03-configure-your-own-colors)
 * [1. Get Help](#1-get-help)
 * [2. Use it](#2-use-it)
-    * [3. Note templates](#3-note-templates)
-        * [3.1 Template files](#31-template-files)
-    * [3.2 Using the calendar](#32-using-the-calendar)
-* [4. Bind it](#4-bind-it)
-* [5. The hardcoded stuff](#5-the-hardcoded-stuff)
+    * [2.0 Link notation](#20-link-notation)
+    * [2.1 Note templates](#21-note-templates)
+        * [2.1.1 Template files](#211-template-files)
+    * [2.2 Using the calendar](#22-using-the-calendar)
+* [3. Bind it](#3-bind-it)
+* [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
 <!-- vim-markdown-toc -->
 
@@ -296,7 +299,7 @@ or .. **just use telescope**: `:Telescope help_tags` and search for `telekasten`
 
 ## 2. Use it
 
-The plugin defines the following functions.
+The plugin defines the following functions:
 
 - `new_note()` : prompts for title and creates new note by template, then shows it in Telescope
 - `new_templated_note()` : prompts for title and then uses telescope for choosing a template. When a template is
@@ -314,10 +317,12 @@ The plugin defines the following functions.
 - `insert_link()` : select a note by name, via Telescope, and place a `[[link]]` at the current cursor position
   - **note**: 
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
-      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
+      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#3-bind-it).
     - example: `insert_link({ i=true })`
 - `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to
   open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
+  - **note**:
+    - notes linked to with headings or paragraph IDs **will not be created automatically**. See below for link notation.
 - `yank_notelink()` : yank a link to the current note, ready to paste
 - `show_calendar()` : opens up the calendar in a properly-sized vertical split at the very right
 - `paste_img_and_link()` : pastes an image from the clipboard into a file under `image_subdir` and inserts a link to it
@@ -325,7 +330,7 @@ The plugin defines the following functions.
 - `toggle_todo()` : turn a line into a `- [ ] ` line, or toggle between `- [ ]`, `- [x]`, and `- `.
   - **note**:
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
-      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#4-bind-it).
+      useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#3-bind-it).
     - example: `toggle_todo({ i=true })`
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
@@ -335,7 +340,7 @@ The plugin defines the following functions.
     - if the `telescope-media-files.nvim` plugin is installed, **a preview of images / media files will be given**
       during the search.
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
-      useful for being able to continue to type after link insertion. See also: [Bind it](#4-bind-it).
+      useful for being able to continue to type after link insertion. See also: [Bind it](#3-bind-it).
     - example: `insert_link({ i=true })`
 - `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor
   of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
@@ -348,7 +353,44 @@ To use one of the functions above, just run them with the `:lua ...` command.
 :lua require("telekasten").find_daily_notes()
 ```
 
-### 3. Note templates
+### 2.0 Link notation
+
+The following links are supported:
+
+```markdown
+# Note links
+
+- [[A cool title]]  ................. links to the note named 'A cool title'
+- [[A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within the note 
+                                      named 'A cool title'
+- [[A cool title#^xxxxxxxx]]  ....... links to the paragraph with id ^xxxxxxxx within the note 
+                                      named 'A cool title'
+- [[#Heading 27]]  .................. links to the heading 'Heading 27' within all notes
+- [[#^xxxxxxxx]]  ................... links to the paragraph with id ^xxxxxxxx within all notes
+
+## Optionally, notes can live in specific sub-directories
+
+- [[some/subdirectory/A cool title]]  ................. links to note named 'A cool title' 
+                                                        in some/subdirectory
+- [[some/subdirectory/A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within 
+                                                        the note named 'A cool title' 
+                                                        in some/subdirectory
+- [[some/subdirectory/A cool title#^xxxxxxxx]]  ....... links to the paragraph with 
+                                                        id ^xxxxxxxx within the note named 
+                                                        'A cool title' in some/subdirectory
+
+# Media links
+
+Use these for images, PDF files, videos. If telescope-media-files is installed, these can 
+be previewed.
+
+- ![optional title](path/to/file) ... links to the file `path/to/file`
+```
+
+Note that notes linked to with headings or paragraph IDs **will not be created automatically**. 
+
+
+### 2.1 Note templates
 
 The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create
 non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
@@ -369,7 +411,7 @@ The following table shows which command relies on what config option:
 
 If the associated option is `true`, non-existing notes will be created.
 
-#### 3.1 Template files
+#### 2.1.1 Template files
 
 The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to
 template text files that are used for creating new notes.
@@ -426,7 +468,7 @@ date:  {{hdate}}
 ## Sunday link
 ```
 
-### 3.2 Using the calendar
+### 2.2 Using the calendar
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of
 vim.
@@ -443,7 +485,7 @@ command in vim:
 :CalendarT
 ```
 
-## 4. Bind it
+## 3. Bind it
 Usually, you would set up some key bindings, though:
 
 ```vim
@@ -482,7 +524,7 @@ hi tkBrackets ctermfg=gray
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 ```
 
-## 5. The hardcoded stuff
+## 4. The hardcoded stuff
 
 Currently, the following things are hardcoded:
 - the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)

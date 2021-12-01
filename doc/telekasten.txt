@@ -28,8 +28,9 @@ CONTENTS
     1. Setup ......................... |telekasten.setup|
     2. Colors ........................ |telekasten.colors|
     3. Usage ......................... |telekasten.usage|
-        3.1 Templates ................ |telekasten.templates|
-        3.2 Calendar ................. |telekasten.calendar|
+        3.1 Link Notation ............ |telekasten.link_notation|
+        3.2 Templates ................ |telekasten.templates|
+        3.3 Calendar ................. |telekasten.calendar|
     4. Suggested mappings ............ |telekasten.mappings|
     5. Credits ....................... |telekasten.credits|
 
@@ -464,7 +465,50 @@ telekasten.preview_img()~
     This requires the `telescope-media-files.nvim` plugin to be installed.
 
 --------------------------------------------------------------------------------
-Section 3.1: Templates                                    *telekasten.templates*
+Section 3.1: Link notation                            *telekasten.link_notation*
+
+The following links are supported:
+
+Note links~
+
+`[[A cool title]]`  ................. links to the note named 'A cool title'
+
+`[[A cool title#Heading 27]]`  ...... links to the heading 'Heading 27' within
+                                    the note named 'A cool title'
+
+`[[A cool title#^xxxxxxxx]]`  ....... links to the paragraph with id ^xxxxxxxx
+                                    within the note named 'A cool title'
+
+`[[#Heading 27]]`  .................. links to the heading 'Heading 27' within
+                                    all notes
+                                    
+`[[#^xxxxxxxx]]`  ................... links to the paragraph with id ^xxxxxxxx
+                                    within all notes
+
+Optionally, notes can live in specific sub-directories:
+
+`[[some/subdirectory/A cool title]]`: links to note named 'A cool title' 
+                                    in some/subdirectory
+
+`[[some/subdirectory/A cool title#Heading 27]]`: links to the heading
+                                    'Heading 27' within the note named 
+                                    'A cool title' in some/subdirectory
+
+`[[some/subdirectory/A cool title#^xxxxxxxx]]` : links to the paragraph
+                                    with id ^xxxxxxxx within the note named 
+                                    'A cool title' in some/subdirectory
+
+Media links~
+Use these for images, PDF files, videos. If telescope-media-files is installed,
+these can be previewed.
+
+`![optional title](path/to/file)` ... links to the file `path/to/file`
+
+Note that notes linked to with headings or paragraph IDs **will not be created
+automatically**. 
+
+--------------------------------------------------------------------------------
+Section 3.2: Templates                                    *telekasten.templates*
 
 Telekasten.nvim can create non-existing notes, providing this is enabled in
 the settings - which it is by default. Auto-creation of notes is useful when
@@ -549,7 +593,7 @@ And finally, what a template for weekly notes could look like:
 <
 
 --------------------------------------------------------------------------------
-Section 3.2: Calendar                                    *telekasten.calendar*
+Section 3.3: Calendar                                    *telekasten.calendar*
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and
 next month is shown at the right side of vim.
@@ -577,39 +621,39 @@ Telekasten.nvim does not come with pre-defined mappings.
 
 However, here are some suggestions:
 >
-    nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
-    nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
-    nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
-    nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
-    nnoremap <leader>zt :lua require('telekasten').goto_today()<CR>
-    nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
-    nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
-    nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
-    nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
-    nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
-    nnoremap <leader>zC :CalendarT<CR>
-    nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
-    nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
-    nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
-    nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
-    nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
-    nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
+ nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
+ nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
+ nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
+ nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
+ nnoremap <leader>zt :lua require('telekasten').goto_today()<CR>
+ nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
+ nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
+ nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
+ nnoremap <leader>zy :lua require('telekasten').yank_notelink()<CR>
+ nnoremap <leader>zc :lua require('telekasten').show_calendar()<CR>
+ nnoremap <leader>zC :CalendarT<CR>
+ nnoremap <leader>zi :lua require('telekasten').paste_img_and_link()<CR>
+ nnoremap <leader>zt :lua require('telekasten').toggle_todo()<CR>
+ nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
+ nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
+ nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
+ nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 
-    " we could define [[ in **insert mode** to call insert link
-    " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
-    " alternatively: leader [
-    inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
-    inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
+ " we could define [[ in **insert mode** to call insert link
+ " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
+ " alternatively: leader [
+ inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
+ inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
 
-    " the following are for syntax-coloring [[links]] and ==highlighted text==
-    " (see the section about coloring in README.md)
+ " the following are for syntax-coloring [[links]] and ==highlighted text==
+ " (see the section about coloring in README.md)
 
-    " colors suitable for gruvbox color scheme
-    hi tkLink ctermfg=72 cterm=bold,underline
-    hi tkBrackets ctermfg=gray
+ " colors suitable for gruvbox color scheme
+ hi tkLink ctermfg=72 cterm=bold,underline
+ hi tkBrackets ctermfg=gray
 
-    " highlight ==highlighted== text
-    hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+ " highlight ==highlighted== text
+ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 <
 
 ================================================================================
