@@ -194,12 +194,15 @@ require('telekasten').setup({
     weeklies_create_nonexisting = true,
 
     -- template for new notes (new_note, follow_link)
+    -- set to `nil` or do not specify if you do not want a template
     template_new_note = home .. '/' .. 'templates/new_note.md',
 
     -- template for newly created daily notes (goto_today)
+    -- set to `nil` or do not specify if you do not want a template
     template_new_daily = home .. '/' .. 'templates/daily.md',
 
     -- template for newly created weekly notes (goto_thisweek)
+    -- set to `nil` or do not specify if you do not want a template
     template_new_weekly= home .. '/' .. 'templates/weekly.md',
 
 	-- image link style
@@ -240,6 +243,13 @@ END
 | `template_new_weekly` | markdown template for new weekly notes | ~/zettelkasten/templates/weekly.md |
 | `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true |
 | `calendar_opts` | options for calendar, see below | see below |
+
+**Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
+```lua
+    -- template for new notes (new_note, follow_link)
+    -- set to `nil` or do not specify if you do not want a template
+    template_new_note = nil,
+```
 
 The calendar support has its own options, contained in `calendar_opts`:
 
@@ -416,18 +426,18 @@ The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_no
 non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
 type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
 
-The following table shows which command relies on what config option:
+The following table shows what action creates what kind of non-existing note:
 
-| telekasten function | config option | creates what |
+| ACTION | config option | creates what |
 | --- | --- | --- |
-| `goto_today` | `dailies_create_nonexisting` | today's daily note |
+| `goto_today()` | `dailies_create_nonexisting` | today's daily note |
 | [ENTER] on a day in the calendar | `dailies_create_nonexisting` | selected day's daily note |
-| `find_daily_notes` | `dailies_create_nonexisting` | today's daily note |
-| `goto_thisweek` | `weeklies_create_nonexisting` | this week's weekly note |
-| `find_weekly_notes` | `weeklies_create_nonexisting` | this week's weekly note |
-| `follow_link` | `follow_creates_nonexisting` | new note |
-| `new_note` | always true | new note |
-| `new_templated_note` | always true | new note |
+| `find_daily_notes()` | `dailies_create_nonexisting` | today's daily note |
+| `goto_thisweek()` | `weeklies_create_nonexisting` | this week's weekly note |
+| `find_weekly_notes()` | `weeklies_create_nonexisting` | this week's weekly note |
+| `follow_link()` | `follow_creates_nonexisting` | new note |
+| `new_note()` | always true | new note |
+| `new_templated_note()` | always true | new note |
 
 If the associated option is `true`, non-existing notes will be created.
 

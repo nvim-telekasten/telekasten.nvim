@@ -38,9 +38,9 @@ M.Cfg = {
 	weeklies_create_nonexisting = true,
 
 	-- templates for new notes
-	template_new_note = home .. "/" .. "templates/new_note.md",
-	template_new_daily = home .. "/" .. "templates/daily_tk.md",
-	template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
+	-- template_new_note = home .. "/" .. "templates/new_note.md",
+	-- template_new_daily = home .. "/" .. "templates/daily_tk.md",
+	-- template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
 
 	-- image link style
 	-- wiki:     ![[image name]]
@@ -208,8 +208,10 @@ end
 local function create_note_from_template(title, filepath, templatefn, calendar_info)
 	-- first, read the template file
 	local lines = {}
-	for line in io.lines(templatefn) do
-		lines[#lines + 1] = line
+	if file_exists(templatefn) then
+		for line in io.lines(templatefn) do
+			lines[#lines + 1] = line
+		end
 	end
 
 	-- now write the output file, substituting vars line by line
@@ -998,13 +1000,6 @@ local function Setup(cfg)
 		M.Cfg.find_command = nil
 	end
 
-	-- refresh templates
-	M.note_type_templates = {
-		normal = M.Cfg.template_new_note,
-		daily = M.Cfg.template_new_daily,
-		weekly = M.Cfg.template_new_weekly,
-	}
-
 	-- this looks a little messy
 	if M.Cfg.plug_into_calendar then
 		cfg.calendar_opts = cfg.calendar_opts or {}
@@ -1021,6 +1016,18 @@ local function Setup(cfg)
 
 	-- setup extensions to filter for
 	M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
+
+    -- provide fake filenames for template loading to fail silently if template is configured off
+	M.Cfg.template_new_note = M.Cfg.template_new_note or 'none'
+	M.Cfg.template_new_daily = M.Cfg.template_new_daily or 'none'
+	M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or 'none'
+
+	-- refresh templates
+	M.note_type_templates = {
+		normal = M.Cfg.template_new_note,
+		daily = M.Cfg.template_new_daily,
+		weekly = M.Cfg.template_new_weekly,
+	}
 
 	if debug then
 		print("Resulting config:")

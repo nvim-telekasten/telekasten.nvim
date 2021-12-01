@@ -80,6 +80,7 @@ telekasten.setup({opts})
 
 
       -- specific note templates
+      -- set to `nil` or do not specify if you do not want a template
       template_new_note = '/path/to/file',    -- template for new notes
       template_new_daily = '/path/to/file',   -- template for new daily notes
       template_new_weekly = '/path/to/file',  -- template for new weekly notes
@@ -182,21 +183,27 @@ telekasten.setup({opts})
 
                                    *telekasten.settings.template_new_note*
     template_new_note: ~
-        Markdown template for new notes.
+        Markdown template for new notes. Set to `nil` if you don't want a
+        template.
 
-        Default: '~/zettelkasten/templates/new_note.md'
+        Default: `nil`
+        Example: `'~/zettelkasten/templates/daily.md'`
 
                                   *telekasten.settings.template_new_daily*
     template_new_daily: ~
-        Markdown template for new daily notes.
+        Markdown template for new daily notes. Set to `nil` if you don't want
+        a template.
 
-        Default: '~/zettelkasten/templates/daily.md'
+        Default: `nil`
+        Example: `'~/zettelkasten/templates/daily.md'`
 
                                  *telekasten.settings.template_new_weekly*
     template_new_weekly: ~
-        Markdown template for new weekly notes.
+        Markdown template for new weekly notes. Set to `nil` if you don't want 
+        a template.
 
-        Default: '~/zettelkasten/templates/daily.md'
+        Default: `nil`
+        Example: `'~/zettelkasten/templates/daily.md'`
 
 
     Valid keys for {opts.calendar_opts}
@@ -531,7 +538,7 @@ The specific templates and settings used are:
 
 See also |telekasten.template_files| below for more on the specific templates.
 
-The folloet ing table shows you what action creates what kind of non-existing
+The following table shows you what action creates what kind of non-existing
 note:
 
 +----------------------------------+--------------------------------+
