@@ -359,7 +359,6 @@ The following links are supported:
 
 ```markdown
 # Note links
-
 - [[A cool title]]  ................. links to the note named 'A cool title'
 - [[A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within the note 
                                       named 'A cool title'
@@ -369,7 +368,6 @@ The following links are supported:
 - [[#^xxxxxxxx]]  ................... links to the paragraph with id ^xxxxxxxx within all notes
 
 ## Optionally, notes can live in specific sub-directories
-
 - [[some/subdirectory/A cool title]]  ................. links to note named 'A cool title' 
                                                         in some/subdirectory
 - [[some/subdirectory/A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within 
@@ -380,10 +378,8 @@ The following links are supported:
                                                         'A cool title' in some/subdirectory
 
 # Media links
-
 Use these for images, PDF files, videos. If telescope-media-files is installed, these can 
 be previewed.
-
 - ![optional title](path/to/file) ... links to the file `path/to/file`
 ```
 
