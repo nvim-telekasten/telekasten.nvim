@@ -472,6 +472,7 @@ local function FollowLink(opts)
 	opts = opts or {}
 	vim.cmd("normal yi]")
 	local title = vim.fn.getreg('"0')
+	title = title:gsub("^(%[)(.+)(%])$", "%2")
 	local search_mode = "files"
 
 	local parts = vim.split(title, "#")
@@ -581,6 +582,7 @@ end
 local function PreviewImg(_)
 	vim.cmd("normal yi)")
 	local fname = vim.fn.getreg('"0')
+	fname = fname:gsub("^(%[)(.+)(%])$", "%2")
 
 	-- check if fname exists anywhere
 	local fexists = file_exists(M.Cfg.home .. "/" .. fname)
@@ -615,6 +617,7 @@ end
 local function FindFriends()
 	vim.cmd("normal yi]")
 	local title = vim.fn.getreg('"0')
+	title = title:gsub("^(%[)(.+)(%])$", "%2")
 
 	builtin.live_grep({
 		prompt_title = "Notes referencing `" .. title .. "`",
@@ -1017,10 +1020,10 @@ local function Setup(cfg)
 	-- setup extensions to filter for
 	M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
 
-    -- provide fake filenames for template loading to fail silently if template is configured off
-	M.Cfg.template_new_note = M.Cfg.template_new_note or 'none'
-	M.Cfg.template_new_daily = M.Cfg.template_new_daily or 'none'
-	M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or 'none'
+	-- provide fake filenames for template loading to fail silently if template is configured off
+	M.Cfg.template_new_note = M.Cfg.template_new_note or "none"
+	M.Cfg.template_new_daily = M.Cfg.template_new_daily or "none"
+	M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or "none"
 
 	-- refresh templates
 	M.note_type_templates = {
