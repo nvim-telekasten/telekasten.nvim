@@ -473,7 +473,7 @@ local function FollowLink(opts)
 	local search_mode = "files"
 
 	local parts = vim.split(title, "#")
-	local filename = ''
+	local filename = ""
 
 	-- if there is a #
 	if #parts ~= 1 then
@@ -781,6 +781,7 @@ local function CreateNote(_)
 	-- vim.ui.input causes ppl problems - see issue #4
 	-- vim.ui.input({ prompt = "Title: " }, on_create)
 	local title = vim.fn.input("Title: ")
+	title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
 	if #title > 0 then
 		on_create(title)
 	end
@@ -828,6 +829,7 @@ local function CreateNoteSelectTemplate(_)
 	-- vim.ui.input causes ppl problems - see issue #4
 	-- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
 	local title = vim.fn.input("Title: ")
+	title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
 	if #title > 0 then
 		on_create_with_template(title)
 	end
