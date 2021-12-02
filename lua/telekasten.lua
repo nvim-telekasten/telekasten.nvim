@@ -8,6 +8,7 @@ local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
+local debug_utils = require('plenary.debug_utils')
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -292,11 +293,14 @@ local function filter_filetypes(flist, ftypes)
     return new_fl
 end
 
-local media_files_base_directory = "../telescope-media-files.nvim"
+local sourced_file = debug_utils.sourced_filepath()
+M.base_directory = vim.fn.fnamemodify(sourced_file, ":h:h:h")
+local media_files_base_directory = M.base_directory .. "/telescope-media-files.nvim"
 local defaulter = utils.make_default_callable
 local media_preview = defaulter(function(opts)
     local preview_cmd = media_files_base_directory .. "/scripts/vimg"
     if vim.fn.executable(preview_cmd) == 0 then
+        print('Previewer not found: ' .. preview_cmd)
         return conf.file_previewer(opts)
     end
     return previewers.new_termopen_previewer({
