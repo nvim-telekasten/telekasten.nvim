@@ -120,9 +120,9 @@ local function imgFromClipboard()
     os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
     if file_exists(pngpath) then
         if M.Cfg.image_link_style == "markdown" then
-            vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", false, true)
+            vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", true, true)
         else
-            vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", false, true)
+            vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", true, true)
         end
     end
 end
@@ -475,7 +475,7 @@ local function InsertLink(opts)
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 local fn = path_to_linkname(selection.value)
-                vim.api.nvim_put({ "[[" .. fn .. "]]" }, "", false, true)
+                vim.api.nvim_put({ "[[" .. fn .. "]]" }, "", true, true)
                 if opts.i then
                     vim.api.nvim_feedkeys("A", "m", false)
                 end
@@ -785,7 +785,7 @@ local function InsertImgLink(opts)
                 local selection = action_state.get_selected_entry()
                 local fn = selection.value
                 fn = fn:gsub(M.Cfg.home .. "/", "")
-                vim.api.nvim_put({ "![](" .. fn .. ")" }, "", false, true)
+                vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
                 if opts.i then
                     vim.api.nvim_feedkeys("A", "m", false)
                 end
