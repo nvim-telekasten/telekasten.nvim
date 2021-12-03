@@ -252,8 +252,8 @@ END
 | | set to `nil` if you want none | |
 | `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true |
 | `calendar_opts` | options for calendar, see below | see below |
-| `close_after_yanking` | close telescope preview after yanking via <ctrl><y>| false |
-| `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <ctrl><i>| true |
+| `close_after_yanking` | close telescope preview after yanking via <kbd>ctrl</kbd><kbd>y</kbd>| false |
+| `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
 
 **Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
 ```lua
