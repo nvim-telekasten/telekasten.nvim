@@ -8,7 +8,7 @@ local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
-local debug_utils = require('plenary.debug_utils')
+local debug_utils = require("plenary.debug_utils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -58,6 +58,8 @@ M.Cfg = {
         -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
         calendar_mark = "left-fit",
     },
+    close_after_yanking = false,
+    insert_after_inserting = true,
 }
 
 local function file_exists(fname)
@@ -295,12 +297,13 @@ end
 
 local sourced_file = debug_utils.sourced_filepath()
 M.base_directory = vim.fn.fnamemodify(sourced_file, ":h:h:h")
-local media_files_base_directory = M.base_directory .. "/telescope-media-files.nvim"
+local media_files_base_directory = M.base_directory
+    .. "/telescope-media-files.nvim"
 local defaulter = utils.make_default_callable
 local media_preview = defaulter(function(opts)
     local preview_cmd = media_files_base_directory .. "/scripts/vimg"
     if vim.fn.executable(preview_cmd) == 0 then
-        print('Previewer not found: ' .. preview_cmd)
+        print("Previewer not found: " .. preview_cmd)
         return conf.file_previewer(opts)
     end
     return previewers.new_termopen_previewer({
@@ -405,6 +408,65 @@ local function find_files_sorted(opts)
     picker:find()
 end
 
+-- note picker actions
+local picker_actions = {}
+
+function picker_actions.paste_link(opts)
+    return function(prompt_bufnr)
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        local fn = path_to_linkname(selection.value)
+        local title = "[[" .. fn .. "]]"
+        vim.api.nvim_put({ title }, "", true, true)
+        if opts.insert_after_inserting then
+            vim.api.nvim_feedkeys("A", "m", false)
+        end
+    end
+end
+
+function picker_actions.yank_link(opts)
+    return function(prompt_bufnr)
+        opts = opts or {}
+        if opts.close_after_yanking then
+            actions.close(prompt_bufnr)
+        end
+        local selection = action_state.get_selected_entry()
+        local fn = path_to_linkname(selection.value)
+        local title = "[[" .. fn .. "]]"
+        vim.fn.setreg('"', title)
+        print("yanked " .. title)
+    end
+end
+
+function picker_actions.paste_img_link(opts)
+    return function(prompt_bufnr)
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        local fn = selection.value
+        fn = fn:gsub(M.Cfg.home .. "/", "")
+        local imglink = "![](" .. fn .. ")"
+        vim.api.nvim_put({ imglink }, "", true, true)
+        if opts.insert_after_inserting then
+            vim.api.nvim_feedkeys("A", "m", false)
+        end
+    end
+end
+
+function picker_actions.yank_img_link(opts)
+    return function(prompt_bufnr)
+        opts = opts or {}
+        if opts.close_after_yanking then
+            actions.close(prompt_bufnr)
+        end
+        local selection = action_state.get_selected_entry()
+        local fn = selection.value
+        fn = fn:gsub(M.Cfg.home .. "/", "")
+        local imglink = "![](" .. fn .. ")"
+        vim.fn.setreg('"', imglink)
+        print("yanked " .. imglink)
+    end
+end
+
 --
 -- FindDailyNotes:
 -- ---------------
@@ -413,6 +475,10 @@ end
 --
 local function FindDailyNotes(opts)
     opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
 
     local today = os.date("%Y-%m-%d")
     local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
@@ -431,6 +497,15 @@ local function FindDailyNotes(opts)
         prompt_title = "Find daily note",
         cwd = M.Cfg.dailies,
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -442,6 +517,10 @@ end
 --
 local function FindWeeklyNotes(opts)
     opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
 
     local title = os.date("%Y-W%V")
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
@@ -460,6 +539,15 @@ local function FindWeeklyNotes(opts)
         prompt_title = "Find weekly note",
         cwd = M.Cfg.weeklies,
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -471,10 +559,14 @@ end
 --
 local function InsertLink(opts)
     opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
     find_files_sorted({
         prompt_title = "Insert link to note",
         cwd = M.Cfg.home,
-        attach_mappings = function(prompt_bufnr, _)
+        attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
@@ -484,6 +576,12 @@ local function InsertLink(opts)
                     vim.api.nvim_feedkeys("A", "m", false)
                 end
             end)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
             return true
         end,
         find_command = M.Cfg.find_command,
@@ -498,6 +596,11 @@ end
 --
 local function FollowLink(opts)
     opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
     title = title:gsub("^(%[)(.+)(%])$", "%2")
@@ -571,6 +674,15 @@ local function FollowLink(opts)
             cwd = M.Cfg.home,
             default_text = title,
             find_command = M.Cfg.find_command,
+            attach_mappings = function(_, map)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("i", "<c-cr>", picker_actions.paste_link(opts))
+                map("n", "<c-cr>", picker_actions.paste_link(opts))
+                return true
+            end,
         })
     end
 
@@ -622,6 +734,15 @@ local function FollowLink(opts)
             -- link to heading in specific file (a daily file): [[The cool note#^xAcSh-xxr]]
             -- link to paragraph globally [[#^xAcSh-xxr]]
             finder = live_grepper,
+            attach_mappings = function(_, map)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("i", "<c-cr>", picker_actions.paste_link(opts))
+                map("n", "<c-cr>", picker_actions.paste_link(opts))
+                return true
+            end,
         })
     end
 end
@@ -632,7 +753,13 @@ end
 --
 -- preview media
 --
-local function PreviewImg(_)
+local function PreviewImg(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     vim.cmd("normal yi)")
     local fname = vim.fn.getreg('"0')
 
@@ -656,10 +783,16 @@ local function PreviewImg(_)
             },
             preview_type = "media",
 
-            attach_mappings = function(prompt_bufnr, _)
+            attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
                 end)
+                map("i", "<c-y>", picker_actions.yank_img_link(opts))
+                map("i", "<c-i>", picker_actions.paste_img_link(opts))
+                map("n", "<c-y>", picker_actions.yank_img_link(opts))
+                map("n", "<c-i>", picker_actions.paste_img_link(opts))
+                map("i", "<c-cr>", picker_actions.paste_img_link(opts))
+                map("n", "<c-cr>", picker_actions.paste_img_link(opts))
                 return true
             end,
         })
@@ -669,12 +802,61 @@ local function PreviewImg(_)
 end
 
 --
+-- BrowseImg:
+-- -----------
+--
+-- preview media
+--
+local function BrowseImg(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
+    find_files_sorted({
+        prompt_title = "Preview image/media",
+        cwd = M.Cfg.home,
+        find_command = M.Cfg.find_command,
+        filter_extensions = {
+            ".png",
+            ".jpg",
+            ".bmp",
+            ".gif",
+            ".pdf",
+            ".mp4",
+            ".webm",
+        },
+        preview_type = "media",
+
+        attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+            end)
+            map("i", "<c-y>", picker_actions.yank_img_link(opts))
+            map("i", "<c-i>", picker_actions.paste_img_link(opts))
+            map("n", "<c-y>", picker_actions.yank_img_link(opts))
+            map("n", "<c-i>", picker_actions.paste_img_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_img_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_img_link(opts))
+            return true
+        end,
+    })
+end
+
+--
 -- FindFriends:
 -- -----------
 --
 -- Find notes also linking to the link under cursor
 --
-local function FindFriends()
+local function FindFriends(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
     title = title:gsub("^(%[)(.+)(%])$", "%2")
@@ -684,6 +866,15 @@ local function FindFriends()
         cwd = M.Cfg.home,
         default_text = "\\[\\[" .. title .. "\\]\\]",
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -707,6 +898,11 @@ end
 --
 local function GotoToday(opts)
     opts = opts or calenderinfo_today()
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     local word = opts.date or os.date("%Y-%m-%d")
 
     local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
@@ -731,7 +927,7 @@ local function GotoToday(opts)
         cwd = M.Cfg.home,
         default_text = word,
         find_command = M.Cfg.find_command,
-        attach_mappings = function(prompt_bufnr, _)
+        attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
 
@@ -741,6 +937,12 @@ local function GotoToday(opts)
                 end
                 vim.cmd("e " .. fname)
             end)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
             return true
         end,
     })
@@ -752,11 +954,26 @@ end
 --
 -- Select from notes
 --
-local function FindNotes(_)
+local function FindNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     find_files_sorted({
         prompt_title = "Find notes by name",
         cwd = M.Cfg.home,
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -783,7 +1000,7 @@ local function InsertImgLink(opts)
         },
         preview_type = "media",
 
-        attach_mappings = function(prompt_bufnr, _)
+        attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
@@ -794,6 +1011,12 @@ local function InsertImgLink(opts)
                     vim.api.nvim_feedkeys("A", "m", false)
                 end
             end)
+            map("i", "<c-y>", picker_actions.yank_img_link(opts))
+            map("i", "<c-i>", picker_actions.paste_img_link(opts))
+            map("n", "<c-y>", picker_actions.yank_img_link(opts))
+            map("n", "<c-i>", picker_actions.paste_img_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_img_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_img_link(opts))
             return true
         end,
     })
@@ -805,13 +1028,28 @@ end
 --
 -- find the file linked to by the word under the cursor
 --
-local function SearchNotes(_)
+local function SearchNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     builtin.live_grep({
         prompt_title = "Search in notes",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
         default_text = vim.fn.expand("<cword>"),
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -821,7 +1059,13 @@ end
 --
 -- Find all notes linking to this one
 --
-local function ShowBacklinks(_)
+local function ShowBacklinks(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     local title = path_to_linkname(vim.fn.expand("%"))
     -- or vim.api.nvim_buf_get_name(0)
     builtin.live_grep({
@@ -831,6 +1075,15 @@ local function ShowBacklinks(_)
         search_dirs = { M.Cfg.home },
         default_text = "\\[\\[" .. title .. "\\]\\]",
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-cr>", picker_actions.paste_link(opts))
+            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -840,7 +1093,13 @@ end
 --
 -- Prompts for title and creates note with default template
 --
-local function on_create(title)
+local function on_create(opts, title)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
     if title == nil then
         return
     end
@@ -856,16 +1115,24 @@ local function on_create(title)
         cwd = M.Cfg.home,
         default_text = title,
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
-local function CreateNote(_)
+local function CreateNote(opts)
+    opts = opts or {}
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create)
     local title = vim.fn.input("Title: ")
     title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
     if #title > 0 then
-        on_create(title)
+        on_create(opts, title)
     end
 end
 
@@ -876,10 +1143,16 @@ end
 -- Prompts for title, then pops up telescope for template selection,
 -- creates the new note by template and opens it
 
-local function on_create_with_template(title)
+local function on_create_with_template(opts, title)
     if title == nil then
         return
     end
+
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
 
     local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
     local fexists = file_exists(fname)
@@ -893,7 +1166,7 @@ local function on_create_with_template(title)
         prompt_title = "Select template...",
         cwd = M.Cfg.templates,
         find_command = M.Cfg.find_command,
-        attach_mappings = function(prompt_bufnr, _)
+        attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
@@ -902,18 +1175,23 @@ local function on_create_with_template(title)
                 -- open the new note
                 vim.cmd("e " .. fname)
             end)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
             return true
         end,
     })
 end
 
-local function CreateNoteSelectTemplate(_)
+local function CreateNoteSelectTemplate(opts)
+    opts = opts or {}
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
     title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
     if #title > 0 then
-        on_create_with_template(title)
+        on_create_with_template(opts, title)
     end
 end
 
@@ -925,6 +1203,10 @@ end
 --
 local function GotoThisWeek(opts)
     opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
 
     local title = os.date("%Y-W%V")
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
@@ -944,6 +1226,13 @@ local function GotoThisWeek(opts)
         cwd = M.Cfg.weeklies,
         default_text = title,
         find_command = M.Cfg.find_command,
+        attach_mappings = function(_, map)
+            map("i", "<c-y>", picker_actions.yank_link(opts))
+            map("i", "<c-i>", picker_actions.paste_link(opts))
+            map("n", "<c-y>", picker_actions.yank_link(opts))
+            map("n", "<c-i>", picker_actions.paste_link(opts))
+            return true
+        end,
     })
 end
 
@@ -1161,5 +1450,6 @@ M.show_backlinks = ShowBacklinks
 M.find_friends = FindFriends
 M.insert_img_link = InsertImgLink
 M.preview_img = PreviewImg
+M.browse_media = BrowseImg
 
 return M

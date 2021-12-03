@@ -84,6 +84,7 @@ of being able to edit it.
     * [2.1 Note templates](#21-note-templates)
         * [2.1.1 Template files](#211-template-files)
     * [2.2 Using the calendar](#22-using-the-calendar)
+* [2.3 Using the telescope pickers](#23-using-the-telescope-pickers)
 * [3. Bind it](#3-bind-it)
 * [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
@@ -219,7 +220,12 @@ require('telekasten').setup({
         calendar_monday = 1,
         -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
         calendar_mark = 'left-fit',
-    }
+    },
+
+    -- telescope actions behavior
+    close_after_yanking = false,
+    insert_after_inserting = true,
+
 })
 END
 ```
@@ -246,6 +252,8 @@ END
 | | set to `nil` if you want none | |
 | `plug_into_calendar` | activate calendar support if true (needs calendar-vim plugin) | true |
 | `calendar_opts` | options for calendar, see below | see below |
+| `close_after_yanking` | close telescope preview after yanking via <ctrl><y>| false |
+| `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <ctrl><i>| true |
 
 **Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
 ```lua
@@ -362,6 +370,8 @@ The plugin defines the following functions:
     - example: `insert_link({ i=true })`
 - `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor
   of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
+    - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
+- `browse_media()` : uses the `telescope-media-files.nvim` extension to preview the image / media files
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -523,6 +533,22 @@ command in vim:
 :CalendarT
 ```
 
+
+## 2.3 Using the telescope pickers
+
+When you are prompted with a telescope picker to select a note or media file, the following mappings apply:
+
+- <kbd>CTRL</kbd> + <kbd>i</kbd> : inserts a link to the selected note / image
+  - the option `insert_after_inserting` defines if insert mode will be entered after the link is pasted into your
+    current buffer
+- <kbd>CTRL</kbd> + <kbd>y</kbd> : yanks a link to the selected note / image, ready for <kbd>p</kbd>asting
+  - the option `close_after_yanking` defines whether the telescope window should be closed when the link has been
+    yanked
+- <kbd>RETURN / ENTER</kbd> : usually opens the selected note or performs the action defined by the called function
+  - e.g. `insert_img_link()`'s action is to insert a link to the selected image.
+
+
+
 ## 3. Bind it
 Usually, you would set up some key bindings, though:
 
@@ -532,6 +558,7 @@ nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
 nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
 nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
 nnoremap <leader>zT :lua require('telekasten').goto_today()<CR>
+nnoremap <leader>zW :lua require('telekasten').goto_thisweek()<CR>
 nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
 nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
 nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
@@ -544,6 +571,7 @@ nnoremap <leader>zb :lua require('telekasten').show_backlinks()<CR>
 nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
 nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
+nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

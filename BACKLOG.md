@@ -6,12 +6,12 @@
     - these buffers / this buffer should keep its size even when resizing other
       splits (like the calendar)
 - [ ] really good support for special links: inserting, yanking, ...
-- can  we add image pre-viewing capabilities from `telescope-media-files` to the standard previewer or a self-written
-  pre-viewer (config)?
 
 - [ ] yt video
 
 ## Dones
+- [x] browse_media()
+- [x] action mappings for notes: yanking and link inserting
 - [x] document and suggest colors for Calendar nav buttons, they look weird in gruvbox
 - [x] initial support for special links
   - links to headings

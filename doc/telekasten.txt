@@ -31,6 +31,7 @@ CONTENTS
         3.1 Link Notation ............ |telekasten.link_notation|
         3.2 Templates ................ |telekasten.templates|
         3.3 Calendar ................. |telekasten.calendar|
+        3.4 Picker mappings .......... |telekasten.picker_mappings|
     4. Suggested mappings ............ |telekasten.mappings|
     5. Credits ....................... |telekasten.credits|
 
@@ -621,6 +622,27 @@ Note:~
   Calendar functions are only available if you have the plugin `calendar-vim`
   installed, which you can find at https://github.com/renerocksai/calendar-vim 
 
+--------------------------------------------------------------------------------
+Section 3.4: Picker mappings                      *telekasten.picker_mappings*
+
+When you are prompted with a telescope picker to select a note or media file,
+the following mappings apply:
+
+  <CTRL> + <i>
+    Inserts a link to the selected note / image.
+    The option `insert_after_inserting` defines if insert mode will be entered
+    after the link is pasted into your current buffer.
+
+  <CTRL> + <y>
+    Yanks a link to the selected note / image, ready for <p>asting.
+    The option `close_after_yanking` defines whether the telescope window should
+    be closed when the link has been yanked.
+
+  <RETURN> / <ENTER>
+    Usually opens the selected note or performs the action defined by the called
+    function. E.g. `insert_img_link()`'s action is to insert a link to the
+    selected image.
+
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*
 
@@ -633,6 +655,7 @@ However, here are some suggestions:
  nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
  nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
  nnoremap <leader>zT :lua require('telekasten').goto_today()<CR>
+ nnoremap <leader>zW :lua require('telekasten').goto_thisweek()<CR>
  nnoremap <leader>zw :lua require('telekasten').find_weekly_notes()<CR>
  nnoremap <leader>zn :lua require('telekasten').new_note()<CR>
  nnoremap <leader>zN :lua require('telekasten').new_templated_note()<CR>
@@ -645,6 +668,7 @@ However, here are some suggestions:
  nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
  nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
  nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
+ nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
 
  " we could define [[ in **insert mode** to call insert link
  " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
