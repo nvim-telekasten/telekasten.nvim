@@ -41,11 +41,11 @@ not only for writing code.
 This is the result of my first days of hacking neovim with lua (more features have been added since, see 
 [Use it](#2-use-it) below the screenshots):
 
-![./img/2021-11-23_04-27.png](img/2021-11-23_04-27.png)
+![](img/2021-12-03_13-17.png)
 
 ---
 
-![./img/2021-11-23_04-29.png](img/2021-11-23_04-29.png)
+![](img/2021-12-03_13-21.png)
 
 ## Search-based navigation
 
@@ -281,6 +281,8 @@ Telekasten.nvim allows you to color your `[[links]]` by providing two syntax gro
 The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when
 taking notes 😄.
 
+I also like the navigation buttons of the calendar to appear less prevalent, so I also redefine the `CalNavi` class.
+
 You can assign colors to the new syntax groups in your `init.vim`:
 
 ```vim
@@ -295,6 +297,9 @@ hi tkBrackets ctermfg=gray
 
 " highlight ==highlighted== text
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+
+" for calendar, I prefer less prevalent navigation buttons
+hi link CalNavi CalRuler
 ```
 
 ## 1. Get Help
@@ -555,6 +560,9 @@ hi tkBrackets ctermfg=gray
 
 " highlight ==highlighted== text
 hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+
+" for calendar, I prefer less prevalent navigation buttons
+hi link CalNavi CalRuler
 ```
 
 ## 4. The hardcoded stuff

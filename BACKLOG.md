@@ -12,6 +12,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] document and suggest colors for Calendar nav buttons, they look weird in gruvbox
 - [x] initial support for special links
   - links to headings
   - links to paragraphs

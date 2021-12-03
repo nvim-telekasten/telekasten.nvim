@@ -661,6 +661,9 @@ However, here are some suggestions:
 
  " highlight ==highlighted== text
  hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+
+ " for calendar, I prefer less prevalent navigation buttons
+ hi link CalNavi CalRuler
 <
 
 ================================================================================
