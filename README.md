@@ -84,7 +84,7 @@ of being able to edit it.
     * [2.1 Note templates](#21-note-templates)
         * [2.1.1 Template files](#211-template-files)
     * [2.2 Using the calendar](#22-using-the-calendar)
-* [2.3 Using the telescope pickers](#23-using-the-telescope-pickers)
+    * [2.3 Using the telescope pickers](#23-using-the-telescope-pickers)
 * [3. Bind it](#3-bind-it)
 * [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
@@ -534,7 +534,7 @@ command in vim:
 ```
 
 
-## 2.3 Using the telescope pickers
+### 2.3 Using the telescope pickers
 
 When you are prompted with a telescope picker to select a note or media file, the following mappings apply:
 
