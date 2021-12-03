@@ -41,7 +41,7 @@ not only for writing code.
 This is the result of my first days of hacking neovim with lua (more features have been added since, see 
 [Use it](#2-use-it) below the screenshots):
 
-![](img/2021-12-03_13-17.png)
+![](img/2021-12-03_13-42.png)
 
 ---
 
