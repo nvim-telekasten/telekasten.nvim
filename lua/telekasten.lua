@@ -403,7 +403,7 @@ local function find_files_sorted(opts)
     -- picker.finder.close = function()
     --     print('on close')
     --     print(vim.inspect(picker:get_selection()))
-    --     -- unfortunately, no way to tell if the selection was confirmed or 
+    --     -- unfortunately, no way to tell if the selection was confirmed or
     --     -- canceled out
     --     oc()
     --     -- alternative: attach default mappings for <ESC> and <C-c>
@@ -528,9 +528,7 @@ local function FindDailyNotes(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-c>", picker_actions.close(opts))
             map("n", "<c-c>", picker_actions.close(opts))
-            map("i", "<esc>", picker_actions.close(opts))
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
@@ -574,9 +572,7 @@ local function FindWeeklyNotes(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-c>", picker_actions.close(opts))
             map("n", "<c-c>", picker_actions.close(opts))
-            map("i", "<esc>", picker_actions.close(opts))
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
@@ -733,9 +729,7 @@ local function FollowLink(opts)
                 map("i", "<c-i>", picker_actions.paste_link(opts))
                 map("n", "<c-y>", picker_actions.yank_link(opts))
                 map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-c>", picker_actions.close(opts))
                 map("n", "<c-c>", picker_actions.close(opts))
-                map("i", "<esc>", picker_actions.close(opts))
                 map("n", "<esc>", picker_actions.close(opts))
                 return true
             end,
@@ -999,9 +993,7 @@ local function GotoToday(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-c>", picker_actions.close(opts))
             map("n", "<c-c>", picker_actions.close(opts))
-            map("i", "<esc>", picker_actions.close(opts))
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
@@ -1182,9 +1174,7 @@ local function on_create(opts, title)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-c>", picker_actions.close(opts))
             map("n", "<c-c>", picker_actions.close(opts))
-            map("i", "<esc>", picker_actions.close(opts))
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
@@ -1299,9 +1289,7 @@ local function GotoThisWeek(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-c>", picker_actions.close(opts))
             map("n", "<c-c>", picker_actions.close(opts))
-            map("i", "<esc>", picker_actions.close(opts))
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
