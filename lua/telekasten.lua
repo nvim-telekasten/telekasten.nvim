@@ -690,7 +690,7 @@ local function FollowLink(opts)
         end
     end
 
-    local fexists = false
+    local fexists
 
     if #filename > 0 then
         fexists, filename = resolve_link(filename)
