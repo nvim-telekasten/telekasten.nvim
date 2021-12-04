@@ -1,5 +1,6 @@
 # Backlog
 
+- [ ] some support for #tags
 - [ ] some cool buffer showing backlinks (and stuff?)
     - maybe another one where we dot-render a graph of linked notes and 
       display it via vimg from telescope_media_files or sth similar

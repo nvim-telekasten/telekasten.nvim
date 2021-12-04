@@ -398,6 +398,18 @@ local function find_files_sorted(opts)
         previewer = previewer,
     })
 
+    -- local oc = picker.finder.close
+    --
+    -- picker.finder.close = function()
+    --     print('on close')
+    --     print(vim.inspect(picker:get_selection()))
+    --     -- unfortunately, no way to tell if the selection was confirmed or 
+    --     -- canceled out
+    --     oc()
+    --     -- alternative: attach default mappings for <ESC> and <C-c>
+    --     --       if anyone quits with q!, it's their fault
+    -- end
+
     -- for media_files:
     local line_count = vim.o.lines - vim.o.cmdheight
     if vim.o.laststatus ~= 0 then
@@ -410,6 +422,18 @@ end
 
 -- note picker actions
 local picker_actions = {}
+
+function picker_actions.close(opts)
+    opts = opts or {}
+    return function(prompt_bufnr)
+        actions.close(prompt_bufnr)
+        if opts.erase then
+            if file_exists(opts.erase_file) then
+                vim.fn.delete(opts.erase_file)
+            end
+        end
+    end
+end
 
 function picker_actions.paste_link(opts)
     return function(prompt_bufnr)
@@ -491,6 +515,8 @@ local function FindDailyNotes(opts)
         )
     then
         create_note_from_template(today, fname, M.note_type_templates.daily)
+        opts.erase = true
+        opts.erase_file = fname
     end
 
     find_files_sorted({
@@ -502,8 +528,10 @@ local function FindDailyNotes(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            map("i", "<c-c>", picker_actions.close(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("i", "<esc>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
     })
@@ -533,6 +561,8 @@ local function FindWeeklyNotes(opts)
         )
     then
         create_note_from_template(title, fname, M.note_type_templates.weekly)
+        opts.erase = true
+        opts.erase_file = fname
     end
 
     find_files_sorted({
@@ -544,8 +574,10 @@ local function FindWeeklyNotes(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            map("i", "<c-c>", picker_actions.close(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("i", "<esc>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
     })
@@ -588,6 +620,47 @@ local function InsertLink(opts)
     })
 end
 
+local function resolve_link(title)
+    local fexists = false
+    local filename = title .. M.Cfg.extension
+    filename = filename:gsub("^%./", "") -- strip potential leading ./
+
+    if file_exists(M.Cfg.weeklies .. "/" .. filename) then
+        filename = M.Cfg.weeklies .. "/" .. filename
+        fexists = true
+    end
+    if file_exists(M.Cfg.dailies .. "/" .. filename) then
+        filename = M.Cfg.dailies .. "/" .. filename
+        fexists = true
+    end
+    if file_exists(M.Cfg.home .. "/" .. filename) then
+        filename = M.Cfg.home .. "/" .. filename
+        fexists = true
+    end
+
+    if fexists == false then
+        -- now search for it in all subdirs
+        local subdirs = scan.scan_dir(M.Cfg.home, { only_dirs = true })
+        local tempfn
+        for _, folder in pairs(subdirs) do
+            tempfn = folder .. "/" .. filename
+            -- [[testnote]]
+            if file_exists(tempfn) then
+                filename = tempfn
+                fexists = true
+                -- print("Found: " .. filename)
+                break
+            end
+        end
+    end
+
+    if fexists == false then
+        -- default fn for creation
+        filename = M.Cfg.home .. "/" .. filename
+    end
+    return fexists, filename
+end
+
 --
 -- FollowLink:
 -- -----------
@@ -621,23 +694,10 @@ local function FollowLink(opts)
         end
     end
 
-    if #filename > 0 then
-        local fexists = false
-        if
-            file_exists(M.Cfg.weeklies .. "/" .. filename .. M.Cfg.extension)
-        then
-            filename = M.Cfg.weeklies .. "/" .. filename .. M.Cfg.extension
-            fexists = true
-        end
-        if file_exists(M.Cfg.dailies .. "/" .. filename .. M.Cfg.extension) then
-            filename = M.Cfg.dailies .. "/" .. filename .. M.Cfg.extension
-            fexists = true
-        end
-        if file_exists(M.Cfg.home .. "/" .. filename .. M.Cfg.extension) then
-            filename = M.Cfg.home .. "/" .. filename .. M.Cfg.extension
-            fexists = true
-        end
+    local fexists = false
 
+    if #filename > 0 then
+        fexists, filename = resolve_link(filename)
         if fexists == false then
             -- print("error")
             filename = ""
@@ -646,14 +706,7 @@ local function FollowLink(opts)
 
     if search_mode == "files" then
         -- check if fname exists anywhere
-        local fexists = file_exists(
-            M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-        )
-        fexists = fexists
-            or file_exists(M.Cfg.dailies .. "/" .. title .. M.Cfg.extension)
-        fexists = fexists
-            or file_exists(M.Cfg.home .. "/" .. title .. M.Cfg.extension)
-
+        fexists, filename = resolve_link(title)
         if
             (fexists ~= true)
             and (
@@ -661,12 +714,13 @@ local function FollowLink(opts)
                 or M.Cfg.follow_creates_nonexisting == true
             )
         then
-            local fname = M.Cfg.home .. "/" .. title .. M.Cfg.extension
             create_note_from_template(
                 title,
-                fname,
+                filename,
                 M.note_type_templates.normal
             )
+            opts.erase = true
+            opts.erase_file = filename
         end
 
         find_files_sorted({
@@ -679,8 +733,10 @@ local function FollowLink(opts)
                 map("i", "<c-i>", picker_actions.paste_link(opts))
                 map("n", "<c-y>", picker_actions.yank_link(opts))
                 map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
+                map("i", "<c-c>", picker_actions.close(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("i", "<esc>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
                 return true
             end,
         })
@@ -920,6 +976,8 @@ local function GotoToday(opts)
             M.note_type_templates.daily,
             opts
         )
+        opts.erase = true
+        opts.erase_file = fname
     end
 
     find_files_sorted({
@@ -941,8 +999,10 @@ local function GotoToday(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            map("i", "<c-c>", picker_actions.close(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("i", "<esc>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
     })
@@ -1108,6 +1168,8 @@ local function on_create(opts, title)
     local fexists = file_exists(fname)
     if fexists ~= true then
         create_note_from_template(title, fname, M.note_type_templates.normal)
+        opts.erase = true
+        opts.erase_file = fname
     end
 
     find_files_sorted({
@@ -1120,6 +1182,10 @@ local function on_create(opts, title)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-c>", picker_actions.close(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("i", "<esc>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
     })
@@ -1219,6 +1285,8 @@ local function GotoThisWeek(opts)
         )
     then
         create_note_from_template(title, fname, M.note_type_templates.weekly)
+        opts.erase = true
+        opts.erase_file = fname
     end
 
     find_files_sorted({
@@ -1231,6 +1299,10 @@ local function GotoThisWeek(opts)
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
             map("n", "<c-i>", picker_actions.paste_link(opts))
+            map("i", "<c-c>", picker_actions.close(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("i", "<esc>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
     })
