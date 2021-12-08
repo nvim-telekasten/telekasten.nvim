@@ -61,7 +61,7 @@ M.Cfg = {
     },
     close_after_yanking = false,
     insert_after_inserting = true,
-    install_syntax = true
+    install_syntax = true,
 }
 
 local function file_exists(fname)
