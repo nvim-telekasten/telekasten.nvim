@@ -3,8 +3,8 @@
 syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline
 syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline
 
-syntax match tkTag "\v#[a-zA-Z]+[a-zA-Z0-9/-_]*"
-syntax match tkTag "\v:[a-zA-Z]+[a-zA-Z0-9/-_]*:"
+syntax match tkTag "\v#[a-zA-Z]+[a-zA-Z0-9/\-_]*"
+syntax match tkTag "\v:[a-zA-Z]+[a-zA-Z0-9/\-_]*:"
 
 syntax match tkTagSep "\v\s*,\s*" contained
 syntax region tkTag matchgroup=tkBrackets start=/^tags\s*:\s*\[\s*/ end=/\s*\]\s*$/ contains=tkTagSep display oneline
