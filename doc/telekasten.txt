@@ -107,6 +107,9 @@ telekasten.setup({opts})
                                          --   'left'
                                          --   'right'
                                          --   'left-fit'
+
+      -- make syntax available to markdown buffers and telescope previewers
+      install_syntax = true,
     }
 <
 
@@ -206,6 +209,11 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `'~/zettelkasten/templates/daily.md'`
+
+    install_syntax:~
+        If `true`, telekasten's syntax for links, tags, etc. will be used for
+        markdown files, also in telescope previewers. Your configured markdown
+        syntax will be inherited, though.
 
 
     Valid keys for {opts.calendar_opts}
@@ -547,6 +555,12 @@ Tag syntax:~
   
   Numbers are allowed in tags, as long as a tag is not purely numeric. For
   example, #1984 is not a valid tag, but `#y1984` is.
+
+Note:~ 
+  For proper highlighting, the `install_syntax` option is set to `true` by
+  default. This automatically sets the syntax of filetype `markdown` to
+  `telekasten`, and also registers this syntax with telescope previewers for
+  `.md` files.
 
 --------------------------------------------------------------------------------
 Section 3.3: Templates                                    *telekasten.templates*

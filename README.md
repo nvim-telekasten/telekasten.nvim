@@ -227,6 +227,9 @@ require('telekasten').setup({
     close_after_yanking = false,
     insert_after_inserting = true,
 
+    -- make syntax available to markdown buffers and telescope previewers
+    install_syntax = true
+
 })
 END
 ```
@@ -481,6 +484,10 @@ The only symbols allowed are:
 
 Numbers are allowed in tags, as long as a tag is not purely numeric. For example, #1984 is not a valid tag, but `#y1984`
 is.
+
+**Note**: For proper highlighting, the `install_syntax` option is set to `true` by default. This automatically sets the
+syntax of filetype `markdown` to `telekasten`, and also registers this syntax with telescope previewers for `.md` files.
+
 
 ### 2.2 Note templates
 
