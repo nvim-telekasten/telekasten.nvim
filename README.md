@@ -262,11 +262,6 @@ END
 
 
 **Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
-```lua
-    -- template for new notes (new_note, follow_link)
-    -- set to `nil` or do not specify if you do not want a template
-    template_new_note = nil,
-```
 
 The calendar support has its own options, contained in `calendar_opts`:
 
