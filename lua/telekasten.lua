@@ -9,6 +9,7 @@ local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
 local debug_utils = require("plenary.debug_utils")
+local filetype = require("plenary.filetype")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -60,6 +61,7 @@ M.Cfg = {
     },
     close_after_yanking = false,
     insert_after_inserting = true,
+    install_syntax = true
 }
 
 local function file_exists(fname)
@@ -1480,6 +1482,14 @@ local function Setup(cfg)
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
     }
+
+    if M.Cfg.install_syntax then
+        -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
+        filetype.add_file("telekasten")
+
+        -- now activate our syntax also for all markdown files
+        vim.cmd("autocmd filetype markdown set syntax=telekasten")
+    end
 
     if debug then
         print("Resulting config:")

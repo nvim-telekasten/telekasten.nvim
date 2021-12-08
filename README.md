@@ -81,10 +81,11 @@ of being able to edit it.
 * [1. Get Help](#1-get-help)
 * [2. Use it](#2-use-it)
     * [2.0 Link notation](#20-link-notation)
-    * [2.1 Note templates](#21-note-templates)
-        * [2.1.1 Template files](#211-template-files)
-    * [2.2 Using the calendar](#22-using-the-calendar)
-    * [2.3 Using the telescope pickers](#23-using-the-telescope-pickers)
+    * [2.1 Tag notation](#21-tag-notation)
+    * [2.2 Note templates](#22-note-templates)
+        * [2.2.1 Template files](#221-template-files)
+    * [2.3 Using the calendar](#23-using-the-calendar)
+    * [2.4 Using the telescope pickers](#24-using-the-telescope-pickers)
 * [3. Bind it](#3-bind-it)
 * [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
@@ -254,6 +255,8 @@ END
 | `calendar_opts` | options for calendar, see below | see below |
 | `close_after_yanking` | close telescope preview after yanking via <kbd>ctrl</kbd><kbd>y</kbd>| false |
 | `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
+| `install_syntax` | if `true`, telekasten's syntax for links, tags, etc. will be used for markdown files, also in telescope previewers. Your configured markdown syntax will be inherited, though. | true |
+
 
 **Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
 ```lua
@@ -280,13 +283,14 @@ The calendar support has its own options, contained in `calendar_opts`:
 
 
 ### 0.3 Configure your own colors
-Telekasten.nvim allows you to color your `[[links]]` by providing two syntax groups:
+Telekasten.nvim allows you to color your `[[links]]` and `#tags` by providing the following syntax groups:
 
 - `tkLink` : the link title inside the brackets
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
+- `tkTag` :  well, tags
 
-The last one, `tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when
+`tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when
 taking notes 😄.
 
 I also like the navigation buttons of the calendar to appear less prevalent, so I also redefine the `CalNavi` class.
@@ -308,7 +312,14 @@ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 
 " for calendar, I prefer less prevalent navigation buttons
 hi link CalNavi CalRuler
+
+" colors for tags:
+hi tkTag ctermfg=175
+" tag separator is only relevant in the following syntax:
+" tags: [ tag1, tag2, tag3 ] 
+hi tkTagSep ctermfg=gray
 ```
+
 
 ## 1. Get Help
 Telekasten.nvim now comes with its own help file. So you can always:
@@ -438,7 +449,40 @@ Regarding linking to paragraphs: The `^blockid` notation is supported by more an
   Here goes the next paragraph.
   ```
 
-### 2.1 Note templates
+### 2.1 Tag notation
+
+Telekasten supports the following tag notations:
+
+1. `#tag`
+2. `:tag:`
+3. bare tags in a tag collection in the yaml metadata:
+
+```yaml
+---
+title: My awesome note
+date: 2021-12-06
+tags: [ example, note-taking, foo, bar ]
+---
+```
+
+**Tag syntax**: Spaces are not allowed in tags. So, to differentiate two or more words in a tag, use one of the
+following formats:
+
+- camelCase: `#noteTaking`
+- PascalCase: `#NoteTaking`
+- snake_case: `#note_taking`
+- kebab-case: `#note-taking`
+
+The only symbols allowed are: 
+
+- `_` : underscore
+- `-` : dash
+- `/` : forward slash
+
+Numbers are allowed in tags, as long as a tag is not purely numeric. For example, #1984 is not a valid tag, but `#y1984`
+is.
+
+### 2.2 Note templates
 
 The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create
 non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
@@ -459,7 +503,7 @@ The following table shows what action creates what kind of non-existing note:
 
 If the associated option is `true`, non-existing notes will be created.
 
-#### 2.1.1 Template files
+#### 2.2.1 Template files
 
 The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to
 template text files that are used for creating new notes.
@@ -516,7 +560,7 @@ date:  {{hdate}}
 ## Sunday link
 ```
 
-### 2.2 Using the calendar
+### 2.3 Using the calendar
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of
 vim.
@@ -534,7 +578,7 @@ command in vim:
 ```
 
 
-### 2.3 Using the telescope pickers
+### 2.4 Using the telescope pickers
 
 When you are prompted with a telescope picker to select a note or media file, the following mappings apply:
 
@@ -591,6 +635,12 @@ hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 
 " for calendar, I prefer less prevalent navigation buttons
 hi link CalNavi CalRuler
+
+" colors for tags:
+hi tkTag ctermfg=175
+" tag separator is only relevant in the following syntax:
+" tags: [ tag1, tag2, tag3 ] 
+hi tkTagSep ctermfg=gray
 ```
 
 ## 4. The hardcoded stuff

@@ -1,5 +1,7 @@
 # Backlog
 
+- [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
+    - or put it as an extmark at the end of the first line, meh.
 - [ ] some support for #tags
 - [ ] some cool buffer showing backlinks (and stuff?)
     - maybe another one where we dot-render a graph of linked notes and 
@@ -11,6 +13,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] syntax for tags, incl. plenary filetype
+    - for proper display, needed to define 'telekasten' syntax
 - [x] browse_media()
 - [x] action mappings for notes: yanking and link inserting
 - [x] document and suggest colors for Calendar nav buttons, they look weird in gruvbox

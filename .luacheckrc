@@ -14,6 +14,7 @@ ignore = {
 
 globals = {
   "_",
+  "vim",
   "TelescopeGlobalState",
   "_TelescopeConfigurationValues",
   "_TelescopeConfigurationPickers",

@@ -29,9 +29,10 @@ CONTENTS
     2. Colors ........................ |telekasten.colors|
     3. Usage ......................... |telekasten.usage|
         3.1 Link Notation ............ |telekasten.link_notation|
-        3.2 Templates ................ |telekasten.templates|
-        3.3 Calendar ................. |telekasten.calendar|
-        3.4 Picker mappings .......... |telekasten.picker_mappings|
+        3.2 Tag Notation ............. |telekasten.tag_notation|
+        3.3 Templates ................ |telekasten.templates|
+        3.4 Calendar ................. |telekasten.calendar|
+        3.5 Picker mappings .......... |telekasten.picker_mappings|
     4. Suggested mappings ............ |telekasten.mappings|
     5. Credits ....................... |telekasten.credits|
 
@@ -516,7 +517,39 @@ Note that notes linked to with headings or paragraph IDs **will not be created
 automatically**. 
 
 --------------------------------------------------------------------------------
-Section 3.2: Templates                                    *telekasten.templates*
+Section 3.2: Tag Notation                            *telekasten.tag_notation*
+
+Telekasten supports the following tag notations:
+
+1. `#tag` 
+2. `:tag:` 
+3. bare tags in a tag collection in the yaml metadata:
+>
+  --- title: My awesome note 
+  date: 2021-12-06 
+  tags: [ example, note-taking, foo, bar ] 
+  --- 
+<
+
+Tag syntax:~
+  Spaces are not allowed in tags. So, to differentiate two or more words in a
+  tag, use one of the following formats:
+
+  - camelCase:  `#noteTaking`
+  - PascalCase: `#NoteTaking`
+  - snake_case: `#note_taking`
+  - kebab-case: `#note-taking`
+
+  The only symbols allowed are: 
+  - underscore     : `_`
+  - dash           : `-`
+  - forward slash  : `/`
+  
+  Numbers are allowed in tags, as long as a tag is not purely numeric. For
+  example, #1984 is not a valid tag, but `#y1984` is.
+
+--------------------------------------------------------------------------------
+Section 3.3: Templates                                    *telekasten.templates*
 
 Telekasten.nvim can create non-existing notes, providing this is enabled in
 the settings - which it is by default. Auto-creation of notes is useful when
@@ -601,7 +634,7 @@ And finally, what a template for weekly notes could look like:
 <
 
 --------------------------------------------------------------------------------
-Section 3.3: Calendar                                    *telekasten.calendar*
+Section 3.4: Calendar                                    *telekasten.calendar*
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and
 next month is shown at the right side of vim.
@@ -623,7 +656,7 @@ Note:~
   installed, which you can find at https://github.com/renerocksai/calendar-vim 
 
 --------------------------------------------------------------------------------
-Section 3.4: Picker mappings                      *telekasten.picker_mappings*
+Section 3.5: Picker mappings                      *telekasten.picker_mappings*
 
 When you are prompted with a telescope picker to select a note or media file,
 the following mappings apply:
@@ -688,6 +721,12 @@ However, here are some suggestions:
 
  " for calendar, I prefer less prevalent navigation buttons
  hi link CalNavi CalRuler
+
+ " colors for tags:
+ hi tkTag ctermfg=175
+ " tag separator is only relevant in the following syntax:
+ " tags: [ tag1, tag2, tag3 ] 
+ hi tkTagSep ctermfg=gray
 <
 
 ================================================================================
