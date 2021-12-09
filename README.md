@@ -228,7 +228,10 @@ require('telekasten').setup({
     insert_after_inserting = true,
 
     -- make syntax available to markdown buffers and telescope previewers
-    install_syntax = true
+    install_syntax = true,
+
+    -- tag notation: '#tag', ':tag:', 'yaml-bare'
+    tag_notation = "#tag",
 
 })
 END
@@ -259,9 +262,12 @@ END
 | `close_after_yanking` | close telescope preview after yanking via <kbd>ctrl</kbd><kbd>y</kbd>| false |
 | `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
 | `install_syntax` | if `true`, telekasten's syntax for links, tags, etc. will be used for markdown files, also in telescope previewers. Your configured markdown syntax will be inherited, though. | true |
+| `tag_notation` | the tag style you want to use| `#tag` |
+| | - `#tag` | |
+| | - `:tag:` | |
+| | - `yaml-bare` | |
+| | see [2.1 Tag notation](#21-tag-notation)| |
 
-
-**Please note:** If you do not want to use a template, set its associated option to `nil` or remove it from your config.
 
 The calendar support has its own options, contained in `calendar_opts`:
 
@@ -288,7 +294,7 @@ Telekasten.nvim allows you to color your `[[links]]` and `#tags` by providing th
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
 - `tkTag` :  well, tags
 
-`tkHighlight`, has nothing to do with links but I added it anyway, since I like highlighting text when
+`tkHighlight` has nothing to do with links but I added it anyway, since I like highlighting text when
 taking notes 😄.
 
 I also like the navigation buttons of the calendar to appear less prevalent, so I also redefine the `CalNavi` class.
@@ -354,7 +360,7 @@ The plugin defines the following functions:
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
       useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#3-bind-it).
     - example: `insert_link({ i=true })`
-- `follow_link()`: take text between brackets (linked note) and open a Telescope file finder with it: selects note to
+- `follow_link()`: take text between brackets (linked note) or of a tag and open a Telescope file finder with it: selects note to
   open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
   - **note**:
     - notes linked to with headings or paragraph IDs **will not be created automatically**. See below for link notation.
@@ -380,7 +386,7 @@ The plugin defines the following functions:
 - `preview_img()` : uses the `telescope-media-files.nvim` extension to preview the image / media file under the cursor
   of a markdown image link: `![](path/to/img.png)`. The cursor must be between `(the two parenthesis)`.
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
-- `browse_media()` : uses the `telescope-media-files.nvim` extension to preview the image / media files
+- `browse_media()` : uses the `telescope-media-files.nvim` extension to preview the image / media file linked to under the cursor.
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 
@@ -453,7 +459,7 @@ Telekasten supports the following tag notations:
 
 1. `#tag`
 2. `:tag:`
-3. bare tags in a tag collection in the yaml metadata:
+3. `yaml-bare`: bare tags in a tag collection in the yaml metadata:
 
 ```yaml
 ---

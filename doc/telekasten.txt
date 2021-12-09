@@ -110,10 +110,15 @@ telekasten.setup({opts})
 
       -- make syntax available to markdown buffers and telescope previewers
       install_syntax = true,
+
+      -- tag notation: '#tag', ':tag:', 'yaml-bare'
+      tag_notation = "#tag",
     }
 <
 
+    ---------------------
     Valid keys for {opts}
+    ---------------------
 
                                                 *telekasten.settings.home*
     home: ~
@@ -210,13 +215,31 @@ telekasten.setup({opts})
         Default: `nil`
         Example: `'~/zettelkasten/templates/daily.md'`
 
+                                      *telekasten.settings.install_syntax*
     install_syntax:~
         If `true`, telekasten's syntax for links, tags, etc. will be used for
         markdown files, also in telescope previewers. Your configured markdown
         syntax will be inherited, though.
 
+        Default: `true`
 
+                                        *telekasten.settings.tag_notation*
+    tag_notation:~
+        The tag style you want to use.
+
+        Valid options are:
+        - `'#tag'`
+        - `':tag:'`
+        - `'yaml-bare'`
+
+        Default: `#tag`
+
+        See |telekasten.tag_notation| for more information.
+
+                                               *telekasten.calendar_opts*
+    -----------------------------------
     Valid keys for {opts.calendar_opts}
+    -----------------------------------
 
                                         *telekasten.calendar_opts.weeknm*
     weeknm: ~
@@ -262,9 +285,13 @@ groups:
 - `tkLink` : the link title inside the brackets
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
+- `tkTag` :  well, tags
 
-The last one, `tkHighlight`, has nothing to do with links but I added it
-anyway, since I like highlighting text when taking notes.
+`tkHighlight`, has nothing to do with links but I added it anyway, since I like
+highlighting text when taking notes.
+
+I also like the navigation buttons of the calendar to appear less prevalent, so
+I redefine the `CalNavi` class as well.
 
 You can assign colors to the new syntax groups in your `init.vim`:
 >
@@ -279,8 +306,13 @@ You can assign colors to the new syntax groups in your `init.vim`:
 
     " highlight ==highlighted== text
     hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
-<
 
+    " colors for tags:
+    hi tkTag ctermfg=175
+    " tag separator is only relevant in the following syntax:
+    " tags: [ tag1, tag2, tag3 ] 
+    hi tkTagSep ctermfg=gray
+<
 
 ================================================================================
 Section 3: Usage                                              *telekasten.usage*
@@ -407,8 +439,8 @@ telekasten.insert_link({opts})~
 
                                                    *telekasten.follow_link()*
 telekasten.insert_link()~
-  Take the text between the brackets of a link, pointing to a linked note, and
-  open a Telescope file finder with it.
+  Take the text between the brackets of a link pointing to a linked note, or
+  of a tag and open a Telescope file finder with it.
 
   If the linked note does not exist and the setting
   `follow_creates_nonexisting` is set to `true`, a new note will be created
@@ -481,6 +513,14 @@ telekasten.preview_img()~
   Note:~
     This requires the `telescope-media-files.nvim` plugin to be installed.
 
+                                                  *telekasten.browse_media()*
+telekasten.browse_media()~
+  Uses the `telescope-media-files.nvim` extension to preview the image / media
+  file under the cursor.
+
+  Note:~
+    This requires the `telescope-media-files.nvim` plugin to be installed.
+
 --------------------------------------------------------------------------------
 Section 3.1: Link notation                            *telekasten.link_notation*
 
@@ -515,14 +555,15 @@ Optionally, notes can live in specific sub-directories:
                                     with id ^xxxxxxxx within the note named 
                                     'A cool title' in some/subdirectory
 
+Note that notes linked to with headings or paragraph IDs **will not be created
+automatically**. Non-existing notes will be ignored in this case, a global
+telescope search wil be performed instead. 
+
 Media links~
 Use these for images, PDF files, videos. If telescope-media-files is installed,
 these can be previewed.
 
 `![optional title](path/to/file)` ... links to the file `path/to/file`
-
-Note that notes linked to with headings or paragraph IDs **will not be created
-automatically**. 
 
 --------------------------------------------------------------------------------
 Section 3.2: Tag Notation                            *telekasten.tag_notation*
