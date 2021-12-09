@@ -41,11 +41,15 @@ not only for writing code.
 This is the result of my first days of hacking neovim with lua (more features have been added since, see 
 [Use it](#2-use-it) below the screenshots):
 
-![](img/2021-12-03_13-42.png)
+![image](https://user-images.githubusercontent.com/30892199/145457184-758ae6cd-f1d2-48b4-b09b-4fa7e45c493f.png)
 
 ---
 
 ![](img/2021-12-03_13-21.png)
+
+---
+![image](https://user-images.githubusercontent.com/30892199/145457923-d3e3a20b-9a33-42d1-aa21-3de6b2295737.png)
+
 
 ## Search-based navigation
 
