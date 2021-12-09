@@ -8,9 +8,10 @@ local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
+local themes = require("telescope.themes")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
-local taglinks = require("taglinks/taglinks")
+local taglinks = require("taglinks.taglinks")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -1535,10 +1536,95 @@ local function Setup(cfg)
         vim.cmd("autocmd filetype markdown set syntax=telekasten")
     end
 
+    vim.cmd(
+        "command! -nargs=? Telekasten lua require('telekasten').panel(<f-args>)<CR>"
+    )
+
     if debug then
         print("Resulting config:")
         print("-----------------")
         print(vim.inspect(M.Cfg))
+    end
+end
+
+local function TelekastenCmd(subcommand)
+    local commands = {
+        { "find notes", "find_notes", M.find_notes },
+        { "find daily notes", "find_daily_notes", M.find_daily_notes },
+        { "search in notes", "search_notes", M.search_notes },
+        { "insert link", "insert_link", M.insert_link },
+        { "follow link", "follow_link", M.follow_link },
+        { "goto today", "goto_today", M.goto_today },
+        { "new note", "new_note", M.new_note },
+        { "goto thisweek", "goto_thisweek", M.goto_thisweek },
+        { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
+        { "yank link to note", "yank_notelink", M.yank_notelink },
+        { "new templated note", "new_templated_note", M.new_templated_note },
+        { "show calendar", "show_calendar", M.show_calendar },
+        {
+            "paste image from clipboard",
+            "paste_img_and_link",
+            M.paste_img_and_link,
+        },
+        { "toggle todo", "toggle_todo", M.toggle_todo },
+        { "show backlinks", "show_backlinks", M.show_backlinks },
+        { "find friend notes", "find_friends", M.find_friends },
+        {
+            "browse images, insert link",
+            "insert_img_link",
+            M.insert_img_link,
+        },
+        { "preview image under cursor", "preview_img", M.preview_img },
+        { "browse media", "browse_media", M.browse_media },
+    }
+
+    local show = function(opts)
+        opts = opts or {}
+        pickers.new(opts, {
+            prompt_title = "Command palette",
+            finder = finders.new_table({
+                results = commands,
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        display = entry[1],
+                        ordinal = entry[2],
+                    }
+                end,
+            }),
+            sorter = conf.generic_sorter(opts),
+            attach_mappings = function(prompt_bufnr, _)
+                actions.select_default:replace(function()
+                    -- important: actions.close(bufnr) is not enough
+                    -- it resulted in: preview_img NOT receiving the prompt as default text
+                    -- apparently it has sth to do with keeping insert mode
+                    actions._close(prompt_bufnr, true)
+
+                    local selection = action_state.get_selected_entry().value[3]
+                    selection()
+                end)
+                return true
+            end,
+        }):find()
+    end
+    if subcommand then
+        for _, entry in pairs(commands) do
+            if entry[2] == subcommand then
+                local selection = entry[3]
+                selection()
+                return
+            end
+        end
+        print("No such subcommand: `" .. subcommand .. "`")
+    else
+        local theme
+
+        if M.Cfg.command_palette_theme == "ivy" then
+            theme = themes.get_ivy()
+        else
+            theme = themes.get_dropdown()
+        end
+        show(theme)
     end
 end
 
@@ -1553,7 +1639,6 @@ M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
-M.create_note_sel_template = CreateNoteSelectTemplate -- documented wrongly, let's keep it for the moment
 M.new_templated_note = CreateNoteSelectTemplate
 M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
@@ -1566,5 +1651,6 @@ M.insert_img_link = InsertImgLink
 M.preview_img = PreviewImg
 M.browse_media = BrowseImg
 M.taglinks = taglinks
+M.panel = TelekastenCmd
 
 return M
