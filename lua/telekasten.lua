@@ -63,6 +63,7 @@ M.Cfg = {
     close_after_yanking = false,
     insert_after_inserting = true,
 
+    -- make syntax available to markdown buffers and telescope previewers
     install_syntax = true,
 
     -- tag notation: '#tag', ':tag:', 'yaml-bare'
