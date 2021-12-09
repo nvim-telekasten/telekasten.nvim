@@ -10,6 +10,7 @@ local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
+local taglinks = require("taglinks/taglinks")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -61,7 +62,11 @@ M.Cfg = {
     },
     close_after_yanking = false,
     insert_after_inserting = true,
+
     install_syntax = true,
+
+    -- tag notation: '#tag', ':tag:', 'yaml-bare'
+    tag_notation = "#tag",
 }
 
 local function file_exists(fname)
@@ -659,6 +664,13 @@ local function resolve_link(title)
     return fexists, filename
 end
 
+-- local function check_for_link_or_tag()
+local function check_for_link_or_tag()
+    local line = vim.api.nvim_get_current_line()
+    local col = vim.fn.col(".")
+    return taglinks.is_tag_or_link_at(line, col, M.Cfg)
+end
+
 --
 -- FollowLink:
 -- -----------
@@ -672,33 +684,47 @@ local function FollowLink(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    vim.cmd("normal yi]")
-    local title = vim.fn.getreg('"0')
-    title = title:gsub("^(%[)(.+)(%])$", "%2")
     local search_mode = "files"
-
-    local parts = vim.split(title, "#")
+    local title
     local filename = ""
-
-    -- if there is a #
-    if #parts ~= 1 then
-        search_mode = "heading"
-        title = parts[2]
-        filename = parts[1]
-        parts = vim.split(title, "%^")
-        if #parts ~= 1 then
-            search_mode = "para"
-            title = parts[2]
-        end
-    end
-
     local fexists
 
-    if #filename > 0 then
-        fexists, filename = resolve_link(filename)
-        if fexists == false then
-            -- print("error")
-            filename = ""
+    -- first: check if we're in a tag or a link
+    local kind, atcol = check_for_link_or_tag()
+
+    if kind == "tag" then
+        local tag = taglinks.get_tag_at(
+            vim.api.nvim_get_current_line(),
+            atcol,
+            M.Cfg
+        )
+        search_mode = "tag"
+        title = tag
+    else
+        -- we are in a link
+        vim.cmd("normal yi]")
+        title = vim.fn.getreg('"0')
+        title = title:gsub("^(%[)(.+)(%])$", "%2")
+
+        local parts = vim.split(title, "#")
+
+        -- if there is a #
+        if #parts ~= 1 then
+            search_mode = "heading"
+            title = parts[2]
+            filename = parts[1]
+            parts = vim.split(title, "%^")
+            if #parts ~= 1 then
+                search_mode = "para"
+                title = parts[2]
+            end
+        end
+        if #filename > 0 then
+            fexists, filename = resolve_link(filename)
+            if fexists == false then
+                -- print("error")
+                filename = ""
+            end
         end
     end
 
@@ -762,6 +788,16 @@ local function FollowLink(opts)
                     "--vimgrep",
                     "-e",
                     "\\^" .. prompt,
+                    "--",
+                }
+            end
+
+            if search_mode == "tag" then
+                search_command = {
+                    "rg",
+                    "--vimgrep",
+                    "-e",
+                    prompt,
                     "--",
                 }
             end
@@ -1521,5 +1557,6 @@ M.find_friends = FindFriends
 M.insert_img_link = InsertImgLink
 M.preview_img = PreviewImg
 M.browse_media = BrowseImg
+M.taglinks = taglinks
 
 return M

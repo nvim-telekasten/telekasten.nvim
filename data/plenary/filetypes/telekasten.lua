@@ -1,5 +1,5 @@
 return {
     extension = {
-        ['md'] = 'telekasten'
-    }
+        ["md"] = "telekasten",
+    },
 }
