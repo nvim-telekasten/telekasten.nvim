@@ -68,9 +68,16 @@ M.Cfg = {
 
     -- tag notation: '#tag', ':tag:', 'yaml-bare'
     tag_notation = "#tag",
+
+    -- command palette theme: dropdown (window) or ivy (bottom panel)
+    command_palette_theme = "ivy",
 }
 
 local function file_exists(fname)
+    if fname == nil then
+        return false
+    end
+
     local f = io.open(fname, "r")
     if f ~= nil then
         io.close(f)
