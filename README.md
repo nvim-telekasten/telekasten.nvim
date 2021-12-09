@@ -1,4 +1,4 @@
-# telekasten.nvim
+# ![](img/telekasten-logo-gray-270x87.png).nvim
 
 A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / wiki and
 mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
@@ -651,3 +651,7 @@ Currently, the following things are hardcoded:
 - the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
 - the file naming format for weekly note files: `YYYY-Www.ext` (e.g. `2021-W46.md`)
 - the file naming format for pasted images: `pasted_img_YYYYMMDDhhmmss.png` (e.g. `pasted_img_20211126041108.png`)
+
+---
+_The Telekasten logo is based on the neovim logo attributed to Jason Long, neovim,
+[CC-BY-3.0](https://commons.wikimedia.org/wiki/Category:CC-BY-3.0)._
