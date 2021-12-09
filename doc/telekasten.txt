@@ -2,7 +2,7 @@
                                                                *telekasten.nvim*
 
 Telekasten.nvim is a plugin that lets you work with a folder of Markdown files
-and use it as a 'Zettelkasten' or a Wiki plus journal.
+and use it as a 'Zettelkasten' or a wiki plus journal.
 
 Find notes by name, daily and weekly notes by date, search within all notes,
 place and follow links to your notes or create new ones, with templates.
@@ -295,23 +295,22 @@ I redefine the `CalNavi` class as well.
 
 You can assign colors to the new syntax groups in your `init.vim`:
 >
-    " just blue and gray links
-    hi tkLink ctermfg=Blue cterm=bold,underline
-    hi tkBrackets ctermfg=gray
-
-
-    " for gruvbox
-    hi tkLink ctermfg=72 cterm=bold,underline
-    hi tkBrackets ctermfg=gray
-
-    " highlight ==highlighted== text
-    hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
-
-    " colors for tags:
-    hi tkTag ctermfg=175
-    " tag separator is only relevant in the following syntax:
-    " tags: [ tag1, tag2, tag3 ] 
-    hi tkTagSep ctermfg=gray
+  " just blue and gray links
+  hi tkLink ctermfg=Blue cterm=bold,underline guifg=blue gui=bold,underline
+  hi tkBrackets ctermfg=gray guifg=gray
+  
+  " for gruvbox
+  hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
+  hi tkBrackets ctermfg=gray guifg=gray
+  
+  " real yellow
+  hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
+  " gruvbox
+  "hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
+  
+  hi link CalNavi CalRuler
+  hi tkTagSep ctermfg=gray guifg=gray
+  hi tkTag ctermfg=175 guifg=#d3869B
 <
 
 ================================================================================
@@ -768,20 +767,17 @@ However, here are some suggestions:
  " (see the section about coloring in README.md)
 
  " colors suitable for gruvbox color scheme
- hi tkLink ctermfg=72 cterm=bold,underline
- hi tkBrackets ctermfg=gray
-
- " highlight ==highlighted== text
- hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
-
- " for calendar, I prefer less prevalent navigation buttons
- hi link CalNavi CalRuler
-
- " colors for tags:
- hi tkTag ctermfg=175
- " tag separator is only relevant in the following syntax:
- " tags: [ tag1, tag2, tag3 ] 
- hi tkTagSep ctermfg=gray
+  hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
+  hi tkBrackets ctermfg=gray guifg=gray
+  
+  " real yellow
+  hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
+  " gruvbox
+  "hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
+  
+  hi link CalNavi CalRuler
+  hi tkTagSep ctermfg=gray guifg=gray
+  hi tkTag ctermfg=175 guifg=#d3869B
 <
 
 ================================================================================

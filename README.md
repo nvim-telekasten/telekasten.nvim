@@ -1,6 +1,6 @@
 # telekasten.nvim
 
-A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / Wiki and
+A Neovim (lua) plugin for working with a text-based, markdown [zettelkasten](https://takesmartnotes.com/) / wiki and
 mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
 #### Highlights:
@@ -303,25 +303,22 @@ You can assign colors to the new syntax groups in your `init.vim`:
 
 ```vim
 " just blue and gray links
-hi tkLink ctermfg=Blue cterm=bold,underline
-hi tkBrackets ctermfg=gray
+hi tkLink ctermfg=Blue cterm=bold,underline guifg=blue gui=bold,underline
+hi tkBrackets ctermfg=gray guifg=gray
 
 
 " for gruvbox
-hi tkLink ctermfg=72 cterm=bold,underline
-hi tkBrackets ctermfg=gray
+hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
+hi tkBrackets ctermfg=gray guifg=gray
 
-" highlight ==highlighted== text
-hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+" real yellow
+hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
+" gruvbox
+"hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
 
-" for calendar, I prefer less prevalent navigation buttons
 hi link CalNavi CalRuler
-
-" colors for tags:
-hi tkTag ctermfg=175
-" tag separator is only relevant in the following syntax:
-" tags: [ tag1, tag2, tag3 ] 
-hi tkTagSep ctermfg=gray
+hi tkTagSep ctermfg=gray guifg=gray
+hi tkTag ctermfg=175 guifg=#d3869B
 ```
 
 
@@ -635,20 +632,17 @@ inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
 " ----- (see the section about coloring in README.md)
 
 " for gruvbox
-hi tkLink ctermfg=72 cterm=bold,underline
-hi tkBrackets ctermfg=gray
+hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
+hi tkBrackets ctermfg=gray guifg=gray
 
-" highlight ==highlighted== text
-hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
+" real yellow
+hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
+" gruvbox
+"hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
 
-" for calendar, I prefer less prevalent navigation buttons
 hi link CalNavi CalRuler
-
-" colors for tags:
-hi tkTag ctermfg=175
-" tag separator is only relevant in the following syntax:
-" tags: [ tag1, tag2, tag3 ] 
-hi tkTagSep ctermfg=gray
+hi tkTagSep ctermfg=gray guifg=gray
+hi tkTag ctermfg=175 guifg=#d3869B
 ```
 
 ## 4. The hardcoded stuff
