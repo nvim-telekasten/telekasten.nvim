@@ -1,6 +1,7 @@
-"syn region Comment matchgroup=mkdDelimiter start="\%^---$" end="^\(---\|\.\.\.\)$"  contains=tkTag keepend
+
 runtime! syntax/markdown.vim
 "unlet b:current_syntax
+syn region Comment matchgroup=Comment start="<!--" end="-->"  contains=tkTag keepend
 
 syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline
 syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline
