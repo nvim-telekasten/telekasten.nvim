@@ -13,7 +13,7 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 - find notes **that link back to your notes**
 - find other notes that link to the same note as the link under the cursor
 - support for **links to headings or specific paragraphs** within specific notes or globally (see [link
-  notation](#20-link-notation))
+  notation](#23-link-notation))
 - calendar support
 - paste images from clipboard
 - toggle [ ] todo status of line
@@ -84,12 +84,15 @@ of being able to edit it.
     * [0.3 Configure your own colors](#03-configure-your-own-colors)
 * [1. Get Help](#1-get-help)
 * [2. Use it](#2-use-it)
-    * [2.0 Link notation](#20-link-notation)
-    * [2.1 Tag notation](#21-tag-notation)
-    * [2.2 Note templates](#22-note-templates)
-        * [2.2.1 Template files](#221-template-files)
-    * [2.3 Using the calendar](#23-using-the-calendar)
-    * [2.4 Using the telescope pickers](#24-using-the-telescope-pickers)
+    * [2.0 Telekasten command](#20-telekasten-command)
+    * [2.1 Telekasten command palette](#21-telekasten-command-palette)
+    * [2.2 Telekasten lua functions](#22-telekasten-lua-functions)
+    * [2.3 Link notation](#23-link-notation)
+    * [2.4 Tag notation](#24-tag-notation)
+    * [2.5 Note templates](#25-note-templates)
+        * [2.5.1 Template files](#251-template-files)
+    * [2.6 Using the calendar](#26-using-the-calendar)
+    * [2.7 Using the telescope pickers](#27-using-the-telescope-pickers)
 * [3. Bind it](#3-bind-it)
 * [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
@@ -237,6 +240,9 @@ require('telekasten').setup({
     -- tag notation: '#tag', ':tag:', 'yaml-bare'
     tag_notation = "#tag",
 
+    -- command palette theme: dropdown (window) or ivy (bottom panel)
+    command_palette_theme = "ivy",
+
 })
 END
 ```
@@ -267,10 +273,13 @@ END
 | `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
 | `install_syntax` | if `true`, telekasten's syntax for links, tags, etc. will be used for markdown files, also in telescope previewers. Your configured markdown syntax will be inherited, though. | true |
 | `tag_notation` | the tag style you want to use| `#tag` |
-| | - `#tag` | |
+| | - `#tag` (default) | |
 | | - `:tag:` | |
 | | - `yaml-bare` | |
-| | see [2.1 Tag notation](#21-tag-notation)| |
+| | see [2.1 Tag notation](#24-tag-notation)| |
+| `command_palette_theme` | theme (layout) of the command palette| ivy |
+| | - `ivy` (default): bottom panel overlay  |  |
+| | - `popup`: floating popup window ||
 
 
 The calendar support has its own options, contained in `calendar_opts`:
@@ -341,6 +350,83 @@ or .. **just use telescope**: `:Telescope help_tags` and search for `telekasten`
 
 ## 2. Use it
 
+You can use the plugin either by executing the `:Telekasten <sub-command>` command or by calling one of its lua
+functions that implement the _sub-commands_.
+
+Which method you use is up to you. Note that you cannot pass arguments to the Telekasten command, but you can add
+arguments to some of the lua functions.
+
+### 2.0 Telekasten command
+
+```vim
+:Telekasten <sub-command>
+```
+
+The following sub-commands are defined; check their corresponding [lua functions](#22-telekasten-lua-functions) below
+the list for a more detailed description:
+
+- `panel` : brings up the [command palette](#21-telekasten-command-palette)
+- `find_notes` : Find notes by title (filename)
+- `find_daily_notes` : Find daily notes by title (date)
+- `search_notes` : Search (grep) in all notes
+- `insert_link` : Insert a link to a note
+- `follow_link` : Follow the link under the cursor
+- `goto_today` : Open today's daily note
+- `new_note` : Create a new note, prompts for title
+- `goto_thisweek` : Open this week's weekly note
+- `find_weekly_notes` : Find weekly notes by title (calendar week)
+- `yank_notelink` : Yank a link to the currently open note
+- `new_templated_note` : create a new note by template, prompts for title and template
+- `show_calendar` : Show the calendar
+- `paste_img_and_link` : Paste an image from the clipboard into a file and inserts a link to it
+- `toggle_todo` : Toggle `- [ ]` todo status of a line
+- `show_backlinks` : Show all notes linking to the current one
+- `find_friends` : Show all notes linking to the link under the cursor
+- `insert_img_link` : Browse images / media files and insert a link to the selected one
+- `preview_img` : preview image under the cursor
+- `browse_media` : Browse images / media files
+
+### 2.1 Telekasten command palette
+
+With `:Telekasten panel` or `:lua require('telekasten').panel()` you can bring up the command palette, which is a
+telescope search through all Telekasten commands.
+
+This is super useful for your keyboard mappins: suppose all your telekasten mappings start with `<leader>z`. Like
+in the following example:
+
+```vim
+nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
+nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
+nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
+nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
+```
+
+Then, simply bind `panel()` to `<leader>z`:
+
+```vim
+nnoremap <leader>zf :lua require('telekasten').find_notes()<CR>
+nnoremap <leader>zd :lua require('telekasten').find_daily_notes()<CR>
+nnoremap <leader>zg :lua require('telekasten').search_notes()<CR>
+nnoremap <leader>zz :lua require('telekasten').follow_link()<CR>
+
+" on hesitation, bring up the panel
+nnoremap <leader>z :lua require('telekasten').panel()<CR>
+```
+
+The moment you hesitate after pressing `<leader>z` instead of pressing the disambiguating second letter, Telekasten will
+make it easy for you and pop up a panel:
+
+![](img/panel-ivy.png)
+
+The above illustration shows the default configuration of the panel layout: `ivy`. You can change it to a popup window
+by setting `command_palette_theme = 'popup'` during `setup()`.
+
+This is what the popup looks like:
+
+![](img/panel-popup.png)
+
+
+### 2.2 Telekasten lua functions
 The plugin defines the following functions:
 
 - `new_note()` : prompts for title and creates new note by template, then shows it in Telescope
@@ -390,6 +476,7 @@ The plugin defines the following functions:
 - `browse_media()` : uses the `telescope-media-files.nvim` extension to preview the image / media file linked to under the cursor.
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
+- `panel()` : brings up the command palette
 
 To use one of the functions above, just run them with the `:lua ...` command.
 
@@ -397,7 +484,7 @@ To use one of the functions above, just run them with the `:lua ...` command.
 :lua require("telekasten").find_daily_notes()
 ```
 
-### 2.0 Link notation
+### 2.3 Link notation
 
 The following links are supported:
 
@@ -454,7 +541,7 @@ Regarding linking to paragraphs: The `^blockid` notation is supported by more an
   Here goes the next paragraph.
   ```
 
-### 2.1 Tag notation
+### 2.4 Tag notation
 
 Telekasten supports the following tag notations:
 
@@ -491,7 +578,7 @@ is.
 syntax of filetype `markdown` to `telekasten`, and also registers this syntax with telescope previewers for `.md` files.
 
 
-### 2.2 Note templates
+### 2.5 Note templates
 
 The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create
 non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
@@ -512,7 +599,7 @@ The following table shows what action creates what kind of non-existing note:
 
 If the associated option is `true`, non-existing notes will be created.
 
-#### 2.2.1 Template files
+#### 2.5.1 Template files
 
 The options `template_new_note`, `template_new_daily`, and `template_new_weekly` are used to specify the paths to
 template text files that are used for creating new notes.
@@ -569,7 +656,7 @@ date:  {{hdate}}
 ## Sunday link
 ```
 
-### 2.3 Using the calendar
+### 2.6 Using the calendar
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and next month is shown at the right side of
 vim.
@@ -587,7 +674,7 @@ command in vim:
 ```
 
 
-### 2.4 Using the telescope pickers
+### 2.7 Using the telescope pickers
 
 When you are prompted with a telescope picker to select a note or media file, the following mappings apply:
 
@@ -625,6 +712,9 @@ nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
 nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
+
+" on hesitation, bring up the panel
+nnoremap <leader>z :lua require('telekasten').panel()<CR>
 
 " we could define [[ in **insert mode** to call insert link
 " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>

@@ -1569,39 +1569,42 @@ M.taglinks = taglinks
 
 -- Telekasten command, completion
 local TelekastenCmd = {
-    commands = {
-        { "find notes", "find_notes", M.find_notes },
-        { "find daily notes", "find_daily_notes", M.find_daily_notes },
-        { "search in notes", "search_notes", M.search_notes },
-        { "insert link", "insert_link", M.insert_link },
-        { "follow link", "follow_link", M.follow_link },
-        { "goto today", "goto_today", M.goto_today },
-        { "new note", "new_note", M.new_note },
-        { "goto thisweek", "goto_thisweek", M.goto_thisweek },
-        { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-        { "yank link to note", "yank_notelink", M.yank_notelink },
-        {
-            "new templated note",
-            "new_templated_note",
-            M.new_templated_note,
-        },
-        { "show calendar", "show_calendar", M.show_calendar },
-        {
-            "paste image from clipboard",
-            "paste_img_and_link",
-            M.paste_img_and_link,
-        },
-        { "toggle todo", "toggle_todo", M.toggle_todo },
-        { "show backlinks", "show_backlinks", M.show_backlinks },
-        { "find friend notes", "find_friends", M.find_friends },
-        {
-            "browse images, insert link",
-            "insert_img_link",
-            M.insert_img_link,
-        },
-        { "preview image under cursor", "preview_img", M.preview_img },
-        { "browse media", "browse_media", M.browse_media },
-    },
+    commands = function()
+        return {
+            { "find notes", "find_notes", M.find_notes },
+            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            { "search in notes", "search_notes", M.search_notes },
+            { "insert link", "insert_link", M.insert_link },
+            { "follow link", "follow_link", M.follow_link },
+            { "goto today", "goto_today", M.goto_today },
+            { "new note", "new_note", M.new_note },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
+            { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
+            { "yank link to note", "yank_notelink", M.yank_notelink },
+            {
+                "new templated note",
+                "new_templated_note",
+                M.new_templated_note,
+            },
+            { "show calendar", "show_calendar", M.show_calendar },
+            {
+                "paste image from clipboard",
+                "paste_img_and_link",
+                M.paste_img_and_link,
+            },
+            { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "show backlinks", "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends", M.find_friends },
+            {
+                "browse images, insert link",
+                "insert_img_link",
+                M.insert_img_link,
+            },
+            { "preview image under cursor", "preview_img", M.preview_img },
+            { "browse media", "browse_media", M.browse_media },
+            { "panel", "panel", M.panel },
+        }
+    end,
 }
 
 TelekastenCmd.command = function(subcommand)
@@ -1610,7 +1613,7 @@ TelekastenCmd.command = function(subcommand)
         pickers.new(opts, {
             prompt_title = "Command palette",
             finder = finders.new_table({
-                results = TelekastenCmd.commands,
+                results = TelekastenCmd.commands(),
                 entry_maker = function(entry)
                     return {
                         value = entry,
@@ -1636,7 +1639,7 @@ TelekastenCmd.command = function(subcommand)
     end
     if subcommand then
         print("trying subcommand " .. "`" .. subcommand .. "`")
-        for _, entry in pairs(TelekastenCmd.commands) do
+        for _, entry in pairs(TelekastenCmd.commands()) do
             if entry[2] == subcommand then
                 local selection = entry[3]
                 selection()
@@ -1658,7 +1661,7 @@ end
 
 TelekastenCmd.complete = function()
     local candidates = {}
-    for k, v in pairs(TelekastenCmd.commands) do
+    for k, v in pairs(TelekastenCmd.commands()) do
         candidates[k] = v[2]
     end
     return candidates
