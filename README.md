@@ -386,12 +386,14 @@ the list for a more detailed description:
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
 
+The Telekasten command supports sub-command completion, in my case by pressing <kbd>TAB</kbd>.
+
 ### 2.1 Telekasten command palette
 
 With `:Telekasten panel` or `:lua require('telekasten').panel()` you can bring up the command palette, which is a
 telescope search through all Telekasten commands.
 
-This is super useful for your keyboard mappins: suppose all your telekasten mappings start with `<leader>z`. Like
+This is super useful for your keyboard mappings: suppose all your telekasten mappings start with `<leader>z`. Like
 in the following example:
 
 ```vim

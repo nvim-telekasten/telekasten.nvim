@@ -13,6 +13,7 @@
 - [ ] yt video
 
 ## Dones
+- [x] Telekasten command with completion, command palette
 - [x] follow #tags
 - [x] syntax for tags, incl. plenary filetype
     - for proper display, needed to define 'telekasten' syntax
