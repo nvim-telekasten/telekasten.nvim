@@ -695,6 +695,30 @@ local function check_for_link_or_tag()
     return taglinks.is_tag_or_link_at(line, col, M.Cfg)
 end
 
+local function follow_url(url)
+    -- we just leave it to the OS's handler to deal with what kind of URL it is
+    local function format_command(cmd)
+        return 'call jobstart(["'
+            .. cmd
+            .. '", "'
+            .. url
+            .. '"], {"detach": v:true})'
+    end
+
+    local command
+    if vim.fn.has("mac") == 1 then
+        command = format_command("open")
+        vim.cmd(command)
+    else
+        if vim.fn.has("unix") then
+            command = format_command("xdg-open")
+            vim.cmd(command)
+        else
+            print("Cannot open URLs on your operating system")
+        end
+    end
+end
+
 --
 -- FollowLink:
 -- -----------
@@ -725,10 +749,18 @@ local function FollowLink(opts)
         search_mode = "tag"
         title = tag
     else
-        -- we are in a link
-        vim.cmd("normal yi]")
-        title = vim.fn.getreg('"0')
-        title = title:gsub("^(%[)(.+)(%])$", "%2")
+        if kind == "link" then
+            -- we are in a link
+            vim.cmd("normal yi]")
+            title = vim.fn.getreg('"0')
+            title = title:gsub("^(%[)(.+)(%])$", "%2")
+        else
+            -- we are in an external [link]
+            vim.cmd("normal yi)")
+            local url = vim.fn.getreg('"0')
+            print(url)
+            return follow_url(url)
+        end
 
         local parts = vim.split(title, "#")
 

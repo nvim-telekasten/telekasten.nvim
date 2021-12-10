@@ -2,17 +2,19 @@
 
 - [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
     - or put it as an extmark at the end of the first line, meh.
-- [ ] better support for #tags
-- [ ] some cool buffer showing backlinks (and stuff?)
+- [ ] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
+- [ ] some cool buffer showing backlinks (and stuff?) [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
     - maybe another one where we dot-render a graph of linked notes and 
       display it via vimg from telescope_media_files or sth similar
     - these buffers / this buffer should keep its size even when resizing other
       splits (like the calendar)
 - [ ] really good support for special links: inserting, yanking, ...
+- [ ] lsp support, lsp completion of everything: notes, headings, paragraphs, tags, ...
 
 - [ ] yt video
 
 ## Dones
+- [x] follow external URLs
 - [x] telekasten filetype
 - [x] Telekasten command with completion, command palette
 - [x] follow #tags
