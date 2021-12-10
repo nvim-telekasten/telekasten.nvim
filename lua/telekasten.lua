@@ -880,6 +880,7 @@ local function FollowLink(opts)
             -- link to paragraph globally [[#^xAcSh-xxr]]
             finder = live_grepper,
             attach_mappings = function(_, map)
+                actions.select_default:replace(picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
                 map("i", "<c-i>", picker_actions.paste_link(opts))
                 map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1012,6 +1013,7 @@ local function FindFriends(opts)
         default_text = "\\[\\[" .. title .. "\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
