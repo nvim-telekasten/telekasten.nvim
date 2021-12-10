@@ -1596,7 +1596,13 @@ local function Setup(cfg)
     -- and does not work
 
     if M.Cfg.take_over_my_home == true then
-        vim.cmd('au BufEnter ' .. M.Cfg.home .. '/*' .. M.Cfg.extension .. ' set ft=telekasten')
+        vim.cmd(
+            "au BufEnter "
+                .. M.Cfg.home
+                .. "/*"
+                .. M.Cfg.extension
+                .. " set ft=telekasten"
+        )
     end
 
     if debug then
