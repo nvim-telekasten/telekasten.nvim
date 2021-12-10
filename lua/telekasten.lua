@@ -1674,7 +1674,9 @@ TelekastenCmd.command = function(subcommand)
         if M.Cfg.command_palette_theme == "ivy" then
             theme = themes.get_ivy()
         else
-            theme = themes.get_dropdown()
+            theme = themes.get_dropdown({
+                layout_config = { prompt_position = "top" },
+            })
         end
         show(theme)
     end

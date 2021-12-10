@@ -279,7 +279,7 @@ END
 | | see [2.1 Tag notation](#24-tag-notation)| |
 | `command_palette_theme` | theme (layout) of the command palette| ivy |
 | | - `ivy` (default): bottom panel overlay  |  |
-| | - `popup`: floating popup window ||
+| | - `dropdown`: floating popup window ||
 
 
 The calendar support has its own options, contained in `calendar_opts`:
@@ -421,7 +421,7 @@ make it easy for you and pop up a panel:
 ![](img/panel-ivy.png)
 
 The above illustration shows the default configuration of the panel layout: `ivy`. You can change it to a popup window
-by setting `command_palette_theme = 'popup'` during `setup()`.
+by setting `command_palette_theme = 'dropdown'` during `setup()`.
 
 This is what the popup looks like:
 
