@@ -1,6 +1,7 @@
 local builtin = require("telescope.builtin")
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
+local action_set = require("telescope.actions.set")
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
@@ -63,9 +64,6 @@ M.Cfg = {
     },
     close_after_yanking = false,
     insert_after_inserting = true,
-
-    -- make syntax available to markdown buffers and telescope previewers
-    install_syntax = true,
 
     -- tag notation: '#tag', ':tag:', 'yaml-bare'
     tag_notation = "#tag",
@@ -342,6 +340,9 @@ local media_preview = defaulter(function(opts)
     })
 end, {})
 
+-- note picker actions
+local picker_actions = {}
+
 -- find_files_sorted(opts)
 -- like builtin.find_files, but:
 --     - uses plenary.scan_dir synchronously instead of external jobs
@@ -404,6 +405,11 @@ local function find_files_sorted(opts)
         previewer = media_preview.new(opts)
     end
 
+    opts.attach_mappings = opts.attach_mappings
+        or function(prompt_bufnr, _)
+            actions.select_default:replace(picker_actions.select_default)
+        end
+
     local picker = pickers.new(opts, {
         finder = finders.new_table({
             results = file_list,
@@ -436,8 +442,15 @@ local function find_files_sorted(opts)
     picker:find()
 end
 
--- note picker actions
-local picker_actions = {}
+picker_actions.post_open = function()
+    vim.cmd("set ft=telekasten")
+end
+
+picker_actions.select_default = function(prompt_bufnr)
+    local ret = action_set.select(prompt_bufnr, "default")
+    picker_actions.post_open()
+    return ret
+end
 
 function picker_actions.close(opts)
     opts = opts or {}
@@ -540,6 +553,7 @@ local function FindDailyNotes(opts)
         cwd = M.Cfg.dailies,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -584,6 +598,7 @@ local function FindWeeklyNotes(opts)
         cwd = M.Cfg.weeklies,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -762,6 +777,7 @@ local function FollowLink(opts)
             default_text = title,
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
+                actions.select_default:replace(picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
                 map("i", "<c-i>", picker_actions.paste_link(opts))
                 map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1035,6 +1051,7 @@ local function GotoToday(opts)
                     vim.cmd("wincmd w")
                 end
                 vim.cmd("e " .. fname)
+                picker_actions.post_open()
             end)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -1065,6 +1082,7 @@ local function FindNotes(opts)
         cwd = M.Cfg.home,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1141,6 +1159,7 @@ local function SearchNotes(opts)
         default_text = vim.fn.expand("<cword>"),
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1175,6 +1194,7 @@ local function ShowBacklinks(opts)
         default_text = "\\[\\[" .. title .. "\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1217,6 +1237,7 @@ local function on_create(opts, title)
         default_text = title,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1262,6 +1283,7 @@ local function on_create_with_template(opts, title)
     if fexists == true then
         -- open the new note
         vim.cmd("e " .. fname)
+        picker_actions.post_open()
         return
     end
 
@@ -1277,6 +1299,7 @@ local function on_create_with_template(opts, title)
                 create_note_from_template(title, fname, template)
                 -- open the new note
                 vim.cmd("e " .. fname)
+                picker_actions.post_open()
             end)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -1332,6 +1355,7 @@ local function GotoThisWeek(opts)
         default_text = title,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
+            actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
             map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1528,13 +1552,10 @@ local function Setup(cfg)
         weekly = M.Cfg.template_new_weekly,
     }
 
-    if M.Cfg.install_syntax then
-        -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
-        filetype.add_file("telekasten")
-
-        -- now activate our syntax also for all markdown files
-        vim.cmd("autocmd filetype markdown set syntax=telekasten")
-    end
+    -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
+    filetype.add_file("telekasten")
+    -- setting the syntax moved into plugin/telekasten.vim
+    -- and does not work
 
     if debug then
         print("Resulting config:")
