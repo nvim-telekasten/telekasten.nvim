@@ -25,6 +25,10 @@ local M = {}
 
 M.Cfg = {
     home = home,
+
+    -- if true, telekasten will be enabled when opening a note within the configured home
+    take_over_my_home = true,
+
     dailies = home .. "/" .. "daily",
     weeklies = home .. "/" .. "weekly",
     templates = home .. "/" .. "templates",
@@ -1590,6 +1594,10 @@ local function Setup(cfg)
     filetype.add_file("telekasten")
     -- setting the syntax moved into plugin/telekasten.vim
     -- and does not work
+
+    if M.Cfg.take_over_my_home == true then
+        vim.cmd('au BufEnter ' .. M.Cfg.home .. '/*' .. M.Cfg.extension .. ' set ft=telekasten')
+    end
 
     if debug then
         print("Resulting config:")

@@ -127,6 +127,15 @@ telekasten.setup({opts})
 
         Default: '~/zettelkasten'
 
+                                   *telekasten.settings.take_over_my_home*
+    take_over_my_home: ~
+        If set to `true`, telekasten.nvim will take over your home. Any notes
+        from the configured `home` directory will receive a `set`
+        `filetype=telekasten`, no matter if opened by telekasten or another
+        way. 
+
+        Default: `true`
+
                                                *telekasten.settings.daily*
     daily: ~
         Path to your daily notes, to separate them from 'normal' notes.

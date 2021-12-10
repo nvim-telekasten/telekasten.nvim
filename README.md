@@ -185,6 +185,10 @@ lua << END
 local home = vim.fn.expand("~/zettelkasten")
 require('telekasten').setup({
     home         = home,
+
+    -- if true, telekasten will be enabled when opening a note within the configured home
+    take_over_my_home = true,
+
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     templates    = home .. '/' .. 'templates',
@@ -249,6 +253,7 @@ END
 | setting | description | example |
 | --- | --- | --- |
 | `home` | path to your zettelkasten folder (folder with markdown files) | ~/zettelkasten |
+| **`take_over_my_home`** | if set to `true` (default), telekasten will take over your home. Any notes from the configured `home` directory will receive a `set filetype=telekasten`, no matter if opened by telekasten or another way. | true |
 | `dailies` | path where your daily notes go | ~/zettelkasten/daily |
 | `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
 | `templates` | path where your note templates go | ~/zettelkasten/templates |
