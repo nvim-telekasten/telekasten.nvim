@@ -617,8 +617,12 @@ Currently, the following substitutions will be made during new note creation:
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
 | `{{date}}` | date in iso format | 2021-11-21 |
+| `{{yesterday}}` | yesterday's date in iso format | 2021-11-20 |
+| `{{tomorrow}}` | tomorrow's date in iso format | 2021-11-22 |
 | `{{hdate}}` | date in long format | Sunday, November 21st, 2021 |
 | `{{week}}` | week of the year | 46 |
+| `{{lastweek}}` | prior week of the year | 45 |
+| `{{nextweek}}` | next week of the year | 47 |
 | `{{year}}` | year | 2021 |
 
 As an example, this is my template for new notes:

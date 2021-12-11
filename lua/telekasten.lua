@@ -194,8 +194,14 @@ local monthmap = {
 
 local function calenderinfo_today()
     local dinfo = os.date("*t")
+    local oneday = 24 * 60 * 60 -- hours * days * seconds
+    local oneweek = 7 * oneday
+    local date_format = "%Y-%m-%d"
+    local week_format = "%V"
     local opts = {}
-    opts.date = os.date("%Y-%m-%d")
+    opts.date = os.date(date_format)
+    opts.yesterday = os.date(date_format, os.time() - oneday)
+    opts.tomorrow = os.date(date_format, os.time() + oneday)
     local wday = dinfo.wday - 1
     if wday == 0 then
         wday = 7
@@ -211,7 +217,9 @@ local function calenderinfo_today()
         .. daysuffix(dinfo.day)
         .. ", "
         .. dinfo.year
-    opts.week = os.date("%V")
+    opts.week = os.date(week_format)
+    opts.lastweek = os.date(week_format, os.time() - oneweek)
+    opts.nextweek = os.date(week_format, os.time() + oneweek)
     opts.month = dinfo.month
     opts.year = dinfo.year
     opts.day = dinfo.day
@@ -222,6 +230,10 @@ local function linesubst(line, title, calendar_info)
     local cinfo = calendar_info or calenderinfo_today()
     local substs = {
         date = cinfo.date,
+        yesterday = cinfo.yesterday,
+        tomorrow = cinfo.tomorrow,
+        lastweek = cinfo.lastweek,
+        nextweek = cinfo.nextweek,
         hdate = cinfo.hdate,
         week = cinfo.week,
         year = cinfo.year,
