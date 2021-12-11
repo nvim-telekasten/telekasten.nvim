@@ -1,7 +1,7 @@
 local Job = require("plenary.job")
 
 local M = {}
-local hashtag_re = "(^|\\s)#[a-zA-Z]+[a-zA-Z0-9/\\-_]*"
+local hashtag_re = "(^|\\s|'|\")#[a-zA-Z]+[a-zA-Z0-9/\\-_]*"
 local colon_re = "(^|\\s):[a-zA-Z]+[a-zA-Z0-9/\\-_]*:"
 local yaml_re = "(^|\\s)tags:\\s*\\[([a-zA-Z]+[a-zA-Z0-9/\\-_]*(,\\s)*)*]"
 
@@ -22,6 +22,9 @@ local function command_find_all_tags(opts)
 end
 
 local function trim(s)
+    if s:sub(1, 1) == '"' or s:sub(1, 1) == "'" then 
+        s = s:sub(2)
+    end
     return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
 end
 
