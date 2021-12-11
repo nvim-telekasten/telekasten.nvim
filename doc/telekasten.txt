@@ -667,10 +667,10 @@ that are used for creating new notes.
 
 The following substitutions will be made during new note creation:
 
-+-------------------+-----------------------+-----------------------------+
-| specifier         |                       |                             |
-| in template       | expands to            | example                     |
-+-------------------+-----------------------+-----------------------------+
++-----------------+-----------------------+-----------------------------+
+| specifier       |                       |                             |
+| in template     | expands to            | example                     |
++-----------------+-----------------------+-----------------------------+
 | `{{title}}`       | the title of the note | My new note                 |
 | `{{date}}`        | date in iso format    | 2021-11-21                  |
 | `{{yesterday}}`   | yesterday, iso        | 2021-11-20                  |
@@ -690,8 +690,8 @@ The following substitutions will be made during new note creation:
 | `{{friday}}`      | Friday, iso           | 2021-11-19                  |
 | `{{saturday}}`    | Saturday, iso         | 2021-11-20                  |
 | `{{sunday}}`      | Sunday, iso (see note)| 2021-11-21                  |
-+-------------------+-----------------------+-----------------------------+
-Note: Sunday is adjusted to match users `calendar_monday` preference.
++-----------------+-----------------------+-----------------------------+
+Note: Sunday is adjusted to match the user's `calendar_monday` preference.
 
 As an example, this is my template for new notes:
 >
