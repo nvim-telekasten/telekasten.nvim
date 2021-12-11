@@ -633,6 +633,9 @@ Currently, the following substitutions will be made during new note creation:
 | `{{week}}` | week of the year | 46 |
 | `{{lastweek}}` | prior week of the year | 45 |
 | `{{nextweek}}` | next week of the year | 47 |
+| `{{isoweek}}` | week of the year in iso format | 2021-W46 |
+| `{{lastisoweek}}` | prior week of the year in iso format | 2021-W45 |
+| `{{nextisoweek}}` | next week of the year in iso format| 2021-W47 |
 | `{{year}}` | year | 2021 |
 
 As an example, this is my template for new notes:

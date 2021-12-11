@@ -203,6 +203,7 @@ local function calenderinfo_today()
     local oneweek = 7 * oneday
     local date_format = "%Y-%m-%d"
     local week_format = "%V"
+    local isoweek_format = "%Y-W%V"
     local opts = {}
     opts.date = os.date(date_format)
     opts.yesterday = os.date(date_format, os.time() - oneday)
@@ -225,6 +226,9 @@ local function calenderinfo_today()
     opts.week = os.date(week_format)
     opts.lastweek = os.date(week_format, os.time() - oneweek)
     opts.nextweek = os.date(week_format, os.time() + oneweek)
+    opts.week = os.date(isoweek_format)
+    opts.lastisoweek = os.date(isoweek_format, os.time() - oneweek)
+    opts.nextisoweek = os.date(isoweek_format, os.time() + oneweek)
     opts.month = dinfo.month
     opts.year = dinfo.year
     opts.day = dinfo.day
