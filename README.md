@@ -5,7 +5,7 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 
 #### Highlights:
 
-- Find notes by name, daily and weekly notes by date 
+- Find notes by name, #tag, and daily, weekly notes by date 
 - search within all notes 
 - place and follow links to your notes or create new ones, with templates
 - current daily and weekly notes are (optionally) created if not present when searching for dailies or weeklies
@@ -247,6 +247,10 @@ require('telekasten').setup({
     -- command palette theme: dropdown (window) or ivy (bottom panel)
     command_palette_theme = "ivy",
 
+    -- tag list theme: 
+    -- get_cursor: small tag list at cursor; ivy and dropdown like above
+    show_tags_theme = "ivy",
+
 })
 END
 ```
@@ -285,6 +289,10 @@ END
 | `command_palette_theme` | theme (layout) of the command palette| ivy |
 | | - `ivy` (default): bottom panel overlay  |  |
 | | - `dropdown`: floating popup window ||
+| `show_tags_theme` | theme (layout) for the tag list| ivy |
+| | - `ivy` (default): bottom panel overlay  |  |
+| | - `dropdown`: floating popup window ||
+| | - `get_cursor`: floating popup window at cursor position ||
 
 
 The calendar support has its own options, contained in `calendar_opts`:
@@ -372,6 +380,7 @@ the list for a more detailed description:
 
 - `panel` : brings up the [command palette](#21-telekasten-command-palette)
 - `find_notes` : Find notes by title (filename)
+- `show_tags` : Search through all tags
 - `find_daily_notes` : Find daily notes by title (date)
 - `search_notes` : Search (grep) in all notes
 - `insert_link` : Insert a link to a note
@@ -484,6 +493,7 @@ The plugin defines the following functions:
     - **note**: this requires the `telescope-media-files.nvim` plugin to be installed.
 - `setup(opts)`: used for configuring paths, file extension, etc.
 - `panel()` : brings up the command palette
+- `show_tags()` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
 
 To use one of the functions above, just run them with the `:lua ...` command.
 
@@ -719,15 +729,18 @@ nnoremap <leader>zF :lua require('telekasten').find_friends()<CR>
 nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
 nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
+nnoremap <leader>za :lua require('telekasten').show_tags()<CR>
+nnoremap <leader># :lua require('telekasten').show_tags()<CR>
 
 " on hesitation, bring up the panel
 nnoremap <leader>z :lua require('telekasten').panel()<CR>
 
 " we could define [[ in **insert mode** to call insert link
-" inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
+" inoremap [[ <cmd>:lua require('telekasten').insert_link()<CR>
 " alternatively: leader [
-inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
-inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
+inoremap <leader>[ <cmd>:lua require('telekasten').insert_link({ i=true })<CR>
+inoremap <leader>zt <cmd>:lua require('telekasten').toggle_todo({ i=true })<CR>
+inoremap <leader># <cmd>lua require('telekasten').show_tags({i = true})<cr>
 
 " ----- the following are for syntax-coloring [[links]] and ==highlighted text==
 " ----- (see the section about coloring in README.md)

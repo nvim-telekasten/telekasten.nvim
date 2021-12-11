@@ -13,6 +13,7 @@ local themes = require("telescope.themes")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
 local taglinks = require("taglinks.taglinks")
+local tagutils = require("taglinks.tagutils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -74,6 +75,10 @@ M.Cfg = {
 
     -- command palette theme: dropdown (window) or ivy (bottom panel)
     command_palette_theme = "ivy",
+
+    -- tag list theme:
+    -- get_cursor: small tag list at cursor; ivy and dropdown like above
+    show_tags_theme = "ivy",
 }
 
 local function file_exists(fname)
@@ -468,6 +473,29 @@ function picker_actions.close(opts)
     end
 end
 
+function picker_actions.paste_tag(opts)
+    return function(prompt_bufnr)
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        vim.api.nvim_put({ selection.value.tag }, "", true, true)
+        if opts.insert_after_inserting or opts.i then
+            vim.api.nvim_feedkeys("A", "m", false)
+        end
+    end
+end
+
+function picker_actions.yank_tag(opts)
+    return function(prompt_bufnr)
+        opts = opts or {}
+        if opts.close_after_yanking then
+            actions.close(prompt_bufnr)
+        end
+        local selection = action_state.get_selected_entry()
+        vim.fn.setreg('"', selection.value.tag)
+        print("yanked " .. selection.value.tag)
+    end
+end
+
 function picker_actions.paste_link(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
@@ -475,7 +503,7 @@ function picker_actions.paste_link(opts)
         local fn = path_to_linkname(selection.value)
         local title = "[[" .. fn .. "]]"
         vim.api.nvim_put({ title }, "", true, true)
-        if opts.insert_after_inserting then
+        if opts.insert_after_inserting or opts.i then
             vim.api.nvim_feedkeys("A", "m", false)
         end
     end
@@ -503,7 +531,7 @@ function picker_actions.paste_img_link(opts)
         fn = fn:gsub(M.Cfg.home .. "/", "")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
-        if opts.insert_after_inserting then
+        if opts.insert_after_inserting or opts.i then
             vim.api.nvim_feedkeys("A", "m", false)
         end
     end
@@ -713,13 +741,11 @@ local function follow_url(url)
     if vim.fn.has("mac") == 1 then
         command = format_command("open")
         vim.cmd(command)
+    elseif vim.fn.has("unix") then
+        command = format_command("xdg-open")
+        vim.cmd(command)
     else
-        if vim.fn.has("unix") then
-            command = format_command("xdg-open")
-            vim.cmd(command)
-        else
-            print("Cannot open URLs on your operating system")
-        end
+        print("Cannot open URLs on your operating system")
     end
 end
 
@@ -742,14 +768,23 @@ local function FollowLink(opts)
     local fexists
 
     -- first: check if we're in a tag or a link
-    local kind, atcol = check_for_link_or_tag()
+    local kind, atcol, tag
+
+    if opts.follow_tag ~= nil then
+        kind = "tag"
+        tag = opts.follow_tag
+    else
+        kind, atcol = check_for_link_or_tag()
+    end
 
     if kind == "tag" then
-        local tag = taglinks.get_tag_at(
-            vim.api.nvim_get_current_line(),
-            atcol,
-            M.Cfg
-        )
+        if atcol ~= nil then
+            tag = taglinks.get_tag_at(
+                vim.api.nvim_get_current_line(),
+                atcol,
+                M.Cfg
+            )
+        end
         search_mode = "tag"
         title = tag
     else
@@ -762,7 +797,6 @@ local function FollowLink(opts)
             -- we are in an external [link]
             vim.cmd("normal yi)")
             local url = vim.fn.getreg('"0')
-            print(url)
             return follow_url(url)
         end
 
@@ -1528,6 +1562,86 @@ local function ToggleTodo(opts)
     end
 end
 
+local function FindAllTags(opts)
+    opts = opts or {}
+    local i = opts.i
+    opts.cwd = M.Cfg.home
+    opts.tag_notation = M.Cfg.tag_notation
+
+    local tag_map = tagutils.do_find_all_tags(opts)
+    local taglist = {}
+
+    local max_tag_len = 0
+    for k, v in pairs(tag_map) do
+        taglist[#taglist + 1] = { tag = k, details = v }
+        if #k > max_tag_len then
+            max_tag_len = #k
+        end
+    end
+
+    if M.Cfg.show_tags_theme == "get_cursor" then
+        opts = themes.get_cursor({
+            layout_config = {
+                height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
+            },
+        })
+    elseif M.Cfg.show_tags_theme == "ivy" then
+        opts = themes.get_ivy({
+            layout_config = {
+                prompt_position = "top",
+                height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
+            },
+        })
+    else
+        opts = themes.get_dropdown({
+            layout_config = {
+                prompt_position = "top",
+                height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
+            },
+        })
+    end
+    -- re-apply
+    opts.cwd = M.Cfg.home
+    opts.tag_notation = M.Cfg.tag_notation
+    opts.i = i
+    pickers.new(opts, {
+        prompt_title = "Tags",
+        finder = finders.new_table({
+            results = taglist,
+            entry_maker = function(entry)
+                return {
+                    value = entry,
+                    -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
+                    display = string.format(
+                        "%" .. max_tag_len .. "s ... (%3d matches)",
+                        entry.tag,
+                        #entry.details
+                    ),
+                    ordinal = entry.tag,
+                }
+            end,
+        }),
+        sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+                actions._close(prompt_bufnr, true)
+
+                -- TODO actions for insert tag, default action: search for tag
+                local selection = action_state.get_selected_entry().value.tag
+                local follow_opts = { follow_tag = selection }
+                FollowLink(follow_opts)
+            end)
+            map("i", "<c-y>", picker_actions.yank_tag(opts))
+            map("i", "<c-i>", picker_actions.paste_tag(opts))
+            map("n", "<c-y>", picker_actions.yank_tag(opts))
+            map("n", "<c-i>", picker_actions.paste_tag(opts))
+            map("n", "<c-c>", picker_actions.close(opts))
+            map("n", "<esc>", picker_actions.close(opts))
+            return true
+        end,
+    }):find()
+end
+
 -- Setup(cfg)
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
@@ -1635,6 +1749,7 @@ M.insert_img_link = InsertImgLink
 M.preview_img = PreviewImg
 M.browse_media = BrowseImg
 M.taglinks = taglinks
+M.show_tags = FindAllTags
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -1672,6 +1787,7 @@ local TelekastenCmd = {
             { "preview image under cursor", "preview_img", M.preview_img },
             { "browse media", "browse_media", M.browse_media },
             { "panel", "panel", M.panel },
+            { "show tags", "show_tags", M.show_tags },
         }
     end,
 }

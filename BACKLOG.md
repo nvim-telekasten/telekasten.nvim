@@ -2,7 +2,6 @@
 
 - [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
     - or put it as an extmark at the end of the first line, meh.
-- [ ] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
 - [ ] some cool buffer showing backlinks (and stuff?) [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
     - maybe another one where we dot-render a graph of linked notes and 
       display it via vimg from telescope_media_files or sth similar
@@ -14,6 +13,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
+    - at least we have a tag picker now
 - [x] follow external URLs
 - [x] telekasten filetype
 - [x] Telekasten command with completion, command palette
