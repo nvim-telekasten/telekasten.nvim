@@ -637,6 +637,14 @@ Currently, the following substitutions will be made during new note creation:
 | `{{isolastweek}}` | prior week of the year in iso format | 2021-W45 |
 | `{{isonextweek}}` | next week of the year in iso format| 2021-W47 |
 | `{{year}}` | year | 2021 |
+| `{{monday}}` | monday's date | 2021-11-16 |
+| `{{tuesday}}` | tuesday's date | 2021-11-17 |
+| `{{wednesday}}` | wednesday's date | 2021-11-18 |
+| `{{thursday}}` | thursday's date | 2021-11-19 |
+| `{{friday}}` | friday's date | 2021-11-20 |
+| `{{saturday}}` | saturday's date | 2021-11-21 |
+| `{{sunday}}` | sunday's date | 2021-11-22 |
+Note: Sunday will be adjusted by the user's `calendar_monday` preference.
 
 As an example, this is my template for new notes:
 
