@@ -22,7 +22,7 @@ local function command_find_all_tags(opts)
 end
 
 local function trim(s)
-    if s:sub(1, 1) == '"' or s:sub(1, 1) == "'" then 
+    if s:sub(1, 1) == '"' or s:sub(1, 1) == "'" then
         s = s:sub(2)
     end
     return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
