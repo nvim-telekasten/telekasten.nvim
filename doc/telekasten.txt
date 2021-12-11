@@ -113,6 +113,13 @@ telekasten.setup({opts})
 
       -- tag notation: '#tag', ':tag:', 'yaml-bare'
       tag_notation = "#tag",
+
+      -- command palette theme: dropdown (window) or ivy (bottom panel)
+      command_palette_theme = "ivy",
+  
+      -- tag list theme: 
+      -- get_cursor: small tag list at cursor; ivy and dropdown like above
+      show_tags_theme = "ivy",
     }
 <
 
@@ -765,12 +772,14 @@ However, here are some suggestions:
  nnoremap <leader>zI :lua require('telekasten').insert_img_link({ i=true })<CR>
  nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
  nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
+ nnoremap <leader># :lua require('telekasten').show_tags()<CR>
 
  " we could define [[ in **insert mode** to call insert link
  " inoremap [[ <ESC>:lua require('telekasten').insert_link()<CR>
  " alternatively: leader [
  inoremap <leader>[ <ESC>:lua require('telekasten').insert_link({ i=true })<CR>
  inoremap <leader>zt <ESC>:lua require('telekasten').toggle_todo({ i=true })<CR>
+ inoremap <leader># <cmd>lua require('telekasten').show_tags({i = true})<cr>
 
  " the following are for syntax-coloring [[links]] and ==highlighted text==
  " (see the section about coloring in README.md)
