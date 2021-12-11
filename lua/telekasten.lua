@@ -260,6 +260,7 @@ local function calenderinfo_today()
         .. dinfo.year
     opts.week = os.date(dateformats.week)
     opts.isoweek = os.date(dateformats.isoweek)
+    opts.month = dinfo.month
     opts.year = dinfo.year
     opts.day = dinfo.day
     return opts
@@ -270,7 +271,7 @@ local function linesubst(line, title, calendar_info, relative_dates)
     local rdates = relative_dates or relativedates_today()
     local substs = {
         date    = cinfo.date,
-        hdate   = cinfo.hdate,
+        hdate   =cinfo.hdate,
         week    = cinfo.week,
         isoweek = cinfo.isoweek,
         year    = cinfo.year,
