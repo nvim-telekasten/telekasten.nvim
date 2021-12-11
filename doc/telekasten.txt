@@ -667,16 +667,31 @@ that are used for creating new notes.
 
 The following substitutions will be made during new note creation:
 
-+-------------+-----------------------+-----------------------------+
-| specifier   |                       |                             |
-| in template | expands to            | example                     |
-+-------------+-----------------------+-----------------------------+
-| `{{title}}`   | the title of the note | My new note                 |
-| `{{date}}`    | date in iso format    | 2021-11-21                  |
-| `{{hdate}}`   | date in long format   | Sunday, November 21st, 2021 |
-| `{{week}}`    | week of the year      | 46                          |
-| `{{year}}`    | year                  | 2021                        |
-+-------------+-----------------------+-----------------------------+
++-------------------+-----------------------+-----------------------------+
+| specifier         |                       |                             |
+| in template       | expands to            | example                     |
++-------------------+-----------------------+-----------------------------+
+| `{{title}}`       | the title of the note | My new note                 |
+| `{{date}}`        | date in iso format    | 2021-11-21                  |
+| `{{yesterday}}`   | yesterday, iso        | 2021-11-20                  |
+| `{{tomorrow}}`    | tomorrow, iso         | 2021-11-22                  |
+| `{{hdate}}`       | date in long format   | Sunday, November 21st, 2021 |
+| `{{week}}`        | week of the year      | 46                          |
+| `{{lastweek}}`    | prior week            | 45                          |
+| `{{nextweek}}`    | next week             | 47                          |
+| `{{isoweek}}`     | week in iso format    | 2021-46                     |
+| `{{lastisoweek}}` | last week, iso        | 2021-45                     |
+| `{{nextisoweek}}` | next week, iso        | 2021-47                     |
+| `{{year}}`        | year                  | 2021                        |
+| `{{monday}}`      | Monday, iso           | 2021-11-15                  |
+| `{{tuesday}}`     | Tuesday, iso          | 2021-11-16                  |
+| `{{wednesday}}`   | Wednesday, iso        | 2021-11-17                  |
+| `{{thursday}}`    | Thursday, iso         | 2021-11-18                  |
+| `{{friday}}`      | Friday, iso           | 2021-11-19                  |
+| `{{saturday}}`    | Saturday, iso         | 2021-11-20                  |
+| `{{sunday}}`      | Sunday, iso (see note)| 2021-11-21                  |
++-------------------+-----------------------+-----------------------------+
+Note: Sunday is adjusted to match users `calendar_monday` preference.
 
 As an example, this is my template for new notes:
 >
