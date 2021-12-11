@@ -197,17 +197,52 @@ local monthmap = {
     "December",
 }
 
-local function calenderinfo_today()
+local dateformats = {
+    date = "%Y-%m-%d",
+    week = "%V",
+    isoweek = "%Y-W%V"
+}
+
+local function relativedates_today()
+    local now = os.time()
     local dinfo = os.date("*t")
+    local wday = dinfo.wday - 1
     local oneday = 24 * 60 * 60 -- hours * days * seconds
     local oneweek = 7 * oneday
-    local date_format = "%Y-%m-%d"
-    local week_format = "%V"
-    local isoweek_format = "%Y-W%V"
+    local df = dateformats
     local opts = {}
-    opts.date = os.date(date_format)
-    opts.yesterday = os.date(date_format, os.time() - oneday)
-    opts.tomorrow = os.date(date_format, os.time() + oneday)
+
+    opts.yesterday   = os.date(df.date, now - oneday)
+    opts.tomorrow    = os.date(df.date, now + oneday)
+    opts.lastweek    = os.date(df.week, now - oneweek)
+    opts.nextweek    = os.date(df.week, now + oneweek)
+    opts.isolastweek = os.date(df.isoweek, os.time() - oneweek)
+    opts.isonextweek = os.date(df.isoweek, os.time() + oneweek)
+
+    -- Find the Sunday that started this week regardless of the calendar
+    -- display preference.  Then use that as the base to calculate the dates
+    -- for the days of the current week.
+    -- Finally, adjust Sunday to suit user calendar preference.
+    local starting_sunday = now - (wday * oneday)
+    local sunday_offset = 0
+    if M.Cfg.calendar_opts.calendar_monday == 1 then
+      sunday_offset = 7
+    end
+    opts.monday    = os.date(df.date, starting_sunday + (1 * oneday))
+    opts.tuesday   = os.date(df.date, starting_sunday + (2 * oneday))
+    opts.wednesday = os.date(df.date, starting_sunday + (3 * oneday)) 
+    opts.thursday  = os.date(df.date, starting_sunday + (4 * oneday))
+    opts.friday    = os.date(df.date, starting_sunday + (5 * oneday))
+    opts.saturday  = os.date(df.date, starting_sunday + (6 * oneday))
+    opts.sunday    = os.date(df.date, starting_sunday + (sunday_offset * oneday))
+
+    return opts
+end
+
+local function calenderinfo_today()
+    local dinfo = os.date("*t")
+    local opts = {}
+    opts.date = os.date(dateformats.date)
     local wday = dinfo.wday - 1
     if wday == 0 then
         wday = 7
@@ -223,29 +258,38 @@ local function calenderinfo_today()
         .. daysuffix(dinfo.day)
         .. ", "
         .. dinfo.year
-    opts.week = os.date(week_format)
-    opts.lastweek = os.date(week_format, os.time() - oneweek)
-    opts.nextweek = os.date(week_format, os.time() + oneweek)
-    opts.week = os.date(isoweek_format)
-    opts.lastisoweek = os.date(isoweek_format, os.time() - oneweek)
-    opts.nextisoweek = os.date(isoweek_format, os.time() + oneweek)
-    opts.month = dinfo.month
+    opts.week = os.date(dateformats.week)
+    opts.isoweek = os.date(dateformats.isoweek)
     opts.year = dinfo.year
     opts.day = dinfo.day
     return opts
 end
 
-local function linesubst(line, title, calendar_info)
-    local cinfo = calendar_info or calenderinfo_today()
+local function linesubst(line, title, calendar_info, relative_dates)
+    local cinfo  = calendar_info or calenderinfo_today()
+    local rdates = relative_dates or relativedates_today()
     local substs = {
-        date = cinfo.date,
-        yesterday = cinfo.yesterday,
-        tomorrow = cinfo.tomorrow,
-        lastweek = cinfo.lastweek,
-        nextweek = cinfo.nextweek,
-        hdate = cinfo.hdate,
-        week = cinfo.week,
-        year = cinfo.year,
+        date    = cinfo.date,
+        hdate   = cinfo.hdate,
+        week    = cinfo.week,
+        isoweek = cinfo.isoweek,
+        year    = cinfo.year,
+
+        yesterday   = rdates.yesterday,
+        tomorrow    = rdates.tomorrow,
+        lastweek    = rdates.lastweek,
+        nextweek    = rdates.nextweek,
+        isolastweek = rdates.isolastweek,
+        isonextweek = rdates.isonextweek,
+
+        sunday    = rdates.sunday,
+        monday    = rdates.monday,
+        tuesday   = rdates.tuesday,
+        wednesday = rdates.wednesday,
+        thursday  = rdates.thursday,
+        friday    = rdates.friday,
+        saturday  = rdates.saturday,
+
         title = title,
     }
     for k, v in pairs(substs) do
@@ -259,7 +303,8 @@ local function create_note_from_template(
     title,
     filepath,
     templatefn,
-    calendar_info
+    calendar_info,
+    relative_dates
 )
     -- first, read the template file
     local lines = {}
@@ -272,7 +317,7 @@ local function create_note_from_template(
     -- now write the output file, substituting vars line by line
     local ofile = io.open(filepath, "a")
     for _, line in pairs(lines) do
-        ofile:write(linesubst(line, title, calendar_info) .. "\n")
+        ofile:write(linesubst(line, title, calendar_info, relative_dates) .. "\n")
     end
 
     ofile:close()
