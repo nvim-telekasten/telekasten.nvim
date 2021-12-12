@@ -174,13 +174,13 @@ local function daysuffix(day)
 end
 
 local daymap = {
-    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday",
 }
 local monthmap = {
     "January",
@@ -212,8 +212,17 @@ local function calculate_dates(cinfo)
     local df = dateformats
 
     local opts = {}
-    opts.date = os.date(df.date)
-    local wday = dinfo.wday - 1 -- compensate for 1-indexed os.date output
+    
+    -- this is to compensate for the calendar showing M-Su, but os.date Su is 
+    -- always wday = 1
+    local wday = dinfo.wday - 1
+    if wday == 0 then
+        wday = 7
+    end
+
+    opts.year  = dinfo.year
+    opts.month = dinfo.month
+    opts.day   = dinfo.day
     opts.hdate = daymap[wday]
         .. ", "
         .. monthmap[dinfo.month]
@@ -222,10 +231,8 @@ local function calculate_dates(cinfo)
         .. daysuffix(dinfo.day)
         .. ", "
         .. dinfo.year
-    opts.month = dinfo.month
-    opts.year = dinfo.year
-    opts.day = dinfo.day
 
+    opts.date        = os.date(df.date, time)
     opts.prevday     = os.date(df.date, time - oneday)
     opts.nextday     = os.date(df.date, time + oneday)
     opts.week        = os.date(df.week, time)
