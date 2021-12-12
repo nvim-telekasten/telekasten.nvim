@@ -1,5 +1,10 @@
 # Backlog
 
+- [ ] option to show number of links and backlinks in note picker
+    - see #36
+- [ ] tag search - search in general: just don't make it turing-complete 😁
+- [ ] calendar plugin: make weeks clickable!
+    - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
 - [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
     - or put it as an extmark at the end of the first line, meh.
 - [ ] some cool buffer showing backlinks (and stuff?) [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
@@ -7,7 +12,8 @@
       display it via vimg from telescope_media_files or sth similar
     - these buffers / this buffer should keep its size even when resizing other
       splits (like the calendar)
-- [ ] really good support for special links: inserting, yanking, ...
+- [ ] really good support for special links: inserting, yanking, ... (links to headings / paras)
+- [ ] extmarks or sth to jump from link to link within a note
 - [ ] lsp support, lsp completion of everything: notes, headings, paragraphs, tags, ...
 
 - [ ] yt video
