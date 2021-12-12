@@ -627,14 +627,14 @@ Currently, the following substitutions will be made during new note creation:
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
 | `{{date}}` | date in iso format | 2021-11-21 |
-| `{{yesterday}}` | yesterday's date in iso format | 2021-11-20 |
-| `{{tomorrow}}` | tomorrow's date in iso format | 2021-11-22 |
+| `{{prevday}}` | previous day's date in iso format | 2021-11-20 |
+| `{{nextday}}` | next day's date in iso format | 2021-11-22 |
 | `{{hdate}}` | date in long format | Sunday, November 21st, 2021 |
 | `{{week}}` | week of the year | 46 |
-| `{{lastweek}}` | prior week of the year | 45 |
+| `{{prevweek}}` | previous week of the year | 45 |
 | `{{nextweek}}` | next week of the year | 47 |
 | `{{isoweek}}` | week of the year in iso format | 2021-W46 |
-| `{{isolastweek}}` | prior week of the year in iso format | 2021-W45 |
+| `{{isoprevweek}}` | previous week of the year in iso format | 2021-W45 |
 | `{{isonextweek}}` | next week of the year in iso format| 2021-W47 |
 | `{{year}}` | year | 2021 |
 | `{{monday}}` | monday's date | 2021-11-16 |
