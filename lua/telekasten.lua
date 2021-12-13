@@ -61,6 +61,10 @@ M.Cfg = {
     -- markdown: ![](image_subdir/xxxxx.png)
     image_link_style = "markdown",
 
+    -- when linking to a note in subdir/, create a [[subdir/title]] link
+    -- instead of a [[title only]] link
+    subdirs_in_links = true,
+
     -- integrate with calendar-vim
     plug_into_calendar = true,
     calendar_opts = {
@@ -270,8 +274,11 @@ local function num_path_elems(p)
     return #vim.split(p, "/")
 end
 
-local function path_to_linkname(p)
+local function path_to_linkname(p, opts)
     local ln
+
+    opts = opts or {}
+    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
     local special_dir = false
     if
@@ -292,6 +299,13 @@ local function path_to_linkname(p)
 
     if special_dir == false then
         ln = p:gsub(M.Cfg.home .. "/", "")
+    end
+
+    if not opts.subdirs_in_links then
+        -- strip all subdirs
+        local pp = Path:new(ln)
+        local splits = pp:_split()
+        ln = splits[#splits]
     end
 
     local title = vim.split(ln, M.Cfg.extension)
@@ -547,10 +561,12 @@ function picker_actions.yank_tag(opts)
 end
 
 function picker_actions.paste_link(opts)
+    opts = opts or {}
+    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        local fn = path_to_linkname(selection.value)
+        local fn = path_to_linkname(selection.value, opts)
         local title = "[[" .. fn .. "]]"
         vim.api.nvim_put({ title }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -562,11 +578,12 @@ end
 function picker_actions.yank_link(opts)
     return function(prompt_bufnr)
         opts = opts or {}
+        opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
         if opts.close_after_yanking then
             actions.close(prompt_bufnr)
         end
         local selection = action_state.get_selected_entry()
-        local fn = path_to_linkname(selection.value)
+        local fn = path_to_linkname(selection.value, opts)
         local title = "[[" .. fn .. "]]"
         vim.fn.setreg('"', title)
         print("yanked " .. title)
@@ -704,6 +721,8 @@ local function InsertLink(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+
     find_files_sorted({
         prompt_title = "Insert link to note",
         cwd = M.Cfg.home,
@@ -711,7 +730,7 @@ local function InsertLink(opts)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
-                local fn = path_to_linkname(selection.value)
+                local fn = path_to_linkname(selection.value, opts)
                 vim.api.nvim_put({ "[[" .. fn .. "]]" }, "", true, true)
                 if opts.i then
                     vim.api.nvim_feedkeys("A", "m", false)
@@ -1365,7 +1384,7 @@ end
 -- Create and yank a [[link]] from the current note.
 --
 local function YankLink()
-    local title = "[[" .. path_to_linkname(vim.fn.expand("%:p")) .. "]]"
+    local title = "[[" .. path_to_linkname(vim.fn.expand("%:p"), M.Cfg) .. "]]"
     vim.fn.setreg('"', title)
     print("yanked " .. title)
 end
@@ -1551,7 +1570,7 @@ local function ShowBacklinks(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = path_to_linkname(vim.fn.expand("%:p"))
+    local title = path_to_linkname(vim.fn.expand("%:p"), M.Cfg)
     -- or vim.api.nvim_buf_get_name(0)
     builtin.live_grep({
         results_title = "Backlinks to " .. title,
