@@ -972,7 +972,7 @@ local function FollowLink(opts)
         })
 
         local function make_display(entry)
-            local fn = entry.value
+            local fn = entry.filename
             local nlinks = counts.link_counts[fn] or 0
             local nbacks = counts.backlink_counts[fn] or 0
 
