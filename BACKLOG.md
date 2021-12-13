@@ -5,6 +5,8 @@
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
     - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
+- [ ] option to toggle generated link format: [[title]] vs [[sub/dir/title]]
+- [ ] option to create notes in same subfolder as current note if there is one, see #38
 - [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
     - or put it as an extmark at the end of the first line, meh.
 - [ ] some cool buffer showing backlinks (and stuff?) [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
@@ -19,6 +21,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] ==backlinks are broken: they contain the home dir==
+    - but only if vim was started in the user's home dir, of which `home` was a subdir : used "%" instead of "%:p"
 - [x] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
     - at least we have a tag picker now
 - [x] follow external URLs

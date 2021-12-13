@@ -270,12 +270,18 @@ local function path_to_linkname(p)
     local ln
 
     local special_dir = false
-    if num_path_elems(p:gsub(M.Cfg.dailies .. "/", "")) == 1 then
+    if
+        M.Cfg.dailies
+        and num_path_elems(p:gsub(M.Cfg.dailies .. "/", "")) == 1
+    then
         ln = p:gsub(M.Cfg.dailies .. "/", "")
         special_dir = true
     end
 
-    if num_path_elems(p:gsub(M.Cfg.weeklies .. "/", "")) == 1 then
+    if
+        M.Cfg.weeklies
+        and num_path_elems(p:gsub(M.Cfg.weeklies .. "/", "")) == 1
+    then
         ln = p:gsub(M.Cfg.weeklies .. "/", "")
         special_dir = true
     end
@@ -684,11 +690,11 @@ local function resolve_link(title)
     local filename = title .. M.Cfg.extension
     filename = filename:gsub("^%./", "") -- strip potential leading ./
 
-    if file_exists(M.Cfg.weeklies .. "/" .. filename) then
+    if M.Cfg.weeklies and file_exists(M.Cfg.weeklies .. "/" .. filename) then
         filename = M.Cfg.weeklies .. "/" .. filename
         fexists = true
     end
-    if file_exists(M.Cfg.dailies .. "/" .. filename) then
+    if M.Cfg.dailies and file_exists(M.Cfg.dailies .. "/" .. filename) then
         filename = M.Cfg.dailies .. "/" .. filename
         fexists = true
     end
@@ -1070,7 +1076,7 @@ end
 -- Create and yank a [[link]] from the current note.
 --
 local function YankLink()
-    local title = "[[" .. path_to_linkname(vim.fn.expand("%")) .. "]]"
+    local title = "[[" .. path_to_linkname(vim.fn.expand("%:p")) .. "]]"
     vim.fn.setreg('"', title)
     print("yanked " .. title)
 end
@@ -1256,7 +1262,7 @@ local function ShowBacklinks(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = path_to_linkname(vim.fn.expand("%"))
+    local title = path_to_linkname(vim.fn.expand("%:p"))
     -- or vim.api.nvim_buf_get_name(0)
     builtin.live_grep({
         results_title = "Backlinks to " .. title,
