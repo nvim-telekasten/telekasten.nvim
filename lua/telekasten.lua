@@ -203,15 +203,15 @@ local dateformats = {
     isoweek = "%Y-W%V"
 }
 
-local function calculate_dates(cinfo)
-    local time = os.time(cinfo) -- convert date input to a timestamp 
-    local dinfo = os.date("*t", time) 
+local function calculate_dates(date)
+    local time = os.time(date)
+    local dinfo = os.date("*t", time) -- this normalizes the input to a full date table
     local oneday = 24 * 60 * 60 -- hours * days * seconds
     local oneweek = 7 * oneday
     local oneyear = 365 * oneday
     local df = dateformats
 
-    local opts = {}
+    local dates = {}
     
     -- this is to compensate for the calendar showing M-Su, but os.date Su is 
     -- always wday = 1
@@ -220,10 +220,10 @@ local function calculate_dates(cinfo)
         wday = 7
     end
 
-    opts.year  = dinfo.year
-    opts.month = dinfo.month
-    opts.day   = dinfo.day
-    opts.hdate = daymap[wday]
+    dates.year  = dinfo.year
+    dates.month = dinfo.month
+    dates.day   = dinfo.day
+    dates.hdate = daymap[wday]
         .. ", "
         .. monthmap[dinfo.month]
         .. " "
@@ -232,15 +232,15 @@ local function calculate_dates(cinfo)
         .. ", "
         .. dinfo.year
 
-    opts.date        = os.date(df.date, time)
-    opts.prevday     = os.date(df.date, time - oneday)
-    opts.nextday     = os.date(df.date, time + oneday)
-    opts.week        = os.date(df.week, time)
-    opts.prevweek    = os.date(df.week, time - oneweek)
-    opts.nextweek    = os.date(df.week, time + oneweek)
-    opts.isoweek     = os.date(df.isoweek, time)
-    opts.isoprevweek = os.date(df.isoweek, time - oneweek)
-    opts.isonextweek = os.date(df.isoweek, time + oneweek)
+    dates.date        = os.date(df.date, time)
+    dates.prevday     = os.date(df.date, time - oneday)
+    dates.nextday     = os.date(df.date, time + oneday)
+    dates.week        = os.date(df.week, time)
+    dates.prevweek    = os.date(df.week, time - oneweek)
+    dates.nextweek    = os.date(df.week, time + oneweek)
+    dates.isoweek     = os.date(df.isoweek, time)
+    dates.isoprevweek = os.date(df.isoweek, time - oneweek)
+    dates.isonextweek = os.date(df.isoweek, time + oneweek)
 
     -- things get a bit hairy at the year rollover.  W01 only starts the first week ofs
     -- January if it has more than 3 days. Partial weeks with less than 4 days are 
@@ -248,8 +248,8 @@ local function calculate_dates(cinfo)
     -- would appear as being in 2022-W52.  That breaks linear linking respective 
     -- of next/prev week, so we want to put the days of that partial week in
     -- January in 2021-W52.  This tweak will only change the ISO formatted week string.
-    if opts.week == 52 and opts.month == 1 then
-      opts.isoweek = os.date(df.isoweek, time - oneyear) 
+    if dates.week == 52 and dates.month == 1 then
+      dates.isoweek = os.date(df.isoweek, time - oneyear) 
     end
 
     -- Find the Sunday that started this week regardless of the calendar
@@ -261,19 +261,18 @@ local function calculate_dates(cinfo)
     if M.Cfg.calendar_opts.calendar_monday == 1 then
       sunday_offset = 7
     end
-    opts.monday    = os.date(df.date, starting_sunday + (1 * oneday))
-    opts.tuesday   = os.date(df.date, starting_sunday + (2 * oneday))
-    opts.wednesday = os.date(df.date, starting_sunday + (3 * oneday)) 
-    opts.thursday  = os.date(df.date, starting_sunday + (4 * oneday))
-    opts.friday    = os.date(df.date, starting_sunday + (5 * oneday))
-    opts.saturday  = os.date(df.date, starting_sunday + (6 * oneday))
-    opts.sunday    = os.date(df.date, starting_sunday + (sunday_offset * oneday))
+    dates.monday    = os.date(df.date, starting_sunday + (1 * oneday))
+    dates.tuesday   = os.date(df.date, starting_sunday + (2 * oneday))
+    dates.wednesday = os.date(df.date, starting_sunday + (3 * oneday)) 
+    dates.thursday  = os.date(df.date, starting_sunday + (4 * oneday))
+    dates.friday    = os.date(df.date, starting_sunday + (5 * oneday))
+    dates.saturday  = os.date(df.date, starting_sunday + (6 * oneday))
+    dates.sunday    = os.date(df.date, starting_sunday + (sunday_offset * oneday))
 
-    return opts
+    return dates
 end
 
-local function linesubst(line, title, calendar_info)
-    local dates = calculate_dates(calendar_info)
+local function linesubst(line, title, dates)
     local substs = {
         hdate   = dates.hdate,
         week    = dates.week,
@@ -631,7 +630,7 @@ local function FindDailyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local today = os.date("%Y-%m-%d")
+    local today = os.date(dateformats.date)
     local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
     local fexists = file_exists(fname)
     if
@@ -676,7 +675,7 @@ local function FindWeeklyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = os.date("%Y-W%V")
+    local title = os.date(dateformats.isoweek)
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
     local fexists = file_exists(fname)
     if
@@ -1142,19 +1141,19 @@ local function YankLink()
 end
 
 --
--- GotoToday:
+-- GotoDate:
 -- ----------
 --
--- find today's daily note and create it if necessary.
+-- find note for date and create it if necessary.
 --
-local function GotoToday(opts)
-    opts = opts or calculate_dates()
+local function GotoDate(opts)
+    opts.dates = calculate_dates(opts.date_table)
     opts.insert_after_inserting = opts.insert_after_inserting
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local word = opts.date or os.date("%Y-%m-%d")
+    local word = opts.date or os.date(dateformats.date)
 
     local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
     local fexists = file_exists(fname)
@@ -1169,7 +1168,7 @@ local function GotoToday(opts)
             word,
             fname,
             M.note_type_templates.daily,
-            opts
+            opts.dates
         )
         opts.erase = true
         opts.erase_file = fname
@@ -1200,6 +1199,20 @@ local function GotoToday(opts)
             return true
         end,
     })
+end
+
+--
+-- GotoToday:
+-- ----------
+--
+-- find today's daily note and create it if necessary.
+--
+local function GotoToday(opts)
+    opts = opts or {}
+    local today = os.date(dateformats.date)
+    opts.date_table = os.date("*t")
+    opts.date = today
+    GotoDate(opts)
 end
 
 --
@@ -1472,7 +1485,7 @@ local function GotoThisWeek(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = os.date("%Y-W%V")
+    local title = os.date(dateformats.isoweek)
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
     local fexists = file_exists(fname)
     if
@@ -1524,23 +1537,11 @@ end
 -- action on enter on a specific day:
 -- preview in telescope, stay in calendar on cancel, open note in other window on accept
 local function CalendarAction(day, month, year, weekday, _)
-    local today = string.format("%04d-%02d-%02d", year, month, day)
     local opts = {}
-    opts.date = today
-    opts.hdate = daymap[weekday]
-        .. ", "
-        .. monthmap[tonumber(month)]
-        .. " "
-        .. day
-        .. daysuffix(day)
-        .. ", "
-        .. year
-    opts.week = "n/a" -- TODO: calculate the week somehow
-    opts.month = month
-    opts.year = year
-    opts.day = day
+    opts.date = string.format("%04d-%02d-%02d", year, month, day)
+    opts.date_table = {year=year, month=month, day=day}
     opts.calendar = true
-    GotoToday(opts)
+    GotoDate(opts)
 end
 
 local function ShowCalendar(opts)
