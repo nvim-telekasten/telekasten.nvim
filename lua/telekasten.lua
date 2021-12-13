@@ -200,7 +200,7 @@ local monthmap = {
 local dateformats = {
     date = "%Y-%m-%d",
     week = "%V",
-    isoweek = "%Y-W%V"
+    isoweek = "%Y-W%V",
 }
 
 local function calculate_dates(date)
@@ -212,17 +212,17 @@ local function calculate_dates(date)
     local df = dateformats
 
     local dates = {}
-    
-    -- this is to compensate for the calendar showing M-Su, but os.date Su is 
+
+    -- this is to compensate for the calendar showing M-Su, but os.date Su is
     -- always wday = 1
     local wday = dinfo.wday - 1
     if wday == 0 then
         wday = 7
     end
 
-    dates.year  = dinfo.year
+    dates.year = dinfo.year
     dates.month = dinfo.month
-    dates.day   = dinfo.day
+    dates.day = dinfo.day
     dates.hdate = daymap[wday]
         .. ", "
         .. monthmap[dinfo.month]
@@ -232,24 +232,24 @@ local function calculate_dates(date)
         .. ", "
         .. dinfo.year
 
-    dates.date        = os.date(df.date, time)
-    dates.prevday     = os.date(df.date, time - oneday)
-    dates.nextday     = os.date(df.date, time + oneday)
-    dates.week        = os.date(df.week, time)
-    dates.prevweek    = os.date(df.week, time - oneweek)
-    dates.nextweek    = os.date(df.week, time + oneweek)
-    dates.isoweek     = os.date(df.isoweek, time)
+    dates.date = os.date(df.date, time)
+    dates.prevday = os.date(df.date, time - oneday)
+    dates.nextday = os.date(df.date, time + oneday)
+    dates.week = os.date(df.week, time)
+    dates.prevweek = os.date(df.week, time - oneweek)
+    dates.nextweek = os.date(df.week, time + oneweek)
+    dates.isoweek = os.date(df.isoweek, time)
     dates.isoprevweek = os.date(df.isoweek, time - oneweek)
     dates.isonextweek = os.date(df.isoweek, time + oneweek)
 
     -- things get a bit hairy at the year rollover.  W01 only starts the first week ofs
-    -- January if it has more than 3 days. Partial weeks with less than 4 days are 
-    -- considered W52, but os.date still sets the year as the new year, so Jan 1 2022 
-    -- would appear as being in 2022-W52.  That breaks linear linking respective 
+    -- January if it has more than 3 days. Partial weeks with less than 4 days are
+    -- considered W52, but os.date still sets the year as the new year, so Jan 1 2022
+    -- would appear as being in 2022-W52.  That breaks linear linking respective
     -- of next/prev week, so we want to put the days of that partial week in
     -- January in 2021-W52.  This tweak will only change the ISO formatted week string.
     if dates.week == 52 and dates.month == 1 then
-      dates.isoweek = os.date(df.isoweek, time - oneyear) 
+        dates.isoweek = os.date(df.isoweek, time - oneyear)
     end
 
     -- Find the Sunday that started this week regardless of the calendar
@@ -259,41 +259,41 @@ local function calculate_dates(date)
     local starting_sunday = time - (wday * oneday)
     local sunday_offset = 0
     if M.Cfg.calendar_opts.calendar_monday == 1 then
-      sunday_offset = 7
+        sunday_offset = 7
     end
-    dates.monday    = os.date(df.date, starting_sunday + (1 * oneday))
-    dates.tuesday   = os.date(df.date, starting_sunday + (2 * oneday))
-    dates.wednesday = os.date(df.date, starting_sunday + (3 * oneday)) 
-    dates.thursday  = os.date(df.date, starting_sunday + (4 * oneday))
-    dates.friday    = os.date(df.date, starting_sunday + (5 * oneday))
-    dates.saturday  = os.date(df.date, starting_sunday + (6 * oneday))
-    dates.sunday    = os.date(df.date, starting_sunday + (sunday_offset * oneday))
+    dates.monday = os.date(df.date, starting_sunday + (1 * oneday))
+    dates.tuesday = os.date(df.date, starting_sunday + (2 * oneday))
+    dates.wednesday = os.date(df.date, starting_sunday + (3 * oneday))
+    dates.thursday = os.date(df.date, starting_sunday + (4 * oneday))
+    dates.friday = os.date(df.date, starting_sunday + (5 * oneday))
+    dates.saturday = os.date(df.date, starting_sunday + (6 * oneday))
+    dates.sunday = os.date(df.date, starting_sunday + (sunday_offset * oneday))
 
     return dates
 end
 
 local function linesubst(line, title, dates)
     local substs = {
-        hdate   = dates.hdate,
-        week    = dates.week,
-        date    = dates.date,
+        hdate = dates.hdate,
+        week = dates.week,
+        date = dates.date,
         isoweek = dates.isoweek,
-        year    = dates.year,
+        year = dates.year,
 
-        prevday     = dates.prevday,
-        nextday     = dates.nextday,
-        prevweek    = dates.prevweek,
-        nextweek    = dates.nextweek,
+        prevday = dates.prevday,
+        nextday = dates.nextday,
+        prevweek = dates.prevweek,
+        nextweek = dates.nextweek,
         isoprevweek = dates.isoprevweek,
         isonextweek = dates.isonextweek,
 
-        sunday    = dates.sunday,
-        monday    = dates.monday,
-        tuesday   = dates.tuesday,
+        sunday = dates.sunday,
+        monday = dates.monday,
+        tuesday = dates.tuesday,
         wednesday = dates.wednesday,
-        thursday  = dates.thursday,
-        friday    = dates.friday,
-        saturday  = dates.saturday,
+        thursday = dates.thursday,
+        friday = dates.friday,
+        saturday = dates.saturday,
 
         title = title,
     }
@@ -1539,7 +1539,7 @@ end
 local function CalendarAction(day, month, year, weekday, _)
     local opts = {}
     opts.date = string.format("%04d-%02d-%02d", year, month, day)
-    opts.date_table = {year=year, month=month, day=day}
+    opts.date_table = { year = year, month = month, day = day }
     opts.calendar = true
     GotoDate(opts)
 end
