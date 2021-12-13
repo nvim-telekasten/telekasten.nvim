@@ -255,6 +255,10 @@ require('telekasten').setup({
     -- get_cursor: small tag list at cursor; ivy and dropdown like above
     show_tags_theme = "ivy",
 
+    -- when linking to a note in subdir/, create a [[subdir/title]] link
+    -- instead of a [[title only]] link
+    subdirs_in_links = true,
+
 })
 END
 ```
@@ -297,6 +301,7 @@ END
 | | - `ivy` (default): bottom panel overlay  |  |
 | | - `dropdown`: floating popup window ||
 | | - `get_cursor`: floating popup window at cursor position ||
+| `subdirs_in_links` | include subdirs (if applicable) in generated (yanked, inserted) links| true |
 
 
 The calendar support has its own options, contained in `calendar_opts`:

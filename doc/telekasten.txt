@@ -120,6 +120,10 @@ telekasten.setup({opts})
       -- tag list theme: 
       -- get_cursor: small tag list at cursor; ivy and dropdown like above
       show_tags_theme = "ivy",
+
+      -- when linking to a note in subdir/, create a [[subdir/title]] link
+      -- instead of a [[title only]] link
+      subdirs_in_links = true,
     }
 <
 
@@ -251,6 +255,12 @@ telekasten.setup({opts})
         Default: `#tag`
 
         See |telekasten.tag_notation| for more information.
+
+                                    *telekasten.settings.subdirs_in_links*
+    subdirs_in_links:~
+        Include subdirs (if applicable) in generated (yanked, inserted) links.
+
+        Default: `true`
 
                                                *telekasten.calendar_opts*
     -----------------------------------

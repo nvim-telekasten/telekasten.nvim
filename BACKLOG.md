@@ -1,7 +1,6 @@
 # Backlog
 
-- [ ] option to show number of links and backlinks in note picker
-    - see #36
+- [ ] improve the whole link count display, sorting, key-mapping
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
     - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
@@ -21,6 +20,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] option to show number of links and backlinks in note picker
+    - see #36
 - [x] ==backlinks are broken: they contain the home dir==
     - but only if vim was started in the user's home dir, of which `home` was a subdir : used "%" instead of "%:p"
 - [x] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
