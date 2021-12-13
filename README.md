@@ -50,6 +50,10 @@ This is the result of my first days of hacking neovim with lua (more features ha
 ---
 ![image](https://user-images.githubusercontent.com/30892199/145457923-d3e3a20b-9a33-42d1-aa21-3de6b2295737.png)
 
+---
+
+![](img/tags-linkcounts.png)
+
 
 ## Search-based navigation
 
