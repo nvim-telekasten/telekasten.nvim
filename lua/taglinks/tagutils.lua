@@ -21,6 +21,7 @@ local function command_find_all_tags(opts)
     return "rg", { "--vimgrep", "-o", re, "--", opts.cwd }
 end
 
+-- strips away leading ' or " , then trims whitespace
 local function trim(s)
     if s:sub(1, 1) == '"' or s:sub(1, 1) == "'" then
         s = s:sub(2)

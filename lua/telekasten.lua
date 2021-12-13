@@ -9,11 +9,15 @@ local scan = require("plenary.scandir")
 local utils = require("telescope.utils")
 local previewers = require("telescope.previewers")
 local make_entry = require("telescope.make_entry")
+local entry_display = require("telescope.pickers.entry_display")
+local sorters = require("telescope.sorters")
 local themes = require("telescope.themes")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
 local taglinks = require("taglinks.taglinks")
 local tagutils = require("taglinks.tagutils")
+local linkutils = require("taglinks.linkutils")
+local Path = require("plenary.path")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -377,6 +381,11 @@ local function find_files_sorted(opts)
     file_list = filter_filetypes(file_list, filter_extensions)
     table.sort(file_list, order_numeric)
 
+    local counts = nil
+    if opts.show_link_counts then
+        counts = linkutils.generate_backlink_map(M.Cfg)
+    end
+
     -- display with devicons
     local function iconic_display(display_entry)
         local display_opts = {
@@ -407,11 +416,46 @@ local function find_files_sorted(opts)
         return popup_opts.preview
     end
 
+    -- local width = config.width
+    --     or config.layout_config.width
+    --     or config.layout_config[config.layout_strategy].width
+    --     or vim.o.columns
+    -- local telescope_win_width
+    -- if width > 1 then
+    --     telescope_win_width = width
+    -- else
+    --     telescope_win_width = math.floor(vim.o.columns * width)
+    -- end
+    local displayer = entry_display.create({
+        separator = "",
+        items = {
+            { width = 4 },
+            { width = 4 },
+            { remaining = true },
+        },
+    })
+
+    local function make_display(entry)
+        local fn = entry.value
+        local nlinks = counts.link_counts[fn] or 0
+        local nbacks = counts.backlink_counts[fn] or 0
+
+        return displayer({
+            { "L" .. tostring(nlinks), "nLinks" },
+            { "B" .. tostring(nbacks), "nBacks" },
+            { iconic_display(entry), "thePath" },
+        })
+    end
+
     local function entry_maker(entry)
         local iconic_entry = {}
         iconic_entry.value = entry
         iconic_entry.ordinal = entry
-        iconic_entry.display = iconic_display
+        if opts.show_link_counts then
+            iconic_entry.display = make_display
+        else
+            iconic_entry.display = iconic_display
+        end
         return iconic_entry
     end
 
@@ -421,7 +465,7 @@ local function find_files_sorted(opts)
     end
 
     opts.attach_mappings = opts.attach_mappings
-        or function(prompt_bufnr, _)
+        or function(_, _)
             actions.select_default:replace(picker_actions.select_default)
         end
 
@@ -870,50 +914,293 @@ local function FollowLink(opts)
         local cwd = M.Cfg.home
 
         opts.cwd = cwd
+        local counts = nil
+        if opts.show_link_counts then
+            counts = linkutils.generate_backlink_map(M.Cfg)
+        end
 
-        local live_grepper = finders.new_job(function(prompt)
-            if not prompt or prompt == "" then
-                return nil
-            end
-
-            local search_command = {
-                "rg",
-                "--vimgrep",
-                "-e",
-                "^#+\\s" .. prompt,
-                "--",
+        -- display with devicons
+        local function iconic_display(display_entry)
+            local display_opts = {
+                path_display = function(_, e)
+                    return e:gsub(opts.cwd .. "/", "")
+                end,
             }
-            if search_mode == "para" then
-                search_command = {
-                    "rg",
-                    "--vimgrep",
-                    "-e",
-                    "\\^" .. prompt,
-                    "--",
-                }
-            end
 
-            if search_mode == "tag" then
-                search_command = {
-                    "rg",
-                    "--vimgrep",
-                    "-e",
-                    prompt,
-                    "--",
-                }
-            end
+            local hl_group
+            local display = utils.transform_path(
+                display_opts,
+                display_entry.value
+            )
 
-            if #filename > 0 then
-                table.insert(search_command, filename)
+            display, hl_group = utils.transform_devicons(
+                display_entry.value,
+                display,
+                false
+            )
+
+            if hl_group then
+                return display, { { { 1, 30 }, hl_group } }
             else
-                table.insert(search_command, cwd)
+                return display
+            end
+        end
+
+        -- for media_files
+        local popup_opts = {}
+        opts.get_preview_window = function()
+            return popup_opts.preview
+        end
+
+        -- local width = config.width
+        --     or config.layout_config.width
+        --     or config.layout_config[config.layout_strategy].width
+        --     or vim.o.columns
+        -- local telescope_win_width
+        -- if width > 1 then
+        --     telescope_win_width = width
+        -- else
+        --     telescope_win_width = math.floor(vim.o.columns * width)
+        -- end
+        local displayer = entry_display.create({
+            separator = "",
+            items = {
+                { width = 4 },
+                { width = 4 },
+                { remaining = true },
+            },
+        })
+
+        local function make_display(entry)
+            local fn = entry.value
+            local nlinks = counts.link_counts[fn] or 0
+            local nbacks = counts.backlink_counts[fn] or 0
+
+            if opts.show_link_counts then
+                return displayer({
+                    { "L" .. tostring(nlinks), "nLinks" },
+                    { "B" .. tostring(nbacks), "nBacks" },
+                    { iconic_display(entry), "thePath" },
+                })
+            else
+                return iconic_display(entry)
+            end
+        end
+
+        local lookup_keys = {
+            value = 1,
+            ordinal = 1,
+        }
+
+        local find = (function()
+            if Path.path.sep == "\\" then
+                return function(t)
+                    local start, _, filn, lnum, col, text = string.find(
+                        t,
+                        [[([^:]+):(%d+):(%d+):(.*)]]
+                    )
+
+                    -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
+                    if start == 3 then
+                        filn = string.sub(t.value, 1, 3) .. filn
+                    end
+
+                    return filn, lnum, col, text
+                end
+            else
+                return function(t)
+                    local _, _, filn, lnum, col, text = string.find(
+                        t,
+                        [[([^:]+):(%d+):(%d+):(.*)]]
+                    )
+                    return filn, lnum, col, text
+                end
+            end
+        end)()
+
+        local parse = function(t)
+            print("t: ", t)
+            local filn, lnum, col, text = find(t.value)
+
+            local ok
+            ok, lnum = pcall(tonumber, lnum)
+            if not ok then
+                lnum = nil
             end
 
-            local ret = vim.tbl_flatten({ search_command })
-            return ret
-        end, make_entry.gen_from_vimgrep(opts), opts.max_results, opts.cwd)
+            ok, col = pcall(tonumber, col)
+            if not ok then
+                col = nil
+            end
 
-        builtin.live_grep({
+            t.filn = filn
+            t.lnum = lnum
+            t.col = col
+            t.text = text
+
+            return { filn, lnum, col, text }
+        end
+
+        local function entry_maker(_)
+            local mt_vimgrep_entry
+
+            opts = opts or {}
+
+            local disable_devicons = opts.disable_devicons
+            local disable_coordinates = opts.disable_coordinates or true
+            local only_sort_text = opts.only_sort_text
+
+            local execute_keys = {
+                path = function(t)
+                    if Path:new(t.filename):is_absolute() then
+                        return t.filename, false
+                    else
+                        return Path:new({ t.cwd, t.filename }):absolute(), false
+                    end
+                end,
+
+                filename = function(t)
+                    return parse(t)[1], true
+                end,
+
+                lnum = function(t)
+                    return parse(t)[2], true
+                end,
+
+                col = function(t)
+                    return parse(t)[3], true
+                end,
+
+                text = function(t)
+                    return parse(t)[4], true
+                end,
+            }
+
+            -- For text search only, the ordinal value is actually the text.
+            if only_sort_text then
+                execute_keys.ordinal = function(t)
+                    return t.text
+                end
+            end
+
+            local display_string = "%s:%s%s"
+
+            mt_vimgrep_entry = {
+                cwd = vim.fn.expand(opts.cwd or vim.loop.cwd()),
+
+                display = function(entry)
+                    local display_filename = utils.transform_path(
+                        opts,
+                        entry.filename
+                    )
+
+                    local coordinates = ""
+                    if not disable_coordinates then
+                        coordinates = string.format(
+                            "%s:%s:",
+                            entry.lnum,
+                            entry.col
+                        )
+                    end
+
+                    local display, hl_group = utils.transform_devicons(
+                        entry.filename,
+                        string.format(
+                            display_string,
+                            display_filename,
+                            coordinates,
+                            entry.text
+                        ),
+                        disable_devicons
+                    )
+
+                    if hl_group then
+                        return display, { { { 1, 3 }, hl_group } }
+                    else
+                        return display
+                    end
+                end,
+
+                __index = function(t, k)
+                    local raw = rawget(mt_vimgrep_entry, k)
+                    if raw then
+                        return raw
+                    end
+
+                    local executor = rawget(execute_keys, k)
+                    if executor then
+                        local val, save = executor(t)
+                        if save then
+                            rawset(t, k, val)
+                        end
+                        return val
+                    end
+
+                    return rawget(t, rawget(lookup_keys, k))
+                end,
+            }
+            if opts.show_link_counts then
+                mt_vimgrep_entry.display = make_display
+            else
+                mt_vimgrep_entry.display = iconic_display
+            end
+
+            return function(line)
+                return setmetatable({ line }, mt_vimgrep_entry)
+            end
+        end
+
+        opts.entry_maker = entry_maker(opts)
+
+        local live_grepper = finders.new_job(
+            function(prompt)
+                if not prompt or prompt == "" then
+                    return nil
+                end
+
+                local search_command = {
+                    "rg",
+                    "--vimgrep",
+                    "-e",
+                    "^#+\\s" .. prompt,
+                    "--",
+                }
+                if search_mode == "para" then
+                    search_command = {
+                        "rg",
+                        "--vimgrep",
+                        "-e",
+                        "\\^" .. prompt,
+                        "--",
+                    }
+                end
+
+                if search_mode == "tag" then
+                    search_command = {
+                        "rg",
+                        "--vimgrep",
+                        "-e",
+                        prompt,
+                        "--",
+                    }
+                end
+
+                if #filename > 0 then
+                    table.insert(search_command, filename)
+                else
+                    table.insert(search_command, cwd)
+                end
+
+                local ret = vim.tbl_flatten({ search_command })
+                return ret
+            end,
+            opts.entry_maker or make_entry.gen_from_vimgrep(opts),
+            opts.max_results,
+            opts.cwd
+        )
+
+        -- builtin.live_grep({
+        pickers.new({
             cwd = cwd,
             prompt_title = "Notes referencing `" .. title .. "`",
             default_text = search_pattern,
@@ -923,6 +1210,8 @@ local function FollowLink(opts)
             -- link to heading in specific file (a daily file): [[The cool note#^xAcSh-xxr]]
             -- link to paragraph globally [[#^xAcSh-xxr]]
             finder = live_grepper,
+            previewer = conf.grep_previewer(opts),
+            sorter = sorters.highlighter_only(opts),
             attach_mappings = function(_, map)
                 actions.select_default:replace(picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -933,7 +1222,7 @@ local function FollowLink(opts)
                 map("n", "<c-cr>", picker_actions.paste_link(opts))
                 return true
             end,
-        })
+        }):find()
     end
 end
 
@@ -1634,7 +1923,10 @@ local function FindAllTags(opts)
 
                 -- TODO actions for insert tag, default action: search for tag
                 local selection = action_state.get_selected_entry().value.tag
-                local follow_opts = { follow_tag = selection }
+                local follow_opts = {
+                    follow_tag = selection,
+                    show_link_counts = true,
+                }
                 FollowLink(follow_opts)
             end)
             map("i", "<c-y>", picker_actions.yank_tag(opts))
