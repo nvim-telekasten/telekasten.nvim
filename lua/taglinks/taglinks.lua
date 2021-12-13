@@ -9,6 +9,8 @@ M.is_tag_or_link_at = function(line, col, opts)
         and line:sub(1, 4) == "tags"
 
     local seen_bracket = false
+    local cannot_be_tag = false
+
     while col >= 1 do
         char = line:sub(col, col)
 
@@ -30,16 +32,20 @@ M.is_tag_or_link_at = function(line, col, opts)
             end
         else
             if char == "#" and opts.tag_notation == "#tag" then
-                return "tag", col
+                if not cannot_be_tag then
+                    return "tag", col
+                end
             end
 
             if char == ":" and opts.tag_notation == ":tag:" then
-                return "tag", col
+                if not cannot_be_tag then
+                    return "tag", col
+                end
             end
         end
 
         if char == " " or char == "\t" then
-            return nil, nil
+            cannot_be_tag = true
         end
         col = col - 1
     end
