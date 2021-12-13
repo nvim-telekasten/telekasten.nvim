@@ -827,8 +827,6 @@ local function FollowLink(opts)
         kind, atcol = check_for_link_or_tag()
     end
 
-    print(kind, atcol)
-
     if kind == "tag" then
         if atcol ~= nil then
             tag = taglinks.get_tag_at(
