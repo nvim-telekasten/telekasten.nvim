@@ -1494,7 +1494,7 @@ local function GotoDate(opts)
 
     find_files_sorted({
         prompt_title = "Goto day",
-        cwd = M.Cfg.home,
+        cwd = M.Cfg.dailies,
         default_text = word,
         find_command = M.Cfg.find_command,
         attach_mappings = function(prompt_bufnr, map)
