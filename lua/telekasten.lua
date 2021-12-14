@@ -281,9 +281,8 @@ local function calculate_dates(date)
 end
 
 local function linesubst(line, title, dates)
-    
     if dates == nil then
-      dates = calculate_dates()
+        dates = calculate_dates()
     end
 
     local substs = {
