@@ -580,6 +580,8 @@ local function find_files_sorted(opts)
         line_count = line_count - 1
     end
 
+    popup_opts = picker:get_window_options(vim.o.columns, line_count)
+
     picker:find()
 end
 
