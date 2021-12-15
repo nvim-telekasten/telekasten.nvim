@@ -21,6 +21,8 @@
 - [ ] yt video
 
 ## Dones
+- [x] make `resolve_link()` return the best-match root and use it as `cwd` in `follow_link()`
+  - this better supports out-of-home daily/weekly dirs
 - [x] option to show number of links and backlinks in note picker
     - see #36
 - [x] ==backlinks are broken: they contain the home dir==

@@ -821,14 +821,17 @@ local function resolve_link(title)
     local fexists = false
     local filename = title .. M.Cfg.extension
     filename = filename:gsub("^%./", "") -- strip potential leading ./
+    local best_root = M.Cfg.home
 
     if M.Cfg.weeklies and file_exists(M.Cfg.weeklies .. "/" .. filename) then
         filename = M.Cfg.weeklies .. "/" .. filename
         fexists = true
+        best_root = M.Cfg.weeklies
     end
     if M.Cfg.dailies and file_exists(M.Cfg.dailies .. "/" .. filename) then
         filename = M.Cfg.dailies .. "/" .. filename
         fexists = true
+        best_root = M.Cfg.dailies
     end
     if file_exists(M.Cfg.home .. "/" .. filename) then
         filename = M.Cfg.home .. "/" .. filename
@@ -855,7 +858,7 @@ local function resolve_link(title)
         -- default fn for creation
         filename = M.Cfg.home .. "/" .. filename
     end
-    return fexists, filename
+    return fexists, filename, best_root
 end
 
 -- local function check_for_link_or_tag()
@@ -907,6 +910,7 @@ local function FollowLink(opts)
 
     -- first: check if we're in a tag or a link
     local kind, atcol, tag
+    local best_root
 
     if opts.follow_tag ~= nil then
         kind = "tag"
@@ -952,7 +956,7 @@ local function FollowLink(opts)
             end
         end
         if #filename > 0 then
-            fexists, filename = resolve_link(filename)
+            fexists, filename, _ = resolve_link(filename)
             if fexists == false then
                 -- print("error")
                 filename = ""
@@ -962,7 +966,7 @@ local function FollowLink(opts)
 
     if search_mode == "files" then
         -- check if fname exists anywhere
-        fexists, filename = resolve_link(title)
+        fexists, filename, best_root = resolve_link(title)
         if
             (fexists ~= true)
             and (
@@ -981,7 +985,7 @@ local function FollowLink(opts)
 
         find_files_sorted({
             prompt_title = "Follow link to note...",
-            cwd = M.Cfg.home,
+            cwd = best_root,
             default_text = title,
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
