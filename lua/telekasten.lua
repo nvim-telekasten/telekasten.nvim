@@ -579,7 +579,6 @@ local function find_files_sorted(opts)
     if vim.o.laststatus ~= 0 then
         line_count = line_count - 1
     end
-    popup_opts = picker:get_window_options(vim.o.columns, line_count)
 
     picker:find()
 end
@@ -1858,7 +1857,7 @@ end
 
 -- action on enter on a specific day:
 -- preview in telescope, stay in calendar on cancel, open note in other window on accept
-local function CalendarAction(day, month, year, weekday, _)
+local function CalendarAction(day, month, year, _, _)
     local opts = {}
     opts.date = string.format("%04d-%02d-%02d", year, month, day)
     opts.date_table = { year = year, month = month, day = day }
