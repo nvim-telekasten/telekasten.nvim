@@ -1,5 +1,6 @@
 # Backlog
 
+- [ ] New option: template_handling (see comments of PR #43)
 - [ ] improve the whole link count display, sorting, key-mapping
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
