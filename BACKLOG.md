@@ -1,18 +1,19 @@
 # Backlog
 
-- [ ] New option: template_handling (see comments of PR #43)
+- [ ] New option: template_handling (see comments of ==PR #43==)
+- [ ] option to toggle generated link format: [[title]] vs [[sub/dir/title]]
+- [ ] option to create notes in same subfolder as current note if there is one, see ==#38==
+  - ==also create the note in the subfolder if present in the link==
 - [ ] improve the whole link count display, sorting, key-mapping
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
-    - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
-- [ ] option to toggle generated link format: [[title]] vs [[sub/dir/title]]
-- [ ] option to create notes in same subfolder as current note if there is one, see #38
+  - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
 - [ ] maybe a virtual line in the 1st line that shows number of backlinks and maybe other interesting stuff
-    - or put it as an extmark at the end of the first line, meh.
+  - or put it as an extmark at the end of the first line, meh.
 - [ ] some cool buffer showing backlinks (and stuff?) [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
-    - maybe another one where we dot-render a graph of linked notes and 
+  - maybe another one where we dot-render a graph of linked notes and
       display it via vimg from telescope_media_files or sth similar
-    - these buffers / this buffer should keep its size even when resizing other
+  - these buffers / this buffer should keep its size even when resizing other
       splits (like the calendar)
 - [ ] really good support for special links: inserting, yanking, ... (links to headings / paras)
 - [ ] extmarks or sth to jump from link to link within a note
@@ -21,20 +22,21 @@
 - [ ] yt video
 
 ## Dones
+
 - [x] make `resolve_link()` return the best-match root and use it as `cwd` in `follow_link()`
   - this better supports out-of-home daily/weekly dirs
 - [x] option to show number of links and backlinks in note picker
-    - see #36
+  - see #36
 - [x] ==backlinks are broken: they contain the home dir==
-    - but only if vim was started in the user's home dir, of which `home` was a subdir : used "%" instead of "%:p"
+  - but only if vim was started in the user's home dir, of which `home` was a subdir : used "%" instead of "%:p"
 - [x] better support for #tags [see also this comment](https://github.com/renerocksai/telekasten.nvim/discussions/23#discussioncomment-1754511)
-    - at least we have a tag picker now
+  - at least we have a tag picker now
 - [x] follow external URLs
 - [x] telekasten filetype
 - [x] Telekasten command with completion, command palette
 - [x] follow #tags
 - [x] syntax for tags, incl. plenary filetype
-    - for proper display, needed to define 'telekasten' syntax
+  - for proper display, needed to define 'telekasten' syntax
 - [x] browse_media()
 - [x] action mappings for notes: yanking and link inserting
 - [x] document and suggest colors for Calendar nav buttons, they look weird in gruvbox
@@ -55,12 +57,12 @@
 - [x]: (silly idea) check if we can paste imgs into nvim
   - not so silly: with xclip, it's possible!
 - [x] implement sorting of the file list that works as well as the `daily_finder.sh` we abandoned
-    - `plenary.scan_dir()` to the rescue!
+  - `plenary.scan_dir()` to the rescue!
 - [x] vimhelp
 - [x] Honor day, month, year etc when creating a note via calendar!
 - [x] awesome calendar support
 - [x] maybe choose template in create note:
-    - `new_templated_note()` first asks for title, then brings up a telescope picker of all template files in new `ZkCfg.template_dir`.
+  - `new_templated_note()` first asks for title, then brings up a telescope picker of all template files in new `ZkCfg.template_dir`.
 - [x] highlights oneline
 - [x] highlight for highlighted text : ==asdfasdfasasdf==
 - [x] yank notelink
@@ -70,19 +72,18 @@
 - [x] find weekly note
 - [x] goto week
 - [x] create note, use default template
-- [x] follow links: create non-existing ones 
+- [x] follow links: create non-existing ones
 - [x] ,[ to insert link --> we can escape out and type double brackets
 - [x] shortcuts for todo and done in init.vim
 - [x] Readme search based navigation
-
 
 ## Special links
 
 Everything behind a # is a search!
 
-- [[#some heading]] -- will search for the heading 'some heading' 
+- [[#some heading]] -- will search for the heading 'some heading'
 
-- [[some note#some heading]] -- will search for 'some note' in filns and within it the heading 'some heading' 
+- [[some note#some heading]] -- will search for 'some note' in filns and within it the heading 'some heading'
 
 - [[#^some-para-id]] -- will search for the ^para-id
 - [[some note#^some-para-id]] -- will search for the ^para-id in the note whose filn matches some note
@@ -95,6 +96,7 @@ If note is specified and cannot be found, it will be ignored and a global search
 - Yank link to paragraph
 
 ### Insert links...?
+
 Maybe as an extra action: link with heading -> telescope popup for headings
 Maybe as an extra action: link with paragraph -> telescope popup for paragraphs
 
@@ -102,4 +104,3 @@ Global: link to heading: search through all headings
 Global: link to paragraphs: search all paragraphs: maybe overkill
 Global: link to already postfixed paragraphs
 Global: Place paragraph id
-
