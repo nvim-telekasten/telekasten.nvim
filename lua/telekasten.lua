@@ -148,6 +148,7 @@ local function imgFromClipboard()
 
     if M.Cfg.image_subdir then
         relpath = M.Cfg.image_subdir .. "/" .. pngname
+        pngpath = M.Cfg.home .. "/" .. M.Cfg.image_subdir
     end
     pngpath = pngpath .. "/" .. pngname
 
