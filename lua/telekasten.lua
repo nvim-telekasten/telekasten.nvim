@@ -524,11 +524,38 @@ local function find_files_sorted(opts)
         local nlinks = counts.link_counts[fn] or 0
         local nbacks = counts.backlink_counts[fn] or 0
 
-        return displayer({
-            { "L" .. tostring(nlinks), "nLinks" },
-            { "B" .. tostring(nbacks), "nBacks" },
-            { iconic_display(entry), "thePath" },
-        })
+        if opts.show_link_counts then
+            local display, hl = iconic_display(entry)
+
+            return displayer({
+                {
+                    "L" .. tostring(nlinks),
+                    function()
+                        return {
+                            { { 0, 1 }, "tkTagSep" },
+                            { { 1, 3 }, "tkTag" },
+                        }
+                    end,
+                },
+                {
+                    "B" .. tostring(nbacks),
+                    function()
+                        return {
+                            { { 0, 1 }, "tkTagSep" },
+                            { { 1, 3 }, "DevIconMd" },
+                        }
+                    end,
+                },
+                {
+                    display,
+                    function()
+                        return hl
+                    end,
+                },
+            })
+        else
+            return iconic_display(entry)
+        end
     end
 
     local function entry_maker(entry)
@@ -1027,14 +1054,15 @@ local function FollowLink(opts)
                 display_entry.value
             )
 
+            display_entry.filn = display_entry.filn or display:gsub(":.*", "")
             display, hl_group = utils.transform_devicons(
-                display_entry.value,
+                display_entry.filn,
                 display,
                 false
             )
 
             if hl_group then
-                return display, { { { 1, 30 }, hl_group } }
+                return display, { { { 1, 3 }, hl_group } }
             else
                 return display
             end
@@ -1071,10 +1099,33 @@ local function FollowLink(opts)
             local nbacks = counts.backlink_counts[fn] or 0
 
             if opts.show_link_counts then
+                local display, hl = iconic_display(entry)
+
                 return displayer({
-                    { "L" .. tostring(nlinks), "nLinks" },
-                    { "B" .. tostring(nbacks), "nBacks" },
-                    { iconic_display(entry), "thePath" },
+                    {
+                        "L" .. tostring(nlinks),
+                        function()
+                            return {
+                                { { 0, 1 }, "tkTagSep" },
+                                { { 1, 3 }, "tkTag" },
+                            }
+                        end,
+                    },
+                    {
+                        "B" .. tostring(nbacks),
+                        function()
+                            return {
+                                { { 0, 1 }, "tkTagSep" },
+                                { { 1, 3 }, "DevIconMd" },
+                            }
+                        end,
+                    },
+                    {
+                        display,
+                        function()
+                            return hl
+                        end,
+                    },
                 })
             else
                 return iconic_display(entry)
@@ -1113,7 +1164,7 @@ local function FollowLink(opts)
         end)()
 
         local parse = function(t)
-            print("t: ", t)
+            -- print("t: ", vim.inspect(t))
             local filn, lnum, col, text = find(t.value)
 
             local ok
@@ -1140,8 +1191,8 @@ local function FollowLink(opts)
 
             opts = opts or {}
 
-            local disable_devicons = opts.disable_devicons
-            local disable_coordinates = opts.disable_coordinates or true
+            -- local disable_devicons = opts.disable_devicons
+            -- local disable_coordinates = opts.disable_coordinates or true
             local only_sort_text = opts.only_sort_text
 
             local execute_keys = {
@@ -1177,43 +1228,8 @@ local function FollowLink(opts)
                 end
             end
 
-            local display_string = "%s:%s%s"
-
             mt_vimgrep_entry = {
                 cwd = vim.fn.expand(opts.cwd or vim.loop.cwd()),
-
-                display = function(entry)
-                    local display_filename = utils.transform_path(
-                        opts,
-                        entry.filename
-                    )
-
-                    local coordinates = ""
-                    if not disable_coordinates then
-                        coordinates = string.format(
-                            "%s:%s:",
-                            entry.lnum,
-                            entry.col
-                        )
-                    end
-
-                    local display, hl_group = utils.transform_devicons(
-                        entry.filename,
-                        string.format(
-                            display_string,
-                            display_filename,
-                            coordinates,
-                            entry.text
-                        ),
-                        disable_devicons
-                    )
-
-                    if hl_group then
-                        return display, { { { 1, 3 }, hl_group } }
-                    else
-                        return display
-                    end
-                end,
 
                 __index = function(t, k)
                     local raw = rawget(mt_vimgrep_entry, k)
