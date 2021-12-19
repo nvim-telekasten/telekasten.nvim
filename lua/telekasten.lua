@@ -363,60 +363,126 @@ local Pinfo = {
     sub_dir = "",
     is_daily_or_weekly = false,
 }
-function Pinfo:new(o)
-    o = o or {}
-    setmetatable(o, self)
+function Pinfo:new(opts)
+    opts = opts or {}
+
+    local object = {}
+    setmetatable(object, self)
     self.__index = self
-    return o
+    if opts.filepath then
+        return object:resolve_path(opts.filepath, opts)
+    end
+    if opts.title ~= nil then
+        return object:resolve_link(opts.title, opts)
+    end
+    return object
 end
 
 --- resolve_path(p, opts)
 --- inspects the path and returns a Pinfo table
-local function resolve_path(p, opts)
-    -- print("resolving path ", p)
+function Pinfo:resolve_path(p, opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
-    local pinfo = Pinfo:new()
-    pinfo.fexists = file_exists(p)
-    pinfo.filepath = p
-    pinfo.root_dir = M.Cfg.home
-    pinfo.is_daily_or_weekly = false
+    self.fexists = file_exists(p)
+    self.filepath = p
+    self.root_dir = M.Cfg.home
+    self.is_daily_or_weekly = false
 
     -- strip all dirs to get filename
     local pp = Path:new(p)
     local p_splits = pp:_split()
-    pinfo.filename = p_splits[#p_splits]
-    pinfo.title = pinfo.filename:gsub(M.Cfg.extension, "")
+    self.filename = p_splits[#p_splits]
+    self.title = self.filename:gsub(M.Cfg.extension, "")
 
     if vim.startswith(p, M.Cfg.home) then
-        pinfo.root_dir = M.Cfg.home
+        self.root_dir = M.Cfg.home
     end
     if vim.startswith(p, M.Cfg.dailies) then
-        pinfo.root_dir = M.Cfg.dailies
-        pinfo.is_daily_or_weekly = true
+        self.root_dir = M.Cfg.dailies
+        self.is_daily_or_weekly = true
     end
     if vim.startswith(p, M.Cfg.weeklies) then
-        pinfo.root_dir = M.Cfg.weeklies
-        pinfo.is_daily_or_weekly = true
+        self.root_dir = M.Cfg.weeklies
+        self.is_daily_or_weekly = true
     end
 
     -- now work out subdir relative to root
-    pinfo.sub_dir = p
-        :gsub(escape(pinfo.root_dir .. "/"), "")
-        :gsub(escape(pinfo.filename), "")
+    self.sub_dir = p
+        :gsub(escape(self.root_dir .. "/"), "")
+        :gsub(escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
 
-    if opts.subdirs_in_links and #pinfo.sub_dir > 0 then
-        pinfo.title = pinfo.sub_dir .. "/" .. pinfo.title
+    if opts.subdirs_in_links and #self.sub_dir > 0 then
+        self.title = self.sub_dir .. "/" .. self.title
     end
 
-    return pinfo
+    return self
 end
 
 local function order_numeric(a, b)
     return a > b
+end
+
+function Pinfo:resolve_link(title, opts)
+    opts = opts or {}
+    opts.weeklies = opts.weeklies or M.Cfg.weeklies
+    opts.dailies = opts.dailies or M.Cfg.dailies
+    opts.home = opts.home or M.Cfg.home
+    opts.extension = opts.extension or M.Cfg.extension
+
+    self.fexists = false
+    self.filename = title .. opts.extension
+    self.filename = self.filename:gsub("^%./", "") -- strip potential leading ./
+    self.root_dir = opts.home
+    self.is_daily_or_weekly = false
+
+    if opts.weeklies and file_exists(opts.weeklies .. "/" .. self.filename) then
+        self.filepath = opts.weeklies .. "/" .. self.filename
+        self.fexists = true
+        self.root_dir = opts.weeklies
+        self.is_daily_or_weekly = true
+    end
+    if opts.dailies and file_exists(opts.dailies .. "/" .. self.filename) then
+        self.filepath = opts.dailies .. "/" .. self.filename
+        self.fexists = true
+        self.root_dir = opts.dailies
+        self.is_daily_or_weekly = true
+    end
+    if file_exists(opts.home .. "/" .. self.filename) then
+        self.filepath = opts.home .. "/" .. self.filename
+        self.fexists = true
+    end
+
+    if self.fexists == false then
+        -- now search for it in all subdirs
+        local subdirs = scan.scan_dir(opts.home, { only_dirs = true })
+        local tempfn
+        for _, folder in pairs(subdirs) do
+            tempfn = folder .. "/" .. self.filename
+            -- [[testnote]]
+            if file_exists(tempfn) then
+                self.filepath = tempfn
+                self.fexists = true
+                -- print("Found: " ..self.filename)
+                break
+            end
+        end
+    end
+
+    if self.fexists == false then
+        -- default fn for creation
+        self.filepath = opts.home .. "/" .. self.filename
+    end
+
+    -- now work out subdir relative to root
+    self.sub_dir = self.filepath
+        :gsub(escape(self.root_dir .. "/"), "")
+        :gsub(escape(self.filename), "")
+        :gsub("/$", "")
+        :gsub("^/", "")
+    return self
 end
 
 -- local function endswith(s, ending)
@@ -696,7 +762,10 @@ function picker_actions.paste_link(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        local pinfo = resolve_path(selection.filename or selection.value, opts)
+        local pinfo = Pinfo:new({
+            filepath = selection.filename or selection.value,
+            opts,
+        })
         local title = "[[" .. pinfo.title .. "]]"
         vim.api.nvim_put({ title }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -713,7 +782,10 @@ function picker_actions.yank_link(opts)
             actions.close(prompt_bufnr)
         end
         local selection = action_state.get_selected_entry()
-        local pinfo = resolve_path(selection.filename or selection.value, opts)
+        local pinfo = Pinfo:new({
+            filepath = selection.filename or selection.value,
+            opts,
+        })
         local title = "[[" .. pinfo.title .. "]]"
         vim.fn.setreg('"', title)
         print("yanked " .. title)
@@ -860,7 +932,10 @@ local function InsertLink(opts)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
-                local pinfo = resolve_path(selection.value, opts)
+                local pinfo = Pinfo:new({
+                    filepath = selection.value,
+                    opts,
+                })
                 vim.api.nvim_put(
                     { "[[" .. pinfo.title .. "]]" },
                     "",
@@ -881,65 +956,6 @@ local function InsertLink(opts)
         end,
         find_command = M.Cfg.find_command,
     })
-end
-
-local function resolve_link(title)
-    local pinfo = Pinfo:new()
-    pinfo.fexists = false
-    pinfo.filename = title .. M.Cfg.extension
-    pinfo.filename = pinfo.filename:gsub("^%./", "") -- strip potential leading ./
-    pinfo.root_dir = M.Cfg.home
-    pinfo.is_daily_or_weekly = false
-
-    if
-        M.Cfg.weeklies and file_exists(M.Cfg.weeklies .. "/" .. pinfo.filename)
-    then
-        pinfo.filepath = M.Cfg.weeklies .. "/" .. pinfo.filename
-        pinfo.fexists = true
-        pinfo.root_dir = M.Cfg.weeklies
-        pinfo.is_daily_or_weekly = true
-    end
-    if
-        M.Cfg.dailies and file_exists(M.Cfg.dailies .. "/" .. pinfo.filename)
-    then
-        pinfo.filepath = M.Cfg.dailies .. "/" .. pinfo.filename
-        pinfo.fexists = true
-        pinfo.root_dir = M.Cfg.dailies
-        pinfo.is_daily_or_weekly = true
-    end
-    if file_exists(M.Cfg.home .. "/" .. pinfo.filename) then
-        pinfo.filepath = M.Cfg.home .. "/" .. pinfo.filename
-        pinfo.fexists = true
-    end
-
-    if pinfo.fexists == false then
-        -- now search for it in all subdirs
-        local subdirs = scan.scan_dir(M.Cfg.home, { only_dirs = true })
-        local tempfn
-        for _, folder in pairs(subdirs) do
-            tempfn = folder .. "/" .. pinfo.filename
-            -- [[testnote]]
-            if file_exists(tempfn) then
-                pinfo.filepath = tempfn
-                pinfo.fexists = true
-                -- print("Found: " ..pinfo.filename)
-                break
-            end
-        end
-    end
-
-    if pinfo.fexists == false then
-        -- default fn for creation
-        pinfo.filepath = M.Cfg.home .. "/" .. pinfo.filename
-    end
-
-    -- now work out subdir relative to root
-    pinfo.sub_dir = pinfo.filepath
-        :gsub(escape(pinfo.root_dir .. "/"), "")
-        :gsub(escape(pinfo.filename), "")
-        :gsub("/$", "")
-        :gsub("^/", "")
-    return pinfo
 end
 
 -- local function check_for_link_or_tag()
@@ -986,7 +1002,7 @@ local function FollowLink(opts)
 
     local search_mode = "files"
     local title
-    local filename = ""
+    local filename_part = ""
 
     -- first: check if we're in a tag or a link
     local kind, atcol, tag
@@ -1027,7 +1043,7 @@ local function FollowLink(opts)
         if #parts ~= 1 then
             search_mode = "heading"
             title = parts[2]
-            filename = parts[1]
+            filename_part = parts[1]
             parts = vim.split(title, "%^")
             if #parts ~= 1 then
                 search_mode = "para"
@@ -1035,20 +1051,22 @@ local function FollowLink(opts)
             end
         end
 
+        -- this applies to heading and para search_mode
         -- if we cannot find the file, revert to global heading search by
         -- setting filename to empty string
-        if #filename > 0 then
-            local pinfo = resolve_link(filename)
+        if #filename_part > 0 then
+            local pinfo = Pinfo:new({ title = filename_part })
+            filename_part = pinfo.filepath
             if pinfo.fexists == false then
                 -- print("error")
-                filename = ""
+                filename_part = ""
             end
         end
     end
 
     if search_mode == "files" then
         -- check if fname exists anywhere
-        local pinfo = resolve_link(filename)
+        local pinfo = Pinfo:new({ title = title })
         if
             (pinfo.fexists ~= true)
             and (
@@ -1067,7 +1085,7 @@ local function FollowLink(opts)
 
         find_files_sorted({
             prompt_title = "Follow link to note...",
-            cwd = pinfo.best_root,
+            cwd = pinfo.root_dir,
             default_text = title,
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
@@ -1348,8 +1366,8 @@ local function FollowLink(opts)
                     }
                 end
 
-                if #filename > 0 then
-                    table.insert(search_command, filename)
+                if #filename_part > 0 then
+                    table.insert(search_command, filename_part)
                 else
                     table.insert(search_command, cwd)
                 end
@@ -1529,7 +1547,7 @@ end
 --
 local function YankLink()
     local title = "[["
-        .. resolve_path(vim.fn.expand("%:p"), M.Cfg).title
+        .. Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
         .. "]]"
     vim.fn.setreg('"', title)
     print("yanked " .. title)
@@ -1730,7 +1748,7 @@ local function ShowBacklinks(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = resolve_path(vim.fn.expand("%:p"), M.Cfg).title
+    local title = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
     -- or vim.api.nvim_buf_get_name(0)
     builtin.live_grep({
         results_title = "Backlinks to " .. title,
@@ -2288,7 +2306,7 @@ TelekastenCmd.command = function(subcommand)
         }):find()
     end
     if subcommand then
-        print("trying subcommand " .. "`" .. subcommand .. "`")
+        -- print("trying subcommand " .. "`" .. subcommand .. "`")
         for _, entry in pairs(TelekastenCmd.commands()) do
             if entry[2] == subcommand then
                 local selection = entry[3]
