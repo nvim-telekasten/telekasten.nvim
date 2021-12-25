@@ -259,9 +259,6 @@ require('telekasten').setup({
     close_after_yanking = false,
     insert_after_inserting = true,
 
-    -- make syntax available to markdown buffers and telescope previewers
-    install_syntax = true,
-
     -- tag notation: '#tag', ':tag:', 'yaml-bare'
     tag_notation = "#tag",
 
@@ -337,7 +334,6 @@ END
 | `calendar_opts` | options for calendar, see below | see below |
 | `close_after_yanking` | close telescope preview after yanking via <kbd>ctrl</kbd><kbd>y</kbd>| false |
 | `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
-| `install_syntax` | if `true`, telekasten's syntax for links, tags, etc. will be used for markdown files, also in telescope previewers. Your configured markdown syntax will be inherited, though. | true |
 | `tag_notation` | the tag style you want to use| `#tag` |
 | | - `#tag` (default) | |
 | | - `:tag:` | |
@@ -659,8 +655,9 @@ The only symbols allowed are:
 Numbers are allowed in tags, as long as a tag is not purely numeric. For example, #1984 is not a valid tag, but `#y1984`
 is.
 
-**Note**: For proper highlighting, the `install_syntax` option is set to `true` by default. This automatically sets the
-syntax of filetype `markdown` to `telekasten`, and also registers this syntax with telescope previewers for `.md` files.
+**Note**: For proper highlighting, the `auto_set_filetype` option is set to `true` by default. This automatically
+switches the filetype of opened notes from `markdown` to `telekasten`, and also registers the syntax with telescope
+previewers for `.md` files.
 
 ### 2.5 Note templates
 
@@ -746,13 +743,13 @@ date:  {{hdate}}
 - **this**!
 - that!
 
-## Monday link
-## Tuesday link
-## Wednesday link
-## Thursday link
-## Friday link
-## Saturday link
-## Sunday link
+## Monday     .........  [[{{monday}}]]
+## Tuesday    .........  [[{{tuesday}}]]
+## Wednesday  .........  [[{{wednesday}}]]
+## Thursday   .........  [[{{thursday}}]]
+## Friday     .........  [[{{friday}}]]
+## Saturday   .........  [[{{saturday}}]]
+## Sunday     .........  [[{{sunday}}]]
 ```
 
 ### 2.6 Using the calendar

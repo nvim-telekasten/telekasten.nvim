@@ -673,10 +673,9 @@ Tag syntax:~
   example, #1984 is not a valid tag, but `#y1984` is.
 
 Note:~
-  For proper highlighting, the `install_syntax` option is set to `true` by
-  default. This automatically sets the syntax of filetype `markdown` to
-  `telekasten`, and also registers this syntax with telescope previewers for
-  `.md` files.
+  For proper highlighting, the `auto_set_filetype` option is set to `true` by
+  default. This automatically sets the to `telekasten`, and also registers the 
+  syntax with telescope previewers for `.md` files.
 
 --------------------------------------------------------------------------------
 Section 3.3: Templates                                    *telekasten.templates*
