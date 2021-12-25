@@ -1,6 +1,5 @@
 # Backlog
 
-- [ ] new option to make telekasten filetype optional #49
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
   - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
@@ -19,6 +18,7 @@
 
 ## Dones
 
+- [x] new option to make telekasten filetype optional #49
 - [x] New option: template_handling (see comments of ==PR #43==)
 - [x] option to create notes in same subfolder as current note if there is one, see ==#38==
   - ==also create the note in the subfolder if present in the link==
