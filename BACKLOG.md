@@ -1,10 +1,6 @@
 # Backlog
 
 - [ ] new option to make telekasten filetype optional #49
-- [ ] New option: template_handling (see comments of ==PR #43==)
-- [ ] option to create notes in same subfolder as current note if there is one, see ==#38==
-  - ==also create the note in the subfolder if present in the link==
-- [ ] improve link count sorting, key-mapping
 - [ ] tag search - search in general: just don't make it turing-complete 😁
 - [ ] calendar plugin: make weeks clickable!
   - [ ] show markers / color indicators for weeks with notes - in calendar.vim fork
@@ -23,6 +19,10 @@
 
 ## Dones
 
+- [x] New option: template_handling (see comments of ==PR #43==)
+- [x] option to create notes in same subfolder as current note if there is one, see ==#38==
+  - ==also create the note in the subfolder if present in the link==
+- [x] improve link count sorting, key-mapping
 - [x] link count display improved
 - [x] `subdirs_in_links` option to toggle generated link format: [[title]] vs [[sub/dir/title]]
 - [x] make `resolve_link()` return the best-match root and use it as `cwd` in `follow_link()`
