@@ -35,6 +35,10 @@ M.Cfg = {
     -- if true, telekasten will be enabled when opening a note within the configured home
     take_over_my_home = true,
 
+    -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
+    --                               and thus the telekasten syntax will not be loaded either
+    auto_set_filetype = true,
+
     dailies = home .. "/" .. "daily",
     weeklies = home .. "/" .. "weekly",
     templates = home .. "/" .. "templates",
@@ -877,7 +881,9 @@ local function find_files_sorted(opts)
 end
 
 picker_actions.post_open = function()
-    vim.cmd("set ft=telekasten")
+    if M.Cfg.auto_set_filetype then
+        vim.cmd("set ft=telekasten")
+    end
 end
 
 picker_actions.select_default = function(prompt_bufnr)
@@ -2384,18 +2390,22 @@ local function Setup(cfg)
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
-    filetype.add_file("telekasten")
+    if M.Cfg.auto_set_filetype then
+        filetype.add_file("telekasten")
+    end
     -- setting the syntax moved into plugin/telekasten.vim
     -- and does not work
 
     if M.Cfg.take_over_my_home == true then
-        vim.cmd(
-            "au BufEnter "
-                .. M.Cfg.home
-                .. "/*"
-                .. M.Cfg.extension
-                .. " set ft=telekasten"
-        )
+        if M.Cfg.auto_set_filetype then
+            vim.cmd(
+                "au BufEnter "
+                    .. M.Cfg.home
+                    .. "/*"
+                    .. M.Cfg.extension
+                    .. " set ft=telekasten"
+            )
+        end
     end
 
     if debug then
