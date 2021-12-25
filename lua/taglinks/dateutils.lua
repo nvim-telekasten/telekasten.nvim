@@ -68,6 +68,7 @@ M.date_from_doy = function(year, doy)
     return ret -- unreachable if input values are sane
 end
 
+-- the algo on wikipedia seems wrong, so we opt for full-blown luadate
 M.isoweek_to_date = function(year, isoweek)
     local ret = date(year .. "-W" .. string.format("%02d", isoweek) .. "-1")
     return {

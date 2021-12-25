@@ -69,7 +69,7 @@ local rep = string.rep
 local len = string.len -- luacheck: ignore
 local sub = string.sub
 local gsub = string.gsub
-local gmatch = string.gmatch or string.gfind
+local gmatch = string.gmatch
 local find = string.find
 local ostime = os.time
 local osdate = os.date
@@ -188,7 +188,7 @@ local function makedaynum(y, m, d)
 end
 -- date from day number, month is zero base
 local function breakdaynum(g)
-    local g = g + 306
+    g = g + 306
     local y = floor((10000 * g + 14780) / 3652425)
     local d = g - dayfromyear(y)
     if d < 0 then
@@ -333,8 +333,8 @@ local function getequivyear(y)
             and yt[-6]
             and yt[-7]
         then
-            getequivyear = function(y)
-                return yt[(weekday(makedaynum(y, 0, 1)) + 1) * (isleapyear(y) and -1 or 1)]
+            getequivyear = function(yy)
+                return yt[(weekday(makedaynum(yy, 0, 1)) + 1) * (isleapyear(y) and -1 or 1)]
             end
             return getequivyear(y)
         end
@@ -565,7 +565,8 @@ local function date_parse(str)
                 elseif inlist(x, sl_timezone, 2, sw) then
                     c = fix(sw[0]) -- ignore gmt and utc
                     if c ~= 0 then
-                        setz(c, x)
+                        -- setz(c, x) -- wtf
+                        setz(c) -- better
                     end
                 elseif not inlist(x, sl_weekdays, 2, sw) then
                     sw:back()
@@ -668,7 +669,8 @@ local tmap = {
 }
 local function date_getdobj(v)
     local o, r = (tmap[type(v)] or fnil)(v)
-    return (o and o:normalize() or error("invalid date time value")), r -- if r is true then o is a reference to a date obj
+    return (o and o:normalize() or error("invalid date time value")), r
+    -- if r is true then o is a reference to a date obj
 end
 --#end -- not DATE_OBJECT_AFX
 local function date_from(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -1038,7 +1040,7 @@ local tvspec = {
         return fmt("%s%.9f", x >= 10 and "" or "0", x)
     end,
     -- percent character %
-    ["%%"] = function(self)
+    ["%%"] = function(_)
         return "%"
     end,
     -- Group Spec --

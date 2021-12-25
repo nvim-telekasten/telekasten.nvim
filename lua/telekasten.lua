@@ -17,6 +17,7 @@ local filetype = require("plenary.filetype")
 local taglinks = require("taglinks.taglinks")
 local tagutils = require("taglinks.tagutils")
 local linkutils = require("taglinks.linkutils")
+local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
@@ -89,9 +90,9 @@ M.Cfg = {
     show_tags_theme = "ivy",
 
     -- template_handling
-    -- - prefer_home: use new_note template for all new notes created via new_note(),
-    --     new_templated_note(), and follow_link() to non-existing note
-    -- - smart: if day or week is detected in title, use daily / weekly
+    -- What to do when creating a new note via `new_note()` or `follow_link()` to a non-existing note
+    -- - prefer_new_note: use `new_note` template
+    -- - smart: if day or week is detected in title, use daily / weekly templates (default)
     -- - always_ask: always ask before creating a note
     template_handling = "smart",
 
@@ -107,9 +108,15 @@ M.Cfg = {
     --
     --   Valid options:
     --     - smart: put daily-looking notes in daily, weekly-looking ones in weekly,
-    --     - default: put all notes in home except for goto_today(), goto_thisweek()
-    --     - same-as-current: put all new notes in the dir of the current note if
-    --       present or else in home
+    --              all other ones in home, except for notes/with/subdirs/in/title.
+    --              (default)
+    --
+    --     - prefer_home: put all notes in home except for goto_today(), goto_thisweek()
+    --                    except for notes/with/subdirs/in/title.
+    --
+    --     - same_as_current: put all new notes in the dir of the current note if
+    --                        present or else in home
+    --                        except for notes/with/subdirs/in/title.
     new_note_location = "smart",
 }
 
@@ -199,6 +206,7 @@ M.note_type_templates = {
 }
 
 local function daysuffix(day)
+    day = tostring(day)
     if (day == "1") or (day == "21") or (day == "31") then
         return "st"
     end
@@ -393,6 +401,7 @@ local Pinfo = {
     is_daily = false,
     is_weekly = false,
     template = "",
+    calendar_info = nil,
 }
 
 function Pinfo:new(opts)
@@ -434,10 +443,14 @@ function Pinfo:resolve_path(p, opts)
     end
     if vim.startswith(p, M.Cfg.dailies) then
         self.root_dir = M.Cfg.dailies
+        -- TODO: parse "title" into calendarinfo like in resolve_link
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         self.is_daily_or_weekly = true
         self.is_daily = true
     end
     if vim.startswith(p, M.Cfg.weeklies) then
+        -- TODO: parse "title" into calendarinfo like in resolve_link
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         self.root_dir = M.Cfg.weeklies
         self.is_daily_or_weekly = true
         self.is_weekly = true
@@ -463,7 +476,7 @@ local function check_if_daily_or_weekly(title)
 
     local is_daily = false
     local is_weekly = false
-    local dateinfo = {}
+    local dateinfo = calculate_dates() -- sane default
 
     local start, _, year, month, day = title:find(daily_match)
     if start ~= nil then
@@ -473,7 +486,7 @@ local function check_if_daily_or_weekly(title)
                 dateinfo.year = tonumber(year)
                 dateinfo.month = tonumber(month)
                 dateinfo.day = tonumber(day)
-                -- TODO: calculate_dates() here
+                dateinfo = calculate_dates(dateinfo)
             end
         end
     end
@@ -483,8 +496,9 @@ local function check_if_daily_or_weekly(title)
     if start ~= nil then
         if tonumber(week) < 53 then
             is_weekly = true
-            -- TODO: ISO8601 week -> date calculation
-            dateinfo.year = tonumber(year)
+            -- ISO8601 week -> date calculation
+            dateinfo = dateutils.isoweek_to_date(tonumber(year), tonumber(week))
+            dateinfo = calculate_dates(dateinfo)
         end
     end
     return is_daily, is_weekly, dateinfo
@@ -508,8 +522,12 @@ function Pinfo:resolve_link(title, opts)
     self.is_daily = false
     self.is_weekly = false
     self.template = nil
+    self.calendar_info = nil
 
     if opts.weeklies and file_exists(opts.weeklies .. "/" .. self.filename) then
+        -- TODO: parse "title" into calendarinfo like below
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
         self.filepath = opts.weeklies .. "/" .. self.filename
         self.fexists = true
         self.root_dir = opts.weeklies
@@ -517,6 +535,9 @@ function Pinfo:resolve_link(title, opts)
         self.is_weekly = true
     end
     if opts.dailies and file_exists(opts.dailies .. "/" .. self.filename) then
+        -- TODO: parse "title" into calendarinfo like below
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
         self.filepath = opts.dailies .. "/" .. self.filename
         self.fexists = true
         self.root_dir = opts.dailies
@@ -546,30 +567,56 @@ function Pinfo:resolve_link(title, opts)
 
     -- if we just cannot find the note, check if it's a daily or weekly one
     if self.fexists == false then
+        -- TODO: if we're not smart, we also shouldn't need to try to set the calendar info..?
+        --       I bet someone will want the info in there, so let's put it in if possible
+        _, _, self.calendar_info = check_if_daily_or_weekly(self.title) -- will set today as default, so leave in!
+
         if opts.new_note_location == "smart" then
             self.filepath = opts.home .. "/" .. self.filename -- default
-            -- TODO: store the date_info somewhere
-            self.is_daily, self.is_weekly, _ = check_if_daily_or_weekly(
-                self.title
-            )
+            self.is_daily, self.is_weekly, self.calendar_info =
+                check_if_daily_or_weekly(
+                    self.title
+                )
             if self.is_daily == true then
                 self.root_dir = opts.dailies
+                self.filepath = opts.dailies .. "/" .. self.filename
                 self.is_daily_or_weekly = true
             end
             if self.is_weekly == true then
                 self.root_dir = opts.weeklies
+                self.filepath = opts.weeklies .. "/" .. self.filename
                 self.is_daily_or_weekly = true
             end
         elseif opts.new_note_location == "same_as_current" then
             local cwd = vim.fn.expand("%:p")
             if #cwd > 0 then
                 self.root_dir = Path:new(cwd):parent():absolute()
+                if Path:new(self.root_dir):exists() then
+                    -- check if potential subfolders in filename would end up in a non-existing directory
+                    self.filepath = self.root_dir .. "/" .. self.filename
+                    if not Path:new(self.filepath):parent():exists() then
+                        print("Path " .. self.filepath .. " is invalid!")
+                        -- self.filepath = opts.home .. "/" .. self.filename
+                    end
+                else
+                    print("Path " .. self.root_dir .. " is invalid!")
+                    -- self.filepath = opts.home .. "/" .. self.filename
+                end
             else
                 self.filepath = opts.home .. "/" .. self.filename
             end
         else
             -- default fn for creation
             self.filepath = opts.home .. "/" .. self.filename
+        end
+
+        -- final round, there still can be a subdir mess-up
+        if not Path:new(self.filepath):parent():exists() then
+            print("Path " .. self.filepath .. " is invalid!")
+            -- local fname_only = Path:new(self.filename):_split()
+            -- fname_only = fname_only[#fname_only]
+            -- self.filepath = opts.home .. "/" .. fname_only
+            self.filepath = ""
         end
     end
 
@@ -582,7 +629,7 @@ function Pinfo:resolve_link(title, opts)
 
     -- now suggest a template based on opts
     self.template = M.note_type_templates.normal
-    if opts.template_handling == "prefer_home" then
+    if opts.template_handling == "prefer_new_note" then
         self.template = M.note_type_templates.normal
     elseif opts.template_handling == "always_ask" then
         self.template = nil
@@ -1507,7 +1554,12 @@ local function on_create_with_template(opts, title)
                 -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
                 local template = action_state.get_selected_entry().value
                 -- TODO: pass in the calendar_info returned from the pinfo
-                create_note_from_template(title, fname, template)
+                create_note_from_template(
+                    title,
+                    fname,
+                    template,
+                    pinfo.calendar_info
+                )
                 -- open the new note
                 vim.cmd("e " .. fname)
                 picker_actions.post_open()
@@ -1554,11 +1606,14 @@ local function on_create(opts, title)
     local pinfo = Pinfo:new({ title = title, opts })
     local fname = pinfo.filepath
 
-    print(vim.inspect(pinfo))
-
     if pinfo.fexists ~= true then
         -- TODO: pass in the calendar_info returned in pinfo
-        create_note_from_template(title, fname, pinfo.template)
+        create_note_from_template(
+            title,
+            fname,
+            pinfo.template,
+            pinfo.calendar_info
+        )
         opts.erase = true
         opts.erase_file = fname
     end
@@ -1689,11 +1744,17 @@ local function FollowLink(opts)
             if opts.template_handling == "always_ask" then
                 return on_create_with_template(opts, title)
             end
-            -- TODO: if daily or weekly: derive date opts from filename!!!
-            --       pass in the info contained in pinfo
-            create_note_from_template(title, pinfo.filepath, pinfo.template)
-            opts.erase = true
-            opts.erase_file = pinfo.filepath
+
+            if #pinfo.filepath > 0 then
+                create_note_from_template(
+                    title,
+                    pinfo.filepath,
+                    pinfo.template,
+                    pinfo.calendar_info
+                )
+                opts.erase = true
+                opts.erase_file = pinfo.filepath
+            end
         end
 
         find_files_sorted({
@@ -2241,7 +2302,7 @@ local function FindAllTags(opts)
             actions.select_default:replace(function()
                 actions._close(prompt_bufnr, true)
 
-                -- TODO actions for insert tag, default action: search for tag
+                -- actions for insert tag, default action: search for tag
                 local selection = action_state.get_selected_entry().value.tag
                 local follow_opts = {
                     follow_tag = selection,
