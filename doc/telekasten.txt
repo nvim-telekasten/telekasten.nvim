@@ -55,14 +55,14 @@ telekasten.setup({opts})
     Usage:
     >
     require("telekasten").setup({
-      home = '/path/to/directory',          -- path to main markdown folder 
+      home = '/path/to/directory',          -- path to main markdown folder
       daily = '/path/to/directory',         -- path to daily notes
       weekly = '/path/to/directory',        -- path to weekly notes
 
       -- image subdir for pasting
-      -- subdir name 
+      -- subdir name
       -- or nil if pasted images shouldn't go into a special subdir
-      image_subdir = "img", 
+      image_subdir = "img",
 
       -- markdown file extension
       extension    = ".md",
@@ -91,7 +91,7 @@ telekasten.setup({opts})
       plug_into_calendar = true,         -- use calendar integration
 
       calendar_opts = {
-        weeknm = 4,                      -- calendar week display mode: 
+        weeknm = 4,                      -- calendar week display mode:
                                          --   1 .. 'WK01'
                                          --   2 .. 'WK 1'
                                          --   3 .. 'KW01'
@@ -116,8 +116,8 @@ telekasten.setup({opts})
 
       -- command palette theme: dropdown (window) or ivy (bottom panel)
       command_palette_theme = "ivy",
-  
-      -- tag list theme: 
+
+      -- tag list theme:
       -- get_cursor: small tag list at cursor; ivy and dropdown like above
       show_tags_theme = "ivy",
 
@@ -143,7 +143,15 @@ telekasten.setup({opts})
         If set to `true`, telekasten.nvim will take over your home. Any notes
         from the configured `home` directory will receive a `set`
         `filetype=telekasten`, no matter if opened by telekasten or another
-        way. 
+        way.
+
+        Default: `true`
+
+                                   *telekasten.settings.auto_set_filetype*
+    auto_set_filetype: ~
+        If `false` (not recommended), the telekasten filetype will not be used
+        and the telekasten syntax not be loaded; markdown files will get the
+        markdown filetype.
 
         Default: `true`
 
@@ -229,7 +237,7 @@ telekasten.setup({opts})
 
                                  *telekasten.settings.template_new_weekly*
     template_new_weekly: ~
-        Markdown template for new weekly notes. Set to `nil` if you don't want 
+        Markdown template for new weekly notes. Set to `nil` if you don't want
         a template.
 
         Default: `nil`
@@ -260,7 +268,49 @@ telekasten.setup({opts})
     subdirs_in_links:~
         Include subdirs (if applicable) in generated (yanked, inserted) links.
 
+        Valid options are:
+        - `'tag'`
+        - `':tag:'`
+        - `'yaml-bare'`
+
         Default: `true`
+
+                                   *telekasten.settings.template_handling*
+    template_handling:~
+        Strategy for telekasten to pick a template when a new note is created
+        via `new_note()`, or by `follow_link()` to a non-existing note.
+
+        Valid options are:
+        - `'smart'`:     if day or week is detected in title, use daily / weekly
+                       templates, else the new note template.
+
+        - `'prefer_new_note'`: use the new note template.
+
+        - `'always_ask'`: always ask for a template via template picker.
+
+        Default: `smart`
+
+                                   *telekasten.settings.new_note_location*
+    new_note_location:~
+        Path handling for `new_note()`, `new_templated_note()`, `follow_link()`
+        to non-existing note.
+
+        Valid options are:
+        - `'smart'`: put daily-looking (date as title) into the daily folder, 
+                   weekly-looking notes into the weekly folder, all other notes
+                   into the home folder, except for notes with `sub/folders` in 
+                   the title.
+
+        - `'prefer_home'`: put all notes in home folder except for
+                         `goto_today()` and `goto_thisweek()`, and notes with 
+                         `sub/folders` in the title.
+
+        - `'same_as_current'`: put all new notes in the directory of the
+                             currently open note (where the cursor is) if 
+                             present or else into the home folder, except for 
+                             notes with `sub/folders` in the title.
+
+        Default: `smart`
 
                                                *telekasten.calendar_opts*
     -----------------------------------
@@ -279,7 +329,7 @@ telekasten.setup({opts})
         - 4 -> `KW 1`
         - 5 -> `1`
 
-        Default: 4 
+        Default: 4
 
                                 *telekasten.calendar_opts.calendar_monday*
     calendar_monday: ~
@@ -289,18 +339,18 @@ telekasten.setup({opts})
         - 0 -> weeks start on Sundays
         - 1 -> weeks start on Mondays
 
-        Default: 1 
+        Default: 1
 
                                   *telekasten.calendar_opts.calendar_mark*
     calendar_mark: ~
-        Where to place marks such as `+` and `*`, relative to the day. 
+        Where to place marks such as `+` and `*`, relative to the day.
 
         Valid values are:
         - 'left'     ->  ugly
         - 'right'    ->  right to the day
         - 'left-fit' -> left of the day
- 
-        Default: 'left-fit' 
+
+        Default: 'left-fit'
 
 --------------------------------------------------------------------------------
 Section 2: Colors                                            *telekasten.colors*
@@ -324,16 +374,16 @@ You can assign colors to the new syntax groups in your `init.vim`:
   " just blue and gray links
   hi tkLink ctermfg=Blue cterm=bold,underline guifg=blue gui=bold,underline
   hi tkBrackets ctermfg=gray guifg=gray
-  
+
   " for gruvbox
   hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
   hi tkBrackets ctermfg=gray guifg=gray
-  
+
   " real yellow
   hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
   " gruvbox
   "hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
-  
+
   hi link CalNavi CalRuler
   hi tkTagSep ctermfg=gray guifg=gray
   hi tkTag ctermfg=175 guifg=#d3869B
@@ -358,11 +408,11 @@ telekasten.new_note()~
                                             *telekasten.new_templated_note()*
 telekasten.new_templated_note()~
   Promts for a title and then uses Telescope for choosing a template. When a
-  template is selected, a new note is created with it and opened. 
+  template is selected, a new note is created with it and opened.
 
   Should the note already exist before running `new_templated_note()`, it is
   opened immediately.
-  
+
   See also:~
       - |telekasten.template_files|
                                                     *telekasten.find_notes()*
@@ -372,16 +422,16 @@ telekasten.find_notes()~
                                               *telekasten.find_daily_notes()*
 telekasten.find_daily_notes()~
   Find daily notes by date, via Telescope. File names are sorted by file name,
-  most recent file first. 
+  most recent file first.
 
   If today's daily note is not present, will be created if
-  `dailies_create_nonexisting` is set to `true`. 
+  `dailies_create_nonexisting` is set to `true`.
 
   See also:~
       - |telekasten.settings.dailies_create_nonexisting|
 
   New daily notes are created with the template specified in the
-  `template_new_daily` setting. 
+  `template_new_daily` setting.
 
   See also:~
       - |telekasten.settings.template_new_daily|
@@ -393,13 +443,13 @@ telekasten.goto_today()~
   Pops up a Telescope finder with today's daily note pre-selected.
 
   If today's daily note is not present, will be created if
-  `dailies_create_nonexisting` is set to `true`. 
+  `dailies_create_nonexisting` is set to `true`.
 
   See also:~
       - |telekasten.settings.dailies_create_nonexisting|
 
   New daily notes are created with the template specified in the
-  `template_new_daily` setting. 
+  `template_new_daily` setting.
 
   See also:~
       - |telekasten.settings.template_new_daily|
@@ -409,16 +459,16 @@ telekasten.goto_today()~
                                              *telekasten.find_weekly_notes()*
 telekasten.find_weekly_notes()~
   Find weekly notes by week, via Telescope. File names are sorted by file
-  name, most recent file first. 
+  name, most recent file first.
 
   If this week's daily note is not present, will be created if
-  `weeklies_create_nonexisting` is set to `true`. 
+  `weeklies_create_nonexisting` is set to `true`.
 
   See also:~
       - |telekasten.settings.weeklies_create_nonexisting|
 
   New weekly notes are created with the template specified in the
-  `template_new_weekly` setting. 
+  `template_new_weekly` setting.
 
   See also:~
       - |telekasten.settings.template_new_weekly|
@@ -430,16 +480,16 @@ telekasten.goto_thisweek()~
   Pops up a Telescope finder with this week's daily note pre-selected.
 
   If this week's daily note is not present, will be created if
-  `weeklies_create_nonexisting` is set to `true`. 
+  `weeklies_create_nonexisting` is set to `true`.
 
   See also:~
       - |telekasten.settings.weeklies_create_nonexisting|
 
   New weekly notes are created with the template specified in the
-  `template_new_weekly` setting. 
+  `template_new_weekly` setting.
 
   See also:~
-      - |telekasten.settings.template_new_weekly| 
+      - |telekasten.settings.template_new_weekly|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -451,10 +501,10 @@ telekasten.search_notes()~
                                                    *telekasten.insert_link()*
 telekasten.insert_link({opts})~
   Select a note by title (file name), via Telescope, and place a `[[link]]` at
-  the current cursor position. 
+  the current cursor position.
 
   Valid keys for {opts}
-   
+
   i:~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
@@ -490,11 +540,11 @@ telekasten.show_calendar()~
 
                                                    *telekasten.toggle_todo()*
 telekasten.toggle_todo({opts})~
-  Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`, 
+  Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`,
   and `-` .
 
   Valid keys for {opts}
-   
+
   i:~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
@@ -521,7 +571,7 @@ telekasten.insert_img_link({opts})~
     images / media files will be given during the search.
 
   Valid keys for {opts}
-   
+
   i:~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     for being able to continue typing after the link has been inserted.
@@ -563,26 +613,26 @@ Note links~
 
 `[[#Heading 27]]`  .................. links to the heading 'Heading 27' within
                                     all notes
-                                    
+
 `[[#^xxxxxxxx]]`  ................... links to the paragraph with id ^xxxxxxxx
                                     within all notes
 
 Optionally, notes can live in specific sub-directories:
 
-`[[some/subdirectory/A cool title]]`: links to note named 'A cool title' 
+`[[some/subdirectory/A cool title]]`: links to note named 'A cool title'
                                     in some/subdirectory
 
 `[[some/subdirectory/A cool title#Heading 27]]`: links to the heading
-                                    'Heading 27' within the note named 
+                                    'Heading 27' within the note named
                                     'A cool title' in some/subdirectory
 
 `[[some/subdirectory/A cool title#^xxxxxxxx]]` : links to the paragraph
-                                    with id ^xxxxxxxx within the note named 
+                                    with id ^xxxxxxxx within the note named
                                     'A cool title' in some/subdirectory
 
 Note that notes linked to with headings or paragraph IDs **will not be created
 automatically**. Non-existing notes will be ignored in this case, a global
-telescope search wil be performed instead. 
+telescope search wil be performed instead.
 
 Media links~
 Use these for images, PDF files, videos. If telescope-media-files is installed,
@@ -595,14 +645,14 @@ Section 3.2: Tag Notation                            *telekasten.tag_notation*
 
 Telekasten supports the following tag notations:
 
-1. `#tag` 
-2. `:tag:` 
+1. `#tag`
+2. `:tag:`
 3. bare tags in a tag collection in the yaml metadata:
 >
-  --- title: My awesome note 
-  date: 2021-12-06 
-  tags: [ example, note-taking, foo, bar ] 
-  --- 
+  --- title: My awesome note
+  date: 2021-12-06
+  tags: [ example, note-taking, foo, bar ]
+  ---
 <
 
 Tag syntax:~
@@ -614,15 +664,15 @@ Tag syntax:~
   - snake_case: `#note_taking`
   - kebab-case: `#note-taking`
 
-  The only symbols allowed are: 
+  The only symbols allowed are:
   - underscore     : `_`
   - dash           : `-`
   - forward slash  : `/`
-  
+
   Numbers are allowed in tags, as long as a tag is not purely numeric. For
   example, #1984 is not a valid tag, but `#y1984` is.
 
-Note:~ 
+Note:~
   For proper highlighting, the `install_syntax` option is set to `true` by
   default. This automatically sets the syntax of filetype `markdown` to
   `telekasten`, and also registers this syntax with telescope previewers for
@@ -633,7 +683,7 @@ Section 3.3: Templates                                    *telekasten.templates*
 
 Telekasten.nvim can create non-existing notes, providing this is enabled in
 the settings - which it is by default. Auto-creation of notes is useful when
-you jump to today's or this week's note, or when you typed a 
+you jump to today's or this week's note, or when you typed a
 `[[link to a new note]]` and jump to it.
 
 The specific templates and settings used are:
@@ -748,7 +798,7 @@ entire window, you can issue the following command in vim:
 <
 Note:~
   Calendar functions are only available if you have the plugin `calendar-vim`
-  installed, which you can find at https://github.com/renerocksai/calendar-vim 
+  installed, which you can find at https://github.com/renerocksai/calendar-vim
 
 --------------------------------------------------------------------------------
 Section 3.5: Picker mappings                      *telekasten.picker_mappings*
@@ -774,7 +824,7 @@ the following mappings apply:
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*
 
-Telekasten.nvim does not come with pre-defined mappings. 
+Telekasten.nvim does not come with pre-defined mappings.
 
 However, here are some suggestions:
 >
@@ -812,12 +862,12 @@ However, here are some suggestions:
  " colors suitable for gruvbox color scheme
   hi tklink ctermfg=72 guifg=#689d6a cterm=bold,underline gui=bold,underline
   hi tkBrackets ctermfg=gray guifg=gray
-  
+
   " real yellow
   hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold guibg=yellow guifg=darkred gui=bold
   " gruvbox
   "hi tkHighlight ctermbg=214 ctermfg=124 cterm=bold guibg=#fabd2f guifg=#9d0006 gui=bold
-  
+
   hi link CalNavi CalRuler
   hi tkTagSep ctermfg=gray guifg=gray
   hi tkTag ctermfg=175 guifg=#d3869B
@@ -830,7 +880,7 @@ Credits go to:
 * {Conni2461} on GitHub for the awesome pull request and support!
 * {NeoVim} and its awesome community
 * {Telescope.nvim} and its awesome community
-* {ThePrimeagen} and {TJ} aka {teej_dv} aka {TJDeVries} of twitch 
+* {ThePrimeagen} and {TJ} aka {teej_dv} aka {TJDeVries} of twitch
   (and vimconf and ...) fame for being awesome and inspiring!
 
 
