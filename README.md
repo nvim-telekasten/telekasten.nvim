@@ -121,8 +121,7 @@ of being able to edit it.
 
 Since this plugin uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), you need to install it first.
 
-[Neovim (v0.5.1)](https://github.com/neovim/neovim/releases/tag/v0.5.1) or the latest neovim nighly commit is required
-for `telescope.nvim` to work.
+[Neovim (v0.6.0)](https://github.com/neovim/neovim/releases/tag/v0.6.0) or the latest neovim nighly commit is required for `telescope.nvim` to work.
 
 ---
 
