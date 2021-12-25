@@ -94,7 +94,8 @@ M.Cfg = {
     show_tags_theme = "ivy",
 
     -- template_handling
-    -- What to do when creating a new note via `new_note()` or `follow_link()` to a non-existing note
+    -- What to do when creating a new note via `new_note()` or `follow_link()`
+    -- to a non-existing note
     -- - prefer_new_note: use `new_note` template
     -- - smart: if day or week is detected in title, use daily / weekly templates (default)
     -- - always_ask: always ask before creating a note

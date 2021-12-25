@@ -207,6 +207,10 @@ require('telekasten').setup({
     -- if true, telekasten will be enabled when opening a note within the configured home
     take_over_my_home = true,
 
+    -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
+    --                               and thus the telekasten syntax will not be loaded either
+    auto_set_filetype = true,
+
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     templates    = home .. '/' .. 'templates',
@@ -273,6 +277,37 @@ require('telekasten').setup({
     -- instead of a [[title only]] link
     subdirs_in_links = true,
 
+    -- template_handling
+    -- What to do when creating a new note via `new_note()` or `follow_link()` 
+    -- to a non-existing note
+    -- - prefer_new_note: use `new_note` template
+    -- - smart: if day or week is detected in title, use daily / weekly templates (default)
+    -- - always_ask: always ask before creating a note
+    template_handling = "smart",
+
+    -- path handling:
+    --   this applies to:
+    --     - new_note()
+    --     - new_templated_note()
+    --     - follow_link() to non-existing note
+    --
+    --   it does NOT apply to:
+    --     - goto_today()
+    --     - goto_thisweek()
+    --
+    --   Valid options:
+    --     - smart: put daily-looking notes in daily, weekly-looking ones in weekly,
+    --              all other ones in home, except for notes/with/subdirs/in/title.
+    --              (default)
+    --
+    --     - prefer_home: put all notes in home except for goto_today(), goto_thisweek()
+    --                    except for notes/with/subdirs/in/title.
+    --
+    --     - same_as_current: put all new notes in the dir of the current note if
+    --                        present or else in home
+    --                        except for notes/with/subdirs/in/title.
+    new_note_location = "smart",
+
 })
 END
 ```
@@ -317,6 +352,15 @@ END
 | | - `dropdown`: floating popup window ||
 | | - `get_cursor`: floating popup window at cursor position ||
 | `subdirs_in_links` | include subdirs (if applicable) in generated (yanked, inserted) links| true |
+| `auto_set_filetype` | if false (not recommended), the telekasten filetype will not be used and the telekasten syntax not be loaded; markdown files will get the markdown filetype. | default: `true` |
+| `template_handling` | Strategy for telekasten to pick a template when a new note is created via `new_note()` or by `follow_link()` to a non-existing note | smart |
+| | - `smart` (default): if day or week is detected in title, use daily / weekly templates, else the new note template|  |
+| | - `prefer_new_note`: use the `new_note` template ||
+| | - `always_ask`: always ask which template to use (template picker) ||
+| `new_note_location` | Path handling for `new_note()`, `new_templated_note()`, `follow_link()` to non-existing note| smart |
+| | - `smart` (default): put daily-looking (date as title) into the daily folder, weekly-looking notes into the weekly folder, all other ones into the home folder, except for notes with `sub/folders` in the title.|  |
+| | - `prefer_home`: put all notes in home folder except for `goto_today()` and `goto_thisweek()`, and notes with `sub/folders` in the title ||
+| | - `same_as_current`: put all new notes in the directory of the currently open note (where the cursor is) if present or else into the home folder, except for notes with `sub/folders/` in the title||
 
 The calendar support has its own options, contained in `calendar_opts`:
 
