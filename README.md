@@ -215,9 +215,9 @@ require('telekasten').setup({
     templates    = home .. '/' .. 'templates',
 
     -- image subdir for pasting
-    -- subdir name 
+    -- subdir name
     -- or nil if pasted images shouldn't go into a special subdir
-    image_subdir = "img", 
+    image_subdir = "img",
 
     -- markdown file extension
     extension    = ".md",
@@ -265,7 +265,7 @@ require('telekasten').setup({
     -- command palette theme: dropdown (window) or ivy (bottom panel)
     command_palette_theme = "ivy",
 
-    -- tag list theme: 
+    -- tag list theme:
     -- get_cursor: small tag list at cursor; ivy and dropdown like above
     show_tags_theme = "ivy",
 
@@ -274,7 +274,7 @@ require('telekasten').setup({
     subdirs_in_links = true,
 
     -- template_handling
-    -- What to do when creating a new note via `new_note()` or `follow_link()` 
+    -- What to do when creating a new note via `new_note()` or `follow_link()`
     -- to a non-existing note
     -- - prefer_new_note: use `new_note` template
     -- - smart: if day or week is detected in title, use daily / weekly templates (default)
