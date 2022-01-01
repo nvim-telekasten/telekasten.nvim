@@ -218,7 +218,7 @@ local function daysuffix(day)
     if (day == "2") or (day == "22") then
         return "nd"
     end
-    if (day == "3") or (day == "33") then
+    if (day == "3") or (day == "23") then
         return "rd"
     end
     return "th"
