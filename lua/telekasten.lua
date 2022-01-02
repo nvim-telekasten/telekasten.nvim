@@ -259,7 +259,6 @@ local function calculate_dates(date)
     local dinfo = os.date("*t", time) -- this normalizes the input to a full date table
     local oneday = 24 * 60 * 60 -- hours * days * seconds
     local oneweek = 7 * oneday
-    local oneyear = 365 * oneday
     local df = dateformats
 
     local dates = {}
