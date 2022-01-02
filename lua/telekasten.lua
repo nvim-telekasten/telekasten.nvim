@@ -299,8 +299,8 @@ local function calculate_dates(date)
     -- would appear as being in 2022-W52.  That breaks linear linking respective
     -- of next/prev week, so we want to put the days of that partial week in
     -- January in 2021-W52.  This tweak will only change the ISO formatted week string.
-    if dates.week == 52 and dates.month == 1 then
-        dates.isoweek = os.date(df.isoweek, time - oneyear)
+    if tonumber(dates.week) == 52 and tonumber(dates.month) == 1 then
+        dates.isoweek = tostring(dates.year - 1) .. "-W52"
     end
 
     -- Find the Sunday that started this week regardless of the calendar
@@ -2101,7 +2101,8 @@ local function GotoThisWeek(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    local title = os.date(dateformats.isoweek)
+    local dinfo = calculate_dates()
+    local title = dinfo.isoweek
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
     local fexists = file_exists(fname)
     if
