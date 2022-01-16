@@ -51,6 +51,7 @@
 - [ ] The code change is tested and works locally.
 - [ ] There is no commented out code in this PR.
 - [ ] The code has been formatted using Stylua (a `.stylua.toml` file is provided)
+- [ ] The code has been checked with luacheck (a `.luacheckrc` file is provided)
 - [ ] The `README.md` has been updated according to this change.
 - [ ] The `doc/telekasten.txt` helpfile has been updated according to this change.
 
