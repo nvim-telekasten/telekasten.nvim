@@ -139,6 +139,55 @@ local function file_exists(fname)
     end
 end
 
+local function print_error(s)
+    vim.cmd("echohl ErrorMsg")
+    vim.cmd("echomsg " .. '"' .. s .. '"')
+    vim.cmd("echohl None")
+end
+
+local function check_dir_and_ask(dir, purpose)
+    local ret = true
+    if dir ~= nil and Path:new(dir):exists() == false then
+        print_error(
+            "Telekasten.nvim: "
+                .. purpose
+                .. " folder "
+                .. dir
+                .. " does not exist!"
+        )
+        local answer = vim.fn.input("Shall I create it? [y/N] ")
+        answer = vim.fn.trim(answer)
+        if answer == "y" or answer == "Y" then
+            if Path:new(dir):mkdir({ exists_ok = false }) then
+                vim.cmd('echomsg " "')
+                vim.cmd('echomsg "' .. dir .. ' created"')
+            else
+                -- unreachable: plenary.Path:mkdir() will error out
+                print_error("Could not create directory " .. dir)
+                ret = false
+            end
+        end
+    end
+    return ret
+end
+
+local function global_dir_check()
+    local ret
+    if M.Cfg.home == nil then
+        print_error("Telekasten.nvim: home is not configured!")
+        ret = false
+    else
+        ret = check_dir_and_ask(M.Cfg.home, "home")
+    end
+
+    ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
+    ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
+    ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
+    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "image_subdir")
+
+    return ret
+end
+
 --- escapes a string for use as exact pattern within gsub
 local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
@@ -2170,6 +2219,7 @@ local function ShowCalendar(opts)
     if opts.vertical_resize then
         vim.cmd("vertical resize +" .. opts.vertical_resize)
     end
+    vim.cmd("set signcolumn=no")
 end
 
 -- set up calendar integration: forward to our lua functions
@@ -2414,6 +2464,8 @@ local function Setup(cfg)
         print("-----------------")
         print(vim.inspect(M.Cfg))
     end
+
+    global_dir_check()
 end
 
 M.find_notes = FindNotes
@@ -2536,6 +2588,7 @@ TelekastenCmd.command = function(subcommand)
     end
 end
 
+-- nvim completion function for completing :Telekasten sub-commands
 TelekastenCmd.complete = function()
     local candidates = {}
     for k, v in pairs(TelekastenCmd.commands()) do
