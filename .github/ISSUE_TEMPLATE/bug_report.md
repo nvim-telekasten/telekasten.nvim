@@ -7,6 +7,9 @@ assignees: renerocksai
 
 ---
 
+**Please confirm**
+- [ ] I am running the latest version of this plugin
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
