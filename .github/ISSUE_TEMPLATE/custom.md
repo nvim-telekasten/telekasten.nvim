@@ -7,4 +7,9 @@ assignees: ''
 
 ---
 
+**Please confirm**
+- [ ] I am running the latest version of this plugin
+
+**Tell us about what's bothering you...**
+...
 
