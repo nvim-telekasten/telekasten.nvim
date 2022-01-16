@@ -296,18 +296,18 @@ telekasten.setup({opts})
         to non-existing note.
 
         Valid options are:
-        - `'smart'`: put daily-looking (date as title) into the daily folder, 
+        - `'smart'`: put daily-looking (date as title) into the daily folder,
                    weekly-looking notes into the weekly folder, all other notes
-                   into the home folder, except for notes with `sub/folders` in 
+                   into the home folder, except for notes with `sub/folders` in
                    the title.
 
         - `'prefer_home'`: put all notes in home folder except for
-                         `goto_today()` and `goto_thisweek()`, and notes with 
+                         `goto_today()` and `goto_thisweek()`, and notes with
                          `sub/folders` in the title.
 
         - `'same_as_current'`: put all new notes in the directory of the
-                             currently open note (where the cursor is) if 
-                             present or else into the home folder, except for 
+                             currently open note (where the cursor is) if
+                             present or else into the home folder, except for
                              notes with `sub/folders` in the title.
 
         Default: `smart`
@@ -674,7 +674,7 @@ Tag syntax:~
 
 Note:~
   For proper highlighting, the `auto_set_filetype` option is set to `true` by
-  default. This automatically sets the to `telekasten`, and also registers the 
+  default. This automatically sets the to `telekasten`, and also registers the
   syntax with telescope previewers for `.md` files.
 
 --------------------------------------------------------------------------------
@@ -735,6 +735,7 @@ The following substitutions will be made during new note creation:
 | `{{prevday}}`     | previous day, iso     | 2021-11-20                  |
 | `{{nextday}}`     | next day, iso         | 2021-11-22                  |
 | `{{hdate}}`       | date in long format   | Sunday, November 21st, 2021 |
+| `{{rfc3339}}`     | date in RFC3339 format| 2021-11-21T14:30Z+01:00     |
 | `{{week}}`        | week of the year      | 46                          |
 | `{{prevweek}}`    | previous week         | 45                          |
 | `{{nextweek}}`    | next week             | 47                          |

@@ -694,6 +694,7 @@ Currently, the following substitutions will be made during new note creation:
 | `{{prevday}}` | previous day's date in iso format | 2021-11-20 |
 | `{{nextday}}` | next day's date in iso format | 2021-11-22 |
 | `{{hdate}}` | date in long format | Sunday, November 21st, 2021 |
+| `{{rfc3339}}`     | date in RFC3339 format| 2021-11-21T14:30Z+01:00   |
 | `{{week}}` | week of the year | 46 |
 | `{{prevweek}}` | previous week of the year | 45 |
 | `{{nextweek}}` | next week of the year | 47 |
