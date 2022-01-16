@@ -331,6 +331,15 @@ local function calculate_dates(date)
         .. ", "
         .. dinfo.year
 
+    local zonehour = string.sub(os.date("%z"), 1, 3)
+    local zonemin = string.sub(os.date("%z"), 4, 5)
+    dates.rfc3339 = os.date(df.date, time)
+        .. os.date("T%H:%M:%S")
+        .. "Z"
+        .. zonehour
+        .. ":"
+        .. zonemin
+
     dates.date = os.date(df.date, time)
     dates.prevday = os.date(df.date, time - oneday)
     dates.nextday = os.date(df.date, time + oneday)
@@ -382,6 +391,7 @@ local function linesubst(line, title, dates)
         date = dates.date,
         isoweek = dates.isoweek,
         year = dates.year,
+        rfc3339 = dates.rfc3339,
 
         prevday = dates.prevday,
         nextday = dates.nextday,
