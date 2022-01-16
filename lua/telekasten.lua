@@ -146,27 +146,32 @@ local function print_error(s)
 end
 
 local function check_dir_and_ask(dir, purpose)
-    local ret = true
+    local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
-        print_error(
+        vim.cmd("echohl ErrorMsg")
+        local answer = vim.fn.input(
             "Telekasten.nvim: "
                 .. purpose
                 .. " folder "
                 .. dir
                 .. " does not exist!"
+                .. " Shall I create it? [y/N] "
         )
-        local answer = vim.fn.input("Shall I create it? [y/N] ")
+        vim.cmd("echohl None")
         answer = vim.fn.trim(answer)
         if answer == "y" or answer == "Y" then
             if Path:new(dir):mkdir({ exists_ok = false }) then
                 vim.cmd('echomsg " "')
                 vim.cmd('echomsg "' .. dir .. ' created"')
+                ret = true
             else
                 -- unreachable: plenary.Path:mkdir() will error out
                 print_error("Could not create directory " .. dir)
                 ret = false
             end
         end
+    else
+        ret = true
     end
     return ret
 end
@@ -196,6 +201,10 @@ end
 -- ----------------------------------------------------------------------------
 -- image stuff
 local function imgFromClipboard()
+    if not global_dir_check() then
+        return
+    end
+
     if vim.fn.executable("xclip") == 0 then
         vim.api.nvim_err_write("No xclip installed!\n")
         return
@@ -1064,6 +1073,10 @@ local function FindDailyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
+    if not global_dir_check() then
+        return
+    end
+
     local today = os.date(dateformats.date)
     local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
     local fexists = file_exists(fname)
@@ -1108,6 +1121,10 @@ local function FindWeeklyNotes(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+
+    if not global_dir_check() then
+        return
+    end
 
     local title = os.date(dateformats.isoweek)
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
@@ -1154,6 +1171,10 @@ local function InsertLink(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+
+    if not global_dir_check() then
+        return
+    end
 
     find_files_sorted({
         prompt_title = "Insert link to note",
@@ -1230,6 +1251,10 @@ local function PreviewImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
+    if not global_dir_check() then
+        return
+    end
+
     vim.cmd("normal yi)")
     local fname = vim.fn.getreg('"0')
 
@@ -1284,6 +1309,10 @@ local function BrowseImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
+    if not global_dir_check() then
+        return
+    end
+
     find_files_sorted({
         prompt_title = "Preview image/media",
         cwd = M.Cfg.home,
@@ -1326,6 +1355,10 @@ local function FindFriends(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+
+    if not global_dir_check() then
+        return
+    end
 
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
@@ -1432,6 +1465,11 @@ end
 --
 local function GotoToday(opts)
     opts = opts or {}
+
+    if not global_dir_check() then
+        return
+    end
+
     local today = os.date(dateformats.date)
     opts.date_table = os.date("*t")
     opts.date = today
@@ -1450,6 +1488,10 @@ local function FindNotes(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+
+    if not global_dir_check() then
+        return
+    end
 
     find_files_sorted({
         prompt_title = "Find notes by name",
@@ -1476,6 +1518,11 @@ end
 --
 local function InsertImgLink(opts)
     opts = opts or {}
+
+    if not global_dir_check() then
+        return
+    end
+
     find_files_sorted({
         prompt_title = "Find image/media",
         cwd = M.Cfg.home,
@@ -1526,6 +1573,10 @@ local function SearchNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
+    if not global_dir_check() then
+        return
+    end
+
     builtin.live_grep({
         prompt_title = "Search in notes",
         cwd = M.Cfg.home,
@@ -1557,6 +1608,10 @@ local function ShowBacklinks(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+
+    if not global_dir_check() then
+        return
+    end
 
     local title = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
     -- or vim.api.nvim_buf_get_name(0)
@@ -1640,6 +1695,11 @@ end
 
 local function CreateNoteSelectTemplate(opts)
     opts = opts or {}
+
+    if not global_dir_check() then
+        return
+    end
+
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
@@ -1705,6 +1765,11 @@ local function CreateNote(opts)
     opts = opts or {}
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create)
+
+    if not global_dir_check() then
+        return
+    end
+
     if M.Cfg.template_handling == "always_ask" then
         return CreateNoteSelectTemplate(opts)
     end
@@ -1731,6 +1796,10 @@ local function FollowLink(opts)
 
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
+
+    if not global_dir_check() then
+        return
+    end
 
     local search_mode = "files"
     local title
@@ -2159,6 +2228,10 @@ local function GotoThisWeek(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
+    if not global_dir_check() then
+        return
+    end
+
     local dinfo = calculate_dates()
     local title = dinfo.isoweek
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
@@ -2310,6 +2383,10 @@ local function FindAllTags(opts)
     local i = opts.i
     opts.cwd = M.Cfg.home
     opts.tag_notation = M.Cfg.tag_notation
+
+    if not global_dir_check() then
+        return
+    end
 
     local tag_map = tagutils.do_find_all_tags(opts)
     local taglist = {}
@@ -2474,8 +2551,6 @@ local function Setup(cfg)
         print("-----------------")
         print(vim.inspect(M.Cfg))
     end
-
-    global_dir_check()
 end
 
 M.find_notes = FindNotes
