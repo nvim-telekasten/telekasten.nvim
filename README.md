@@ -466,7 +466,7 @@ the list for a more detailed description:
 - `insert_img_link` : Browse images / media files and insert a link to the selected one
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
-- `rename_note` : Rename current note and possibly update the links pointing to it
+- `rename_note` : Rename current note and update the links pointing to it
 
 The Telekasten command supports sub-command completion, in my case by pressing <kbd>TAB</kbd>.
 

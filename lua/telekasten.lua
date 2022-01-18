@@ -202,21 +202,30 @@ local function escape(s)
 end
 
 local function recursive_substitution(dir, old, new)
-    if vim.fn.has("mac") == 1 or vim.fn.has("unix") == 1 then
-        os.execute(
-            "find "
-                .. dir
-                .. " -type f -name '*"
-                .. M.Cfg.extension
-                .. "' -exec sed -i 's|"
-                .. old
-                .. "|"
-                .. new
-                .. "|g' {} +"
-        )
-    else
-        print("Cannot open update links on your operating system")
+    if not global_dir_check() then
+        return
     end
+
+    if vim.fn.executable("find") == 0 then
+        vim.api.nvim_err_write("Find not installed!\n")
+        return
+    end
+    if vim.fn.executable("sed") == 0 then
+        vim.api.nvim_err_write("Sed not installed!\n")
+        return
+    end
+
+    os.execute(
+        "find "
+            .. dir
+            .. " -type f -name '*"
+            .. M.Cfg.extension
+            .. "' -exec sed -i 's|"
+            .. old
+            .. "|"
+            .. new
+            .. "|g' {} +"
+    )
 end
 
 -- ----------------------------------------------------------------------------
@@ -1431,11 +1440,12 @@ local function RenameNote()
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
     local newpath = newname:match("(.*/)")
 
+    -- If no subdir specified, place the new note in the same place as old note
     if M.Cfg.subdirs_in_links == true and newpath == nil and subdir ~= "" then
         newname = subdir .. "/" .. newname
     end
 
-    -- could probably be improved substantially
+    -- Savas newfile, delete buffer of old one and remove old file
     if newname ~= "" and newname ~= oldname then
         vim.cmd("saveas " .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldname .. M.Cfg.extension)
@@ -1446,9 +1456,11 @@ local function RenameNote()
     if M.Cfg.rename_update_links == true then
         -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
         -- Should use regex instead to ensure it is a proper link
-        -- Should also account for other types of links (?)
         local oldlink = "\\[\\[" .. oldname
         local newlink = "\\[\\[" .. newname
+
+        -- Save all open buffers before looking for links to replace
+        vim.cmd("wa")
 
         recursive_substitution(M.Cfg.home, oldlink, newlink)
         recursive_substitution(M.Cfg.dailies, oldlink, newlink)
