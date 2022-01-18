@@ -188,11 +188,12 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
     ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
     ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-    ret = ret
-        and check_dir_and_ask(
-            M.Cfg.home .. "/" .. M.Cfg.image_subdir,
-            "image_subdir"
-        )
+
+    local img_dir = M.Cfg.home
+    if M.Cfg.image_subdir then
+        img_dir = img_dir .. "/" .. M.Cfg.image_subdir
+    end
+    ret = ret and check_dir_and_ask(img_dir, "image_subdir")
 
     return ret
 end
