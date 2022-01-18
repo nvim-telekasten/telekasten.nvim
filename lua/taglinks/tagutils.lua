@@ -112,8 +112,13 @@ M.do_find_all_tags = function(opts)
             args = args,
             enable_recording = true,
             on_exit = function(j, return_val)
-                for _, line in pairs(j:result()) do
-                    parse_entry(opts, line, ret)
+                if return_val == 0 then
+                    for _, line in pairs(j:result()) do
+                        parse_entry(opts, line, ret)
+                    end
+                else
+                    print("rg return value: " .. tostring(return_val))
+                    print("stderr: ", vim.inspect(j:stderr_result()))
                 end
             end,
             on_stderr = function(err, data, _)
