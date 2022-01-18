@@ -1424,18 +1424,27 @@ local function RenameNote()
     local newname = vim.fn.input("New name: ")
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
 
+    -- oldname should include subdir if subdirs_in_links = true
+    -- newname should automatically add subdir if subdirs_in_links = true and user did not add it themselves
+
+    -- could probably be improved substantially
     if newname ~= "" and newname ~= oldname then
         vim.cmd("saveas " .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldname .. M.Cfg.extension)
-        vim.cmd("!rm " .. oldname .. M.Cfg.extension)
+        os.execute("rm " .. M.Cfg.home .. "/" .. oldname .. M.Cfg.extension)
         vim.cmd("redraw!")
     end
 
     if M.Cfg.rename_update_links == true then
-        -- Sed magic to rename all links (in a separate function)
-        local oldlink = "\\[\\[" .. oldname .. "\\]\\]"
-        local newlink = "\\[\\[" .. newname .. "\\]\\]"
+        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
+        -- Should use regex instead to ensure it is a proper link
+        -- Should also account for other types of links (?)
+        local oldlink = "\\[\\[" .. oldname
+        local newlink = "\\[\\[" .. newname
+
         recursive_substitution(M.Cfg.home, oldlink, newlink)
+        recursive_substitution(M.Cfg.dailies, oldlink, newlink)
+        recursive_substitution(M.Cfg.weeklies, oldlink, newlink)
     end
 end
 
