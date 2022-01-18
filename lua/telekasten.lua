@@ -1421,11 +1421,15 @@ end
 --
 local function RenameNote()
     local oldname = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
+    local subdir = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).sub_dir
+
     local newname = vim.fn.input("New name: ")
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    local newpath = newname:match("(.*/)")
 
-    -- oldname should include subdir if subdirs_in_links = true
-    -- newname should automatically add subdir if subdirs_in_links = true and user did not add it themselves
+    if M.Cfg.subdirs_in_links == true and newpath == nil then
+        newname = subdir .. "/" .. newname
+    end
 
     -- could probably be improved substantially
     if newname ~= "" and newname ~= oldname then
