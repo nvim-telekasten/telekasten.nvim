@@ -202,17 +202,21 @@ local function escape(s)
 end
 
 local function recursive_substitution(dir, old, new)
-    os.execute(
-        "find "
-            .. dir
-            .. " -type f -name '*"
-            .. M.Cfg.extension
-            .. "' -exec sed -i 's|"
-            .. old
-            .. "|"
-            .. new
-            .. "|g' {} +"
-    )
+    if vim.fn.has("mac") == 1 or vim.fn.has("unix") == 1 then
+        os.execute(
+            "find "
+                .. dir
+                .. " -type f -name '*"
+                .. M.Cfg.extension
+                .. "' -exec sed -i 's|"
+                .. old
+                .. "|"
+                .. new
+                .. "|g' {} +"
+        )
+    else
+        print("Cannot open update links on your operating system")
+    end
 end
 
 -- ----------------------------------------------------------------------------
@@ -1427,7 +1431,7 @@ local function RenameNote()
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
     local newpath = newname:match("(.*/)")
 
-    if M.Cfg.subdirs_in_links == true and newpath == nil then
+    if M.Cfg.subdirs_in_links == true and newpath == nil and subdir ~= "" then
         newname = subdir .. "/" .. newname
     end
 
