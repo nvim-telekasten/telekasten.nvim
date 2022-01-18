@@ -123,6 +123,9 @@ M.Cfg = {
     --                        present or else in home
     --                        except for notes/with/subdirs/in/title.
     new_note_location = "smart",
+
+    -- should all links be updated when a file is renamed
+    rename_update_links = true,
 }
 
 local function file_exists(fname)
@@ -196,6 +199,20 @@ end
 --- escapes a string for use as exact pattern within gsub
 local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
+local function recursive_substitution(dir, old, new)
+    os.execute(
+        "find "
+            .. dir
+            .. " -type f -name '*"
+            .. M.Cfg.extension
+            .. "' -exec sed -i 's|"
+            .. old
+            .. "|"
+            .. new
+            .. "|g' {} +"
+    )
 end
 
 -- ----------------------------------------------------------------------------
@@ -1397,6 +1414,32 @@ local function YankLink()
 end
 
 --
+-- RenameNote:
+-- -----------
+--
+-- Prompt for new note title, rename the note and update all links.
+--
+local function RenameNote()
+    local oldname = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
+    local newname = vim.fn.input("New name: ")
+    newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
+
+    if newname ~= "" and newname ~= oldname then
+        vim.cmd("saveas " .. newname .. M.Cfg.extension)
+        vim.cmd("bdelete " .. oldname .. M.Cfg.extension)
+        vim.cmd("!rm " .. oldname .. M.Cfg.extension)
+        vim.cmd("redraw!")
+    end
+
+    if M.Cfg.rename_update_links == true then
+        -- Sed magic to rename all links (in a separate function)
+        local oldlink = "\\[\\[" .. oldname .. "\\]\\]"
+        local newlink = "\\[\\[" .. newname .. "\\]\\]"
+        recursive_substitution(M.Cfg.home, oldlink, newlink)
+    end
+end
+
+--
 -- GotoDate:
 -- ----------
 --
@@ -2564,6 +2607,7 @@ M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
+M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
 M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
@@ -2592,6 +2636,7 @@ local TelekastenCmd = {
             { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
             { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
