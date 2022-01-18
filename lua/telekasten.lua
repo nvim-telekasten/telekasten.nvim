@@ -188,7 +188,11 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
     ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
     ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "image_subdir")
+    ret = ret
+        and check_dir_and_ask(
+            M.Cfg.home .. "/" .. M.Cfg.image_subdir,
+            "image_subdir"
+        )
 
     return ret
 end
@@ -2128,6 +2132,8 @@ local function FollowLink(opts)
                     return rawget(t, rawget(lookup_keys, k))
                 end,
             }
+
+            --
             if opts.show_link_counts then
                 mt_vimgrep_entry.display = make_display
             else
