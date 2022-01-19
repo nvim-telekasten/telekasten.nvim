@@ -60,7 +60,7 @@ local function yaml_to_tags(line, entry, ret)
 
     local i = 1
     local j
-    local prev_i
+    local prev_i = 1
     local tag
     while true do
         i, j = line:find("%s*.*%s*,", i)
@@ -73,6 +73,9 @@ local function yaml_to_tags(line, entry, ret)
         end
 
         local new_entry = {}
+
+        -- strip trailing ]
+        tag = tag:gsub("]", "")
         new_entry.t = tag
         new_entry.l = entry.l
         new_entry.fn = entry.fn
