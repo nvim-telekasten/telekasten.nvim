@@ -191,7 +191,12 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
     ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
     ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "image_subdir")
+
+    local img_dir = M.Cfg.home
+    if M.Cfg.image_subdir then
+        img_dir = img_dir .. "/" .. M.Cfg.image_subdir
+    end
+    ret = ret and check_dir_and_ask(img_dir, "image_subdir")
 
     return ret
 end
@@ -2200,6 +2205,8 @@ local function FollowLink(opts)
                     return rawget(t, rawget(lookup_keys, k))
                 end,
             }
+
+            --
             if opts.show_link_counts then
                 mt_vimgrep_entry.display = make_display
             else
@@ -2261,10 +2268,11 @@ local function FollowLink(opts)
         )
 
         -- builtin.live_grep({
-        pickers.new({
+        local picker = pickers.new({
             cwd = cwd,
             prompt_title = "Notes referencing `" .. title .. "`",
             default_text = search_pattern,
+            initial_mode = "insert",
             -- link to specific file (a daily file): [[2021-02-22]]
             -- link to heading in specific file (a daily file): [[2021-02-22#Touchpoint]]
             -- link to heading globally [[#Touchpoint]]
@@ -2283,7 +2291,8 @@ local function FollowLink(opts)
                 map("n", "<c-cr>", picker_actions.paste_link(opts))
                 return true
             end,
-        }):find()
+        })
+        picker:find()
     end
 end
 
@@ -2516,15 +2525,16 @@ local function FindAllTags(opts)
         sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
-                actions._close(prompt_bufnr, true)
-
                 -- actions for insert tag, default action: search for tag
                 local selection = action_state.get_selected_entry().value.tag
                 local follow_opts = {
                     follow_tag = selection,
                     show_link_counts = true,
                 }
-                FollowLink(follow_opts)
+                actions._close(prompt_bufnr, false)
+                vim.schedule(function()
+                    FollowLink(follow_opts)
+                end)
             end)
             map("i", "<c-y>", picker_actions.yank_tag(opts))
             map("i", "<c-i>", picker_actions.paste_tag(opts))
