@@ -206,6 +206,7 @@ To avoid the most common Windows issue:
 - Second best option: try WSL2 on Windows and pretend you're on Linux
 - if you **must** use Windows, use `/Users/myname/zettelkasten` instead of `~/zettelkasten`
 - **NEVER** use `C:\Users\myname` style paths
+- Using `vim.fn.expand("~/zettelkasten")` should work now but mileage will vary with anything outside of finding and opening files
 
 ```lua
 lua << END
@@ -215,6 +216,7 @@ local home = vim.fn.expand("~/zettelkasten")
 -- - try WSL2 on Windows and pretend you're on Linux
 -- - if you **must** use Windows, use "/Users/myname/zettelkasten" instead of "~/zettelkasten"
 -- - NEVER use "C:\Users\myname" style paths
+-- - Using `vim.fn.expand("~/zettelkasten")` should work now but mileage will vary with anything outside of finding and opening files
 require('telekasten').setup({
     home         = home,
 
@@ -331,6 +333,7 @@ END
 |        | - try WSL2 on Windows and pretend you're on Linux | |
 |        | - if you **must** use Windows, use `/Users/myname/zettelkasten` instead of `~/zettelkasten` | |
 |        | - **NEVER** use `C:\Users\myname` style paths | |
+|        | - Using `vim.fn.expand("~/zettelkasten")` should work now but mileage will vary with anything outside of finding and opening files | |
 | **`take_over_my_home`** | if set to `true` (default), telekasten will take over your home. Any notes from the configured `home` directory will receive a `set filetype=telekasten`, no matter if opened by telekasten or another way. | true |
 | `dailies` | path where your daily notes go | ~/zettelkasten/daily |
 | `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
