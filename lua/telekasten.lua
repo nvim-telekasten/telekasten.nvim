@@ -222,7 +222,6 @@ local escape_chars = function(string)
         ["*"] = "\\*",
         ["^"] = "\\^",
         ["$"] = "\\$",
-        ["/"] = "\\/",
     })
 end
 
@@ -231,10 +230,6 @@ local function recursive_substitution(dir, old, new)
         return
     end
 
-    if vim.fn.executable("find") == 0 then
-        vim.api.nvim_err_write("Find not installed!\n")
-        return
-    end
     if vim.fn.executable("sed") == 0 then
         vim.api.nvim_err_write("Sed not installed!\n")
         return
@@ -243,16 +238,22 @@ local function recursive_substitution(dir, old, new)
     old = escape_chars(old)
     new = escape_chars(new)
 
-    local replace_cmd = "find "
-        .. dir
-        .. " -type f -name '*"
-        .. M.Cfg.extension
-        .. "' -exec sed -i 's/"
-        .. old
-        .. "/"
-        .. new
-        .. "/g' {} +"
+    local sedcommand = "sed -i"
+    if vim.fn.has("mac") == 1 then
+        sedcommand = "sed -i ''"
+    end
 
+    local replace_cmd = "rg -l -t markdown '"
+        .. old
+        .. "' "
+        .. dir
+        .. " | xargs "
+        .. sedcommand
+        .. " 's|"
+        .. old
+        .. "|"
+        .. new
+        .. "|g' >/dev/null 2>&1"
     os.execute(replace_cmd)
 end
 
@@ -1500,12 +1501,12 @@ local function RenameNote()
         if not (check_dir_and_ask(newpath, "Renamed file")) then
             return
         end
-        vim.cmd("saveas " .. newname .. M.Cfg.extension)
+
+        vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
         os.execute(
             "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
         )
-        -- vim.cmd("redraw!")
     end
 
     if M.Cfg.rename_update_links == true then
