@@ -251,16 +251,15 @@ local function imgFromClipboard()
     -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-    local pngpath = M.Cfg.home
+    local pngpath = M.Cfg.home .. "/" .. pngname
     local relpath = pngname
 
     if M.Cfg.image_subdir then
         relpath = Path:new(M.Cfg.image_subdir):make_relative(M.Cfg.home)
             .. "/"
             .. pngname
-        --pngpath = M.Cfg.home .. "/" .. M.Cfg.image_subdir
+        pngpath = M.Cfg.image_subdir .. "/" .. pngname
     end
-    pngpath = M.Cfg.image_subdir .. "/" .. pngname
 
     os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
     if file_exists(pngpath) then
