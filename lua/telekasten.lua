@@ -233,6 +233,17 @@ local function recursive_substitution(dir, old, new)
     )
 end
 
+local function save_all_tk_buffers()
+    for i = 1, vim.fn.bufnr("$") do
+        if
+            vim.fn.getbufvar(i, "&filetype") == "telekasten"
+            and vim.fn.getbufvar(i, "&mod") == 1
+        then
+            vim.cmd(i .. "bufdo w")
+        end
+    end
+end
+
 -- ----------------------------------------------------------------------------
 -- image stuff
 local function imgFromClipboard()
@@ -1460,7 +1471,7 @@ local function RenameNote()
         os.execute(
             "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
         )
-        vim.cmd("redraw!")
+        -- vim.cmd("redraw!")
     end
 
     if M.Cfg.rename_update_links == true then
@@ -1469,19 +1480,18 @@ local function RenameNote()
         local oldlink = "\\[\\[" .. oldfile.title
         local newlink = "\\[\\[" .. newname
 
-        -- Save all open buffers before looking for links to replace
-        if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
+        -- Save open telekasten buffers before looking for links to replace
+        if
+            #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1
+            and M.Cfg.auto_set_filetype == true
+        then
             local answer = vim.fn.input(
                 "Telekasten.nvim:"
                     .. "Save all telekasten buffers before updating links? [Y/n]"
             )
             answer = vim.fn.trim(answer)
             if answer ~= "n" and answer ~= "N" then
-                for i = 1, vim.fn.bufnr("$") do
-                    if vim.fn.getbufvar(i, "&filetype") == "telekasten" then
-                        vim.cmd(i .. "bufdo w")
-                    end
-                end
+                save_all_tk_buffers()
             end
         end
 
