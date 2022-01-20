@@ -1470,13 +1470,18 @@ local function RenameNote()
         local newlink = "\\[\\[" .. newname
 
         -- Save all open buffers before looking for links to replace
-        if #(vim.fn.getbufinfo({ buflisted = 1 })) > 1 then
+        if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             local answer = vim.fn.input(
-                "Telekasten.nvim: Save all current buffers before updating links? [Y/n]"
+                "Telekasten.nvim:"
+                    .. "Save all telekasten buffers before updating links? [Y/n]"
             )
             answer = vim.fn.trim(answer)
             if answer ~= "n" and answer ~= "N" then
-                vim.cmd("wa")
+                for i = 1, vim.fn.bufnr("$") do
+                    if vim.fn.getbufvar(i, "&filetype") == "telekasten" then
+                        vim.cmd(i .. "bufdo w")
+                    end
+                end
             end
         end
 
