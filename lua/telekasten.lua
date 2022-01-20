@@ -24,7 +24,7 @@ local Path = require("plenary.path")
 local vim = vim
 
 -- Cleans home path for Windows users
--- Needs to be before default config, else with no use config
+-- Needs to be before default config, else with no user config
 -- home will not be cleaned and issues will still occur
 local function CleanPath(path)
     -- File path delimeter for Windows machines
