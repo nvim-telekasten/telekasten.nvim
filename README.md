@@ -197,9 +197,24 @@ Other plugins I find useful in my day-to-day zettelkasten work:
 
 Somewhere in your vim config, put a snippet like this:
 
+**Windows and macOS** users, please note: While this plugin works on Windows and macOS, it was not specifically designed
+to support Windows well. Even on macOS, some of the features like image preview will not work out-of-the-box.
+
+To avoid the most common Windows issue:
+
+- Best option: don't use Windows if possible
+- Second best option: try WSL2 on Windows and pretend you're on Linux
+- if you **must** use Windows, use `/Users/myname/zettelkasten` instead of `~/zettelkasten`
+- **NEVER** use `C:\Users\myname` style paths
+
 ```lua
 lua << END
 local home = vim.fn.expand("~/zettelkasten")
+-- NOTE for Windows users:
+-- - don't use Windows
+-- - try WSL2 on Windows and pretend you're on Linux
+-- - if you **must** use Windows, use "/Users/myname/zettelkasten" instead of "~/zettelkasten"
+-- - NEVER use "C:\Users\myname" style paths
 require('telekasten').setup({
     home         = home,
 
@@ -311,6 +326,11 @@ END
 | setting | description | example |
 | --- | --- | --- |
 | `home` | path to your zettelkasten folder (folder with markdown files) | ~/zettelkasten |
+|        | NOTE for Windows users: | |
+|        | - don't use Windows | |
+|        | - try WSL2 on Windows and pretend you're on Linux | |
+|        | - if you **must** use Windows, use `/Users/myname/zettelkasten` instead of `~/zettelkasten` | |
+|        | - **NEVER** use `C:\Users\myname` style paths | |
 | **`take_over_my_home`** | if set to `true` (default), telekasten will take over your home. Any notes from the configured `home` directory will receive a `set filetype=telekasten`, no matter if opened by telekasten or another way. | true |
 | `dailies` | path where your daily notes go | ~/zettelkasten/daily |
 | `weeklies` | path where your weekly notes go | ~/zettelkasten/weekly |
@@ -572,25 +592,25 @@ The following links are supported:
 ```markdown
 # Note links
 - [[A cool title]]  ................. links to the note named 'A cool title'
-- [[A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within the note 
+- [[A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within the note
                                       named 'A cool title'
-- [[A cool title#^xxxxxxxx]]  ....... links to the paragraph with id ^xxxxxxxx within the note 
+- [[A cool title#^xxxxxxxx]]  ....... links to the paragraph with id ^xxxxxxxx within the note
                                       named 'A cool title'
 - [[#Heading 27]]  .................. links to the heading 'Heading 27' within all notes
 - [[#^xxxxxxxx]]  ................... links to the paragraph with id ^xxxxxxxx within all notes
 
 ## Optionally, notes can live in specific sub-directories
-- [[some/subdirectory/A cool title]]  ................. links to note named 'A cool title' 
+- [[some/subdirectory/A cool title]]  ................. links to note named 'A cool title'
                                                         in some/subdirectory
-- [[some/subdirectory/A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within 
-                                                        the note named 'A cool title' 
+- [[some/subdirectory/A cool title#Heading 27]]  ...... links to the heading 'Heading 27' within
+                                                        the note named 'A cool title'
                                                         in some/subdirectory
-- [[some/subdirectory/A cool title#^xxxxxxxx]]  ....... links to the paragraph with 
-                                                        id ^xxxxxxxx within the note named 
+- [[some/subdirectory/A cool title#^xxxxxxxx]]  ....... links to the paragraph with
+                                                        id ^xxxxxxxx within the note named
                                                         'A cool title' in some/subdirectory
 
 # Media links
-Use these for images, PDF files, videos. If telescope-media-files is installed, these can 
+Use these for images, PDF files, videos. If telescope-media-files is installed, these can
 be previewed.
 - ![optional title](path/to/file) ... links to the file `path/to/file`
 ```
@@ -613,7 +633,7 @@ Regarding linking to paragraphs: The `^blockid` notation is supported by more an
   illustrated below.
 
   ```markdown
-  Here we have a line or even a paragraph. 
+  Here we have a line or even a paragraph.
   We don't want to have a block id dangling
   at the end of a line. So instead, we just
   put it in the next one.
