@@ -253,7 +253,6 @@ local function recursive_substitution(dir, old, new)
         .. new
         .. "/g' {} +"
 
-    print(replace_cmd)
     os.execute(replace_cmd)
 end
 
@@ -1477,19 +1476,30 @@ local function RenameNote()
 
     local newname = vim.fn.input("New name: ")
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
-    local newpath = newname:match("(.*/)")
+    local newpath = newname:match("(.*/)") or ""
+    newpath = M.Cfg.home .. "/" .. newpath
 
     -- If no subdir specified, place the new note in the same place as old note
     if
         M.Cfg.subdirs_in_links == true
-        and newpath == nil
+        and newpath == M.Cfg.home .. "/"
         and oldfile.sub_dir ~= ""
     then
         newname = oldfile.sub_dir .. "/" .. newname
     end
 
+    local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
+    local fexists = file_exists(fname)
+    if fexists then
+        print_error("File alreay exists. Renaming abandonned")
+        return
+    end
+
     -- Savas newfile, delete buffer of old one and remove old file
     if newname ~= "" and newname ~= oldfile.title then
+        if not (check_dir_and_ask(newpath, "Renamed file")) then
+            return
+        end
         vim.cmd("saveas " .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
         os.execute(
