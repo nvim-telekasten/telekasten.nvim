@@ -206,6 +206,26 @@ local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
+-- sanitize strings
+local escape_chars = function(string)
+    return string.gsub(string, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
+        ["\\"] = "\\\\",
+        ["-"] = "\\-",
+        ["("] = "\\(",
+        [")"] = "\\)",
+        ["["] = "\\[",
+        ["]"] = "\\]",
+        ["{"] = "\\{",
+        ["}"] = "\\}",
+        ["?"] = "\\?",
+        ["+"] = "\\+",
+        ["*"] = "\\*",
+        ["^"] = "\\^",
+        ["$"] = "\\$",
+        ["/"] = "\\/",
+    })
+end
+
 local function recursive_substitution(dir, old, new)
     if not global_dir_check() then
         return
@@ -220,17 +240,21 @@ local function recursive_substitution(dir, old, new)
         return
     end
 
-    os.execute(
-        "find "
-            .. dir
-            .. " -type f -name '*"
-            .. M.Cfg.extension
-            .. "' -exec sed -i 's|"
-            .. old
-            .. "|"
-            .. new
-            .. "|g' {} +"
-    )
+    old = escape_chars(old)
+    new = escape_chars(new)
+
+    local replace_cmd = "find "
+        .. dir
+        .. " -type f -name '*"
+        .. M.Cfg.extension
+        .. "' -exec sed -i 's/"
+        .. old
+        .. "/"
+        .. new
+        .. "/g' {} +"
+
+    print(replace_cmd)
+    os.execute(replace_cmd)
 end
 
 local function save_all_tk_buffers()
@@ -1477,8 +1501,8 @@ local function RenameNote()
     if M.Cfg.rename_update_links == true then
         -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
         -- Should use regex instead to ensure it is a proper link
-        local oldlink = "\\[\\[" .. oldfile.title
-        local newlink = "\\[\\[" .. newname
+        local oldlink = "[[" .. oldfile.title
+        local newlink = "[[" .. newname
 
         -- Save open telekasten buffers before looking for links to replace
         if
