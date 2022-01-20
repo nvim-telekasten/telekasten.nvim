@@ -901,6 +901,7 @@ local function find_files_sorted(opts)
     local function entry_maker(entry)
         local iconic_entry = {}
         iconic_entry.value = entry
+        iconic_entry.path = entry
         iconic_entry.ordinal = entry
         if opts.show_link_counts then
             iconic_entry.display = make_display
