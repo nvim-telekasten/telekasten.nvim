@@ -158,18 +158,21 @@ telekasten.setup({opts})
                                                *telekasten.settings.daily*
     daily: ~
         Path to your daily notes, to separate them from 'normal' notes.
+        Accepts absolute path or sub-directory name.
 
         Default: '~/zettelkasten/daily'
 
                                               *telekasten.settings.weekly*
     weekly: ~
         Path to your weekly notes, to separate them from 'normal' notes.
+        Accepts absolute path or sub-directory name.
 
         Default: '~/zettelkasten/weekly'
 
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
+        Accepts absolute path or sub-directory name.
 
         Default: '~/zettelkasten/templates'
 
@@ -181,8 +184,9 @@ telekasten.setup({opts})
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
-        Sub-directory where pasted images should go to. Set to `nil` if images
-        should not go into a sub-directory.
+        Path to the directory where pasted images should go to. Accepts
+        absolute path or sub-directory name.Set to `nil` if images should not
+        go into a sub-directory.
 
         Default: `nil`
 

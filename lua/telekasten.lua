@@ -39,12 +39,13 @@ M.Cfg = {
     --                               and thus the telekasten syntax will not be loaded either
     auto_set_filetype = true,
 
+    -- dir names for special notes (absolute path or subdir name)
     dailies = home .. "/" .. "daily",
     weeklies = home .. "/" .. "weekly",
     templates = home .. "/" .. "templates",
 
-    -- image subdir for pasting
-    -- subdir name
+    -- image (sub)dir for pasting
+    -- dir name (absolute path or subdir name)
     -- or nil if pasted images shouldn't go into a special subdir
     image_subdir = nil,
 
@@ -188,12 +189,13 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
     ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
     ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
+    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
 
-    local img_dir = M.Cfg.home
-    if M.Cfg.image_subdir then
-        img_dir = img_dir .. "/" .. M.Cfg.image_subdir
-    end
-    ret = ret and check_dir_and_ask(img_dir, "image_subdir")
+    -- local img_dir = M.Cfg.home
+    -- if M.Cfg.image_subdir then
+    --     img_dir = img_dir .. "/" .. M.Cfg.image_subdir
+    -- end
+    -- ret = ret and check_dir_and_ask(img_dir, "M.Cfg.image_subdir")
 
     return ret
 end
@@ -201,6 +203,14 @@ end
 --- escapes a string for use as exact pattern within gsub
 local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
+local function make_absolute_path(path)
+    local ret = path
+    if not (Path:new(path):is_absolute()) and path ~= nil then
+        ret = M.Cfg.home .. "/" .. path
+    end
+    return ret
 end
 
 -- ----------------------------------------------------------------------------
@@ -251,10 +261,12 @@ local function imgFromClipboard()
     local relpath = pngname
 
     if M.Cfg.image_subdir then
-        relpath = M.Cfg.image_subdir .. "/" .. pngname
-        pngpath = M.Cfg.home .. "/" .. M.Cfg.image_subdir
+        relpath = Path:new(M.Cfg.image_subdir):make_relative(M.Cfg.home)
+            .. "/"
+            .. pngname
+        --pngpath = M.Cfg.home .. "/" .. M.Cfg.image_subdir
     end
-    pngpath = pngpath .. "/" .. pngname
+    pngpath = M.Cfg.image_subdir .. "/" .. pngname
 
     os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
     if file_exists(pngpath) then
@@ -2562,6 +2574,12 @@ local function Setup(cfg)
         print("-----------------")
         print(vim.inspect(M.Cfg))
     end
+
+    -- Convert all directories in full path
+    M.Cfg.image_subdir = make_absolute_path(M.Cfg.image_subdir)
+    M.Cfg.dailies = make_absolute_path(M.Cfg.dailies)
+    M.Cfg.weeklies = make_absolute_path(M.Cfg.weeklies)
+    M.Cfg.templates = make_absolute_path(M.Cfg.templates)
 end
 
 M.find_notes = FindNotes

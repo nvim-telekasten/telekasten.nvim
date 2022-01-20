@@ -225,12 +225,13 @@ require('telekasten').setup({
     --                               and thus the telekasten syntax will not be loaded either
     auto_set_filetype = true,
 
+    -- dir names for special notes (absolute path or subdir name)
     dailies      = home .. '/' .. 'daily',
     weeklies     = home .. '/' .. 'weekly',
     templates    = home .. '/' .. 'templates',
 
-    -- image subdir for pasting
-    -- subdir name
+    -- image (sub)dir for pasting
+    -- dir name (absolute path or subdir name)
     -- or nil if pasted images shouldn't go into a special subdir
     image_subdir = "img",
 
