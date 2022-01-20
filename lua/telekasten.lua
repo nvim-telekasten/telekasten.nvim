@@ -1438,34 +1438,47 @@ end
 -- Prompt for new note title, rename the note and update all links.
 --
 local function RenameNote()
-    local oldname = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
-    local subdir = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).sub_dir
+    local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
     local newname = vim.fn.input("New name: ")
     newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
     local newpath = newname:match("(.*/)")
 
     -- If no subdir specified, place the new note in the same place as old note
-    if M.Cfg.subdirs_in_links == true and newpath == nil and subdir ~= "" then
-        newname = subdir .. "/" .. newname
+    if
+        M.Cfg.subdirs_in_links == true
+        and newpath == nil
+        and oldfile.sub_dir ~= ""
+    then
+        newname = oldfile.sub_dir .. "/" .. newname
     end
 
     -- Savas newfile, delete buffer of old one and remove old file
-    if newname ~= "" and newname ~= oldname then
+    if newname ~= "" and newname ~= oldfile.title then
         vim.cmd("saveas " .. newname .. M.Cfg.extension)
-        vim.cmd("bdelete " .. oldname .. M.Cfg.extension)
-        os.execute("rm " .. M.Cfg.home .. "/" .. oldname .. M.Cfg.extension)
+        vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
+        os.execute(
+            "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
+        )
         vim.cmd("redraw!")
     end
 
     if M.Cfg.rename_update_links == true then
         -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
         -- Should use regex instead to ensure it is a proper link
-        local oldlink = "\\[\\[" .. oldname
+        local oldlink = "\\[\\[" .. oldfile.title
         local newlink = "\\[\\[" .. newname
 
         -- Save all open buffers before looking for links to replace
-        vim.cmd("wa")
+        if #(vim.fn.getbufinfo({ buflisted = 1 })) > 1 then
+            local answer = vim.fn.input(
+                "Telekasten.nvim: Save all current buffers before updating links? [Y/n]"
+            )
+            answer = vim.fn.trim(answer)
+            if answer ~= "n" and answer ~= "N" then
+                vim.cmd("wa")
+            end
+        end
 
         recursive_substitution(M.Cfg.home, oldlink, newlink)
         recursive_substitution(M.Cfg.dailies, oldlink, newlink)
