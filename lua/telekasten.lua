@@ -199,7 +199,7 @@ local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
-local function make_absolute_path(path)
+local function make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
         ret = M.Cfg.home .. "/" .. path
@@ -2569,10 +2569,10 @@ local function Setup(cfg)
     end
 
     -- Convert all directories in full path
-    M.Cfg.image_subdir = make_absolute_path(M.Cfg.image_subdir)
-    M.Cfg.dailies = make_absolute_path(M.Cfg.dailies)
-    M.Cfg.weeklies = make_absolute_path(M.Cfg.weeklies)
-    M.Cfg.templates = make_absolute_path(M.Cfg.templates)
+    M.Cfg.image_subdir = make_config_path_absolute(M.Cfg.image_subdir)
+    M.Cfg.dailies = make_config_path_absolute(M.Cfg.dailies)
+    M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
+    M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
 end
 
 M.find_notes = FindNotes
