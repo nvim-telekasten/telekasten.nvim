@@ -1587,7 +1587,7 @@ local function SearchNotes(opts)
         prompt_title = "Search in notes",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
-        default_text = vim.fn.expand("<cword>"),
+        default_text = opts.default_text or vim.fn.expand("<cword>"),
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
