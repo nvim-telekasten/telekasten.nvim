@@ -2514,6 +2514,7 @@ local function Setup(cfg)
         if k ~= "calendar_opts" then
             if k == "home" then
                 v = CleanPath(v)
+            end
             M.Cfg[k] = v
             if debug then
                 print(
