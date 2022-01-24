@@ -208,6 +208,7 @@ local function make_config_path_absolute(path)
         ret = M.Cfg.home .. "/" .. path
     end
     return ret
+end
 
 -- sanitize strings
 local escape_chars = function(string)
