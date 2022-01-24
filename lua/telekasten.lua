@@ -64,12 +64,13 @@ M.Cfg = {
     --                               and thus the telekasten syntax will not be loaded either
     auto_set_filetype = true,
 
+    -- dir names for special notes (absolute path or subdir name)
     dailies = home .. "/" .. "daily",
     weeklies = home .. "/" .. "weekly",
     templates = home .. "/" .. "templates",
 
-    -- image subdir for pasting
-    -- subdir name
+    -- image (sub)dir for pasting
+    -- dir name (absolute path or subdir name)
     -- or nil if pasted images shouldn't go into a special subdir
     image_subdir = nil,
 
@@ -148,6 +149,9 @@ M.Cfg = {
     --                        present or else in home
     --                        except for notes/with/subdirs/in/title.
     new_note_location = "smart",
+
+    -- should all links be updated when a file is renamed
+    rename_update_links = true,
 }
 
 local function file_exists(fname)
@@ -213,12 +217,7 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
     ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
     ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-
-    local img_dir = M.Cfg.home
-    if M.Cfg.image_subdir then
-        img_dir = img_dir .. "/" .. M.Cfg.image_subdir
-    end
-    ret = ret and check_dir_and_ask(img_dir, "image_subdir")
+    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
 
     return ret
 end
@@ -226,6 +225,76 @@ end
 --- escapes a string for use as exact pattern within gsub
 local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
+local function make_config_path_absolute(path)
+    local ret = path
+    if not (Path:new(path):is_absolute()) and path ~= nil then
+        ret = M.Cfg.home .. "/" .. path
+    end
+    return ret
+end
+
+-- sanitize strings
+local escape_chars = function(string)
+    return string.gsub(string, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
+        ["\\"] = "\\\\",
+        ["-"] = "\\-",
+        ["("] = "\\(",
+        [")"] = "\\)",
+        ["["] = "\\[",
+        ["]"] = "\\]",
+        ["{"] = "\\{",
+        ["}"] = "\\}",
+        ["?"] = "\\?",
+        ["+"] = "\\+",
+        ["*"] = "\\*",
+        ["^"] = "\\^",
+        ["$"] = "\\$",
+    })
+end
+
+local function recursive_substitution(dir, old, new)
+    if not global_dir_check() then
+        return
+    end
+
+    if vim.fn.executable("sed") == 0 then
+        vim.api.nvim_err_write("Sed not installed!\n")
+        return
+    end
+
+    old = escape_chars(old)
+    new = escape_chars(new)
+
+    local sedcommand = "sed -i"
+    if vim.fn.has("mac") == 1 then
+        sedcommand = "sed -i ''"
+    end
+
+    local replace_cmd = "rg -l -t markdown '"
+        .. old
+        .. "' "
+        .. dir
+        .. " | xargs "
+        .. sedcommand
+        .. " 's|"
+        .. old
+        .. "|"
+        .. new
+        .. "|g' >/dev/null 2>&1"
+    os.execute(replace_cmd)
+end
+
+local function save_all_tk_buffers()
+    for i = 1, vim.fn.bufnr("$") do
+        if
+            vim.fn.getbufvar(i, "&filetype") == "telekasten"
+            and vim.fn.getbufvar(i, "&mod") == 1
+        then
+            vim.cmd(i .. "bufdo w")
+        end
+    end
 end
 
 -- ----------------------------------------------------------------------------
@@ -272,14 +341,15 @@ local function imgFromClipboard()
     -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-    local pngpath = M.Cfg.home
+    local pngpath = M.Cfg.home .. "/" .. pngname
     local relpath = pngname
 
     if M.Cfg.image_subdir then
-        relpath = M.Cfg.image_subdir .. "/" .. pngname
-        pngpath = M.Cfg.home .. "/" .. M.Cfg.image_subdir
+        relpath = Path:new(M.Cfg.image_subdir):make_relative(M.Cfg.home)
+            .. "/"
+            .. pngname
+        pngpath = M.Cfg.image_subdir .. "/" .. pngname
     end
-    pngpath = pngpath .. "/" .. pngname
 
     os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
     if file_exists(pngpath) then
@@ -1428,6 +1498,76 @@ local function YankLink()
 end
 
 --
+-- RenameNote:
+-- -----------
+--
+-- Prompt for new note title, rename the note and update all links.
+--
+local function RenameNote()
+    local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
+
+    local newname = vim.fn.input("New name: ")
+    newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    local newpath = newname:match("(.*/)") or ""
+    newpath = M.Cfg.home .. "/" .. newpath
+
+    -- If no subdir specified, place the new note in the same place as old note
+    if
+        M.Cfg.subdirs_in_links == true
+        and newpath == M.Cfg.home .. "/"
+        and oldfile.sub_dir ~= ""
+    then
+        newname = oldfile.sub_dir .. "/" .. newname
+    end
+
+    local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
+    local fexists = file_exists(fname)
+    if fexists then
+        print_error("File alreay exists. Renaming abandonned")
+        return
+    end
+
+    -- Savas newfile, delete buffer of old one and remove old file
+    if newname ~= "" and newname ~= oldfile.title then
+        if not (check_dir_and_ask(newpath, "Renamed file")) then
+            return
+        end
+
+        vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
+        vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
+        os.execute(
+            "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
+        )
+    end
+
+    if M.Cfg.rename_update_links == true then
+        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
+        -- Should use regex instead to ensure it is a proper link
+        local oldlink = "[[" .. oldfile.title
+        local newlink = "[[" .. newname
+
+        -- Save open telekasten buffers before looking for links to replace
+        if
+            #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1
+            and M.Cfg.auto_set_filetype == true
+        then
+            local answer = vim.fn.input(
+                "Telekasten.nvim:"
+                    .. "Save all telekasten buffers before updating links? [Y/n]"
+            )
+            answer = vim.fn.trim(answer)
+            if answer ~= "n" and answer ~= "N" then
+                save_all_tk_buffers()
+            end
+        end
+
+        recursive_substitution(M.Cfg.home, oldlink, newlink)
+        recursive_substitution(M.Cfg.dailies, oldlink, newlink)
+        recursive_substitution(M.Cfg.weeklies, oldlink, newlink)
+    end
+end
+
+--
 -- GotoDate:
 -- ----------
 --
@@ -1612,7 +1752,7 @@ local function SearchNotes(opts)
         prompt_title = "Search in notes",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
-        default_text = vim.fn.expand("<cword>"),
+        default_text = opts.default_text or vim.fn.expand("<cword>"),
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -2590,6 +2730,12 @@ local function Setup(cfg)
         print("-----------------")
         print(vim.inspect(M.Cfg))
     end
+
+    -- Convert all directories in full path
+    M.Cfg.image_subdir = make_config_path_absolute(M.Cfg.image_subdir)
+    M.Cfg.dailies = make_config_path_absolute(M.Cfg.dailies)
+    M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
+    M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
 end
 
 M.find_notes = FindNotes
@@ -2603,6 +2749,7 @@ M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
+M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
 M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
@@ -2631,6 +2778,7 @@ local TelekastenCmd = {
             { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
             { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
