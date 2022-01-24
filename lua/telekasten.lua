@@ -123,6 +123,9 @@ M.Cfg = {
     --                        present or else in home
     --                        except for notes/with/subdirs/in/title.
     new_note_location = "smart",
+
+    -- should all links be updated when a file is renamed
+    rename_update_links = true,
 }
 
 local function file_exists(fname)
@@ -201,6 +204,68 @@ end
 --- escapes a string for use as exact pattern within gsub
 local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
+-- sanitize strings
+local escape_chars = function(string)
+    return string.gsub(string, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
+        ["\\"] = "\\\\",
+        ["-"] = "\\-",
+        ["("] = "\\(",
+        [")"] = "\\)",
+        ["["] = "\\[",
+        ["]"] = "\\]",
+        ["{"] = "\\{",
+        ["}"] = "\\}",
+        ["?"] = "\\?",
+        ["+"] = "\\+",
+        ["*"] = "\\*",
+        ["^"] = "\\^",
+        ["$"] = "\\$",
+    })
+end
+
+local function recursive_substitution(dir, old, new)
+    if not global_dir_check() then
+        return
+    end
+
+    if vim.fn.executable("sed") == 0 then
+        vim.api.nvim_err_write("Sed not installed!\n")
+        return
+    end
+
+    old = escape_chars(old)
+    new = escape_chars(new)
+
+    local sedcommand = "sed -i"
+    if vim.fn.has("mac") == 1 then
+        sedcommand = "sed -i ''"
+    end
+
+    local replace_cmd = "rg -l -t markdown '"
+        .. old
+        .. "' "
+        .. dir
+        .. " | xargs "
+        .. sedcommand
+        .. " 's|"
+        .. old
+        .. "|"
+        .. new
+        .. "|g' >/dev/null 2>&1"
+    os.execute(replace_cmd)
+end
+
+local function save_all_tk_buffers()
+    for i = 1, vim.fn.bufnr("$") do
+        if
+            vim.fn.getbufvar(i, "&filetype") == "telekasten"
+            and vim.fn.getbufvar(i, "&mod") == 1
+        then
+            vim.cmd(i .. "bufdo w")
+        end
+    end
 end
 
 -- ----------------------------------------------------------------------------
@@ -1403,6 +1468,76 @@ local function YankLink()
 end
 
 --
+-- RenameNote:
+-- -----------
+--
+-- Prompt for new note title, rename the note and update all links.
+--
+local function RenameNote()
+    local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
+
+    local newname = vim.fn.input("New name: ")
+    newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    local newpath = newname:match("(.*/)") or ""
+    newpath = M.Cfg.home .. "/" .. newpath
+
+    -- If no subdir specified, place the new note in the same place as old note
+    if
+        M.Cfg.subdirs_in_links == true
+        and newpath == M.Cfg.home .. "/"
+        and oldfile.sub_dir ~= ""
+    then
+        newname = oldfile.sub_dir .. "/" .. newname
+    end
+
+    local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
+    local fexists = file_exists(fname)
+    if fexists then
+        print_error("File alreay exists. Renaming abandonned")
+        return
+    end
+
+    -- Savas newfile, delete buffer of old one and remove old file
+    if newname ~= "" and newname ~= oldfile.title then
+        if not (check_dir_and_ask(newpath, "Renamed file")) then
+            return
+        end
+
+        vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
+        vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
+        os.execute(
+            "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
+        )
+    end
+
+    if M.Cfg.rename_update_links == true then
+        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
+        -- Should use regex instead to ensure it is a proper link
+        local oldlink = "[[" .. oldfile.title
+        local newlink = "[[" .. newname
+
+        -- Save open telekasten buffers before looking for links to replace
+        if
+            #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1
+            and M.Cfg.auto_set_filetype == true
+        then
+            local answer = vim.fn.input(
+                "Telekasten.nvim:"
+                    .. "Save all telekasten buffers before updating links? [Y/n]"
+            )
+            answer = vim.fn.trim(answer)
+            if answer ~= "n" and answer ~= "N" then
+                save_all_tk_buffers()
+            end
+        end
+
+        recursive_substitution(M.Cfg.home, oldlink, newlink)
+        recursive_substitution(M.Cfg.dailies, oldlink, newlink)
+        recursive_substitution(M.Cfg.weeklies, oldlink, newlink)
+    end
+end
+
+--
 -- GotoDate:
 -- ----------
 --
@@ -2575,6 +2710,7 @@ M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
+M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
 M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
@@ -2603,6 +2739,7 @@ local TelekastenCmd = {
             { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
             { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",

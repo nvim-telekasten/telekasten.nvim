@@ -319,6 +319,8 @@ require('telekasten').setup({
     --                        except for notes/with/subdirs/in/title.
     new_note_location = "smart",
 
+    -- should all links be updated when a file is renamed
+    rename_update_links = true,
 })
 END
 ```
@@ -358,6 +360,7 @@ END
 | | - `#tag` (default) | |
 | | - `:tag:` | |
 | | - `yaml-bare` | |
+| `rename_update_links` | update links when a file is renamed | true |
 | | see [2.1 Tag notation](#24-tag-notation)| |
 | `command_palette_theme` | theme (layout) of the command palette| ivy |
 | | - `ivy` (default): bottom panel overlay  |  |
@@ -483,6 +486,7 @@ the list for a more detailed description:
 - `insert_img_link` : Browse images / media files and insert a link to the selected one
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
+- `rename_note` : Rename current note and update the links pointing to it
 
 The Telekasten command supports sub-command completion, in my case by pressing <kbd>TAB</kbd>.
 
@@ -578,6 +582,7 @@ The plugin defines the following functions:
 - `setup(opts)`: used for configuring paths, file extension, etc.
 - `panel()` : brings up the command palette
 - `show_tags()` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
+- `rename_note()` : rename the current note and update the links pointing to it
 
 To use one of the functions above, just run them with the `:lua ...` command.
 
@@ -829,6 +834,7 @@ nnoremap <leader>zp :lua require('telekasten').preview_img()<CR>
 nnoremap <leader>zm :lua require('telekasten').browse_media()<CR>
 nnoremap <leader>za :lua require('telekasten').show_tags()<CR>
 nnoremap <leader># :lua require('telekasten').show_tags()<CR>
+nnoremap <leader>zr :lua require('telekasten').rename_note()<CR>
 
 " on hesitation, bring up the panel
 nnoremap <leader>z :lua require('telekasten').panel()<CR>
