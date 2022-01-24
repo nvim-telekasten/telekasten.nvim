@@ -316,6 +316,12 @@ telekasten.setup({opts})
 
         Default: `smart`
 
+                                   *telekasten.settings.rename_update_links*
+    rename_update_links:~
+        If `true`, telekasten will automatically update the links after a file
+        has been renamed.
+
+        Default: `true`
                                                *telekasten.calendar_opts*
     -----------------------------------
     Valid keys for {opts.calendar_opts}
