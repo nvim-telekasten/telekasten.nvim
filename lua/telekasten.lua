@@ -31,9 +31,9 @@ local function CleanPath(path)
     local windows_delim = "\\"
     -- Returns the path delimeter for the machine
     -- '\\' for Windows, '/' for Unix
-    local system_delim = package.config:sub(1,1)
+    local system_delim = package.config:sub(1, 1)
     local new_path_start
-    
+
     -- Removes portion of path before '\\' for Windows machines
     -- since Telescope does not like that
     if system_delim == windows_delim then
