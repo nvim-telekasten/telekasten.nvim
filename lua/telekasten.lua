@@ -42,7 +42,7 @@ local function CleanPath(path)
             path = path:sub(new_path_start) -- Start path at the first '\\'
         end
     end
-    
+
     -- Returns cleaned path
     return path
 end
