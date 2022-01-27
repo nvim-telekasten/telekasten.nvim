@@ -157,21 +157,20 @@ local function random_variable(length)
     return res
 end
 
-local function append_uuid(opts, title)
+local function getuuid(opts)
     opts.prefix_title_by_uuid = opts.prefix_title_by_uuid
         or M.Cfg.prefix_title_by_uuid
     opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
+    local uuid
     if opts.prefix_title_by_uuid then
-        local uuid
         if opts.uuid_type ~= "rand" then
             uuid = os.date(opts.uuid_type)
         else
             uuid = random_variable(6)
         end
-        title = uuid .. "-" .. title
     end
-    return title
+    return uuid
 end
 
 local function print_error(s)
@@ -495,7 +494,7 @@ local function calculate_dates(date)
     return dates
 end
 
-local function linesubst(line, title, dates)
+local function linesubst(line, title, dates, uuid)
     if dates == nil then
         dates = calculate_dates()
     end
@@ -524,6 +523,7 @@ local function linesubst(line, title, dates)
         saturday = dates.saturday,
 
         title = title,
+        uuid = uuid,
     }
     for k, v in pairs(substs) do
         line = line:gsub("{{" .. k .. "}}", v)
@@ -534,6 +534,7 @@ end
 
 local function create_note_from_template(
     title,
+    uuid,
     filepath,
     templatefn,
     calendar_info
@@ -549,7 +550,7 @@ local function create_note_from_template(
     -- now write the output file, substituting vars line by line
     local ofile = io.open(filepath, "a")
     for _, line in pairs(lines) do
-        ofile:write(linesubst(line, title, calendar_info) .. "\n")
+        ofile:write(linesubst(line, title, calendar_info, uuid) .. "\n")
     end
 
     ofile:flush()
@@ -1194,7 +1195,7 @@ local function FindDailyNotes(opts)
             or M.Cfg.dailies_create_nonexisting == true
         )
     then
-        create_note_from_template(today, fname, M.note_type_templates.daily)
+        create_note_from_template(today, _, fname, M.note_type_templates.daily)
         opts.erase = true
         opts.erase_file = fname
     end
@@ -1243,7 +1244,7 @@ local function FindWeeklyNotes(opts)
             or M.Cfg.weeklies_create_nonexisting == true
         )
     then
-        create_note_from_template(title, fname, M.note_type_templates.weekly)
+        create_note_from_template(title, _, fname, M.note_type_templates.weekly)
         opts.erase = true
         opts.erase_file = fname
     end
@@ -1599,6 +1600,7 @@ local function GotoDate(opts)
     then
         create_note_from_template(
             word,
+            _,
             fname,
             M.note_type_templates.daily,
             opts.dates
@@ -1824,8 +1826,6 @@ local function on_create_with_template(opts, title)
         return
     end
 
-    title = append_uuid(opts, title)
-
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
         or M.Cfg.insert_after_inserting
@@ -1834,7 +1834,8 @@ local function on_create_with_template(opts, title)
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
 
-    local pinfo = Pinfo:new({ title = title, opts })
+    local uuid = getuuid(opts)
+    local pinfo = Pinfo:new({ title = uuid .. "-" .. title, opts })
     local fname = pinfo.filepath
     if pinfo.fexists == true then
         -- open the new note
@@ -1855,6 +1856,7 @@ local function on_create_with_template(opts, title)
                 -- TODO: pass in the calendar_info returned from the pinfo
                 create_note_from_template(
                     title,
+                    uuid,
                     fname,
                     template,
                     pinfo.calendar_info
@@ -1907,15 +1909,15 @@ local function on_create(opts, title)
         return
     end
 
-    title = append_uuid(opts, title)
-
-    local pinfo = Pinfo:new({ title = title, opts })
+    local uuid = getuuid(opts)
+    local pinfo = Pinfo:new({ title = uuid .. "-" .. title, opts })
     local fname = pinfo.filepath
 
     if pinfo.fexists ~= true then
         -- TODO: pass in the calendar_info returned in pinfo
         create_note_from_template(
             title,
+            uuid,
             fname,
             pinfo.template,
             pinfo.calendar_info
@@ -1927,7 +1929,7 @@ local function on_create(opts, title)
     find_files_sorted({
         prompt_title = "Created note...",
         cwd = pinfo.root_dir,
-        default_text = title,
+        default_text = uuid .. "-" .. title,
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -2061,8 +2063,10 @@ local function FollowLink(opts)
             end
 
             if #pinfo.filepath > 0 then
+                local uuid = getuuid()
                 create_note_from_template(
                     title,
+                    uuid,
                     pinfo.filepath,
                     pinfo.template,
                     pinfo.calendar_info
@@ -2428,7 +2432,7 @@ local function GotoThisWeek(opts)
             or M.Cfg.weeklies_create_nonexisting == true
         )
     then
-        create_note_from_template(title, fname, M.note_type_templates.weekly)
+        create_note_from_template(title, _, fname, M.note_type_templates.weekly)
         opts.erase = true
         opts.erase_file = fname
     end

@@ -759,6 +759,7 @@ The following substitutions will be made during new note creation:
 | in template     | expands to            | example                     |
 +-----------------+-----------------------+-----------------------------+
 | `{{title}}`       | the title of the note | My new note                 |
+| `{{uuid}}`        | UUID of the note      | 202201271129                |
 | `{{date}}`        | date in iso format    | 2021-11-21                  |
 | `{{prevday}}`     | previous day, iso     | 2021-11-20                  |
 | `{{nextday}}`     | next day, iso         | 2021-11-22                  |
