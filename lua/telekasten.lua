@@ -52,6 +52,11 @@ M.Cfg = {
     -- markdown file extension
     extension = ".md",
 
+    -- prefix file with uuid
+    prefix_title_by_uuid = false,
+    -- file uuid type ("rand" or input for os.date()")
+    uuid_type = "%Y%m%d%H%M",
+
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,
     dailies_create_nonexisting = true,
@@ -141,6 +146,32 @@ local function file_exists(fname)
     else
         return false
     end
+end
+
+local function random_variable(length)
+    math.randomseed(os.clock() ^ 5)
+    local res = ""
+    for _ = 1, length do
+        res = res .. string.char(math.random(97, 122))
+    end
+    return res
+end
+
+local function append_uuid(opts, title)
+    opts.prefix_title_by_uuid = opts.prefix_title_by_uuid
+        or M.Cfg.prefix_title_by_uuid
+    opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
+
+    if opts.prefix_title_by_uuid then
+        local uuid = ""
+        if opts.uuid_type ~= "rand" then
+            uuid = os.date(opts.uuid_type)
+        else
+            uuid = random_variable(6)
+        end
+        title = uuid .. "-" .. title
+    end
+    return title
 end
 
 local function print_error(s)
@@ -1793,6 +1824,8 @@ local function on_create_with_template(opts, title)
         return
     end
 
+    title = append_uuid(opts, title)
+
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
         or M.Cfg.insert_after_inserting
@@ -1873,6 +1906,8 @@ local function on_create(opts, title)
     if title == nil then
         return
     end
+
+    title = append_uuid(opts, title)
 
     local pinfo = Pinfo:new({ title = title, opts })
     local fname = pinfo.filepath

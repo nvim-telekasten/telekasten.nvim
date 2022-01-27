@@ -67,6 +67,11 @@ telekasten.setup({opts})
       -- markdown file extension
       extension    = ".md",
 
+      -- prefix file with uuid
+      prefix_title_by_uuid = true,
+      -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
+      uuid_type = "%Y%m%d%H%M",
+
       templates = '/path/to/directory',     -- path to templates
       extension = '.file extension',        -- file extension of note files
 
@@ -181,6 +186,19 @@ telekasten.setup({opts})
         Filename extension of your markdown note files.
 
         Default: '.md'
+
+                                *telekasten.settings.prefix_title_by_uuid*
+    prefix_title_by_uuid: ~
+        Adds an Universal Unique Identifier before the file name.
+
+        Default: 'false'
+
+                                           *telekasten.settings.uuid_type*
+    uuid_type: ~
+        Type of UUID. Could be 'rand' for a random 6 character string, or a
+        time format to input in os.date() such as %Y%m%d%H%M.
+
+        Default: '%Y%m%d%H%M'
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
