@@ -163,7 +163,7 @@ local function append_uuid(opts, title)
     opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
     if opts.prefix_title_by_uuid then
-        local uuid = ""
+        local uuid
         if opts.uuid_type ~= "rand" then
             uuid = os.date(opts.uuid_type)
         else
