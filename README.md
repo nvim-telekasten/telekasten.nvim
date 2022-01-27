@@ -242,6 +242,8 @@ require('telekasten').setup({
     prefix_title_by_uuid = false,
     -- file uuid type ("rand" or input for os.date()")
     uuid_type = "%Y%m%d%H%M",
+    -- UUID separator
+    uuid_sep = "-",
 
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,

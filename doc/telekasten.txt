@@ -68,9 +68,12 @@ telekasten.setup({opts})
       extension    = ".md",
 
       -- prefix file with uuid
-      prefix_title_by_uuid = true,
+      prefix_title_by_uuid = false,
       -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
       uuid_type = "%Y%m%d%H%M",
+      -- UUID separator
+      uuid_sep = "-",
+
 
       templates = '/path/to/directory',     -- path to templates
       extension = '.file extension',        -- file extension of note files
@@ -199,6 +202,12 @@ telekasten.setup({opts})
         time format to input in os.date() such as %Y%m%d%H%M.
 
         Default: '%Y%m%d%H%M'
+
+                                            *telekasten.settings.uuid_sep*
+    uuid_sep: ~
+        Separator between UUID and title in filaneme.
+
+        Default: '-'
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
