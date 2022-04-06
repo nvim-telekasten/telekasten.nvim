@@ -138,14 +138,16 @@ See below for installing and using it.
 
 #### 0.0.3 For pasting images: xclip (optional)
 
-Telekasten.nvim supports pasting images from the clipboard. Currently, this is only implemented for systems that have
-the `xclip` utility installed.
+Telekasten.nvim supports pasting images from the clipboard. Currently, this is implemented for systems that have
+the `xclip` utility installed or on macs.
 
 On Ubuntu/Debian like systems:
 
 ```console
 sudo apt-get install xclip
 ```
+
+On Macs, you should not install a separate tool.  Installing xclip will prevent this feature from working properly.
 
 ---
 

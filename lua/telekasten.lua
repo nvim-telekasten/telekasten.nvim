@@ -274,12 +274,74 @@ end
 
 -- ----------------------------------------------------------------------------
 -- image stuff
+-- ----------------------------------------------------------------------------
+
+local function make_relative_path(bufferpath, imagepath, sep)
+    sep = sep or "/"
+
+    -- Split the buffer and image path into their dirs/files
+    local buffer_dirs = {}
+    for w in string.gmatch(bufferpath, "([^" .. sep .. "]+)") do
+        buffer_dirs[#buffer_dirs + 1] = w
+    end
+    local image_dirs = {}
+    for w in string.gmatch(imagepath, "([^" .. sep .. "]+)") do
+        image_dirs[#image_dirs + 1] = w
+    end
+
+    -- The parts of the dir list that match won't matter, so skip them
+    local i = 1
+    while i < #image_dirs and i < #buffer_dirs do
+        if image_dirs[i] ~= buffer_dirs[i] then
+            break
+        else
+            i = i + 1
+        end
+    end
+
+    -- Append ../ to walk up from the buffer location and the path downward
+    -- to the location of the image file in order to create a relative path
+    local relative_path = ""
+    while i <= #image_dirs or i <= #buffer_dirs do
+        if i <= #image_dirs then
+            if relative_path == "" then
+                relative_path = image_dirs[i]
+            else
+                relative_path = relative_path .. sep .. image_dirs[i]
+            end
+        end
+        if i <= #buffer_dirs - 1 then
+            relative_path = ".." .. sep .. relative_path
+        end
+        i = i + 1
+    end
+
+    return relative_path
+end
+
 local function imgFromClipboard()
     if not global_dir_check() then
         return
     end
 
-    if vim.fn.executable("xclip") == 0 then
+    local get_paste_command
+    if vim.fn.executable("xclip") == 1 then
+        get_paste_command = function(dir, filename)
+            return "xclip -selection clipboard -t image/png -o > "
+                .. dir
+                .. "/"
+                .. filename
+        end
+    elseif vim.fn.executable("osascript") == 1 then
+        get_paste_command = function(dir, filename)
+            return string.format(
+                'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                dir,
+                filename
+            )
+        end
+    else
         vim.api.nvim_err_write("No xclip installed!\n")
         return
     end
@@ -316,23 +378,30 @@ local function imgFromClipboard()
     -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-    local pngpath = M.Cfg.home .. "/" .. pngname
-    local relpath = pngname
+    local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
+    local png = pngdir .. "/" .. pngname
+    local relpath = make_relative_path(vim.fn.expand("%"), png, "/")
 
-    if M.Cfg.image_subdir then
-        relpath = Path:new(M.Cfg.image_subdir):make_relative(M.Cfg.home)
-            .. "/"
-            .. pngname
-        pngpath = M.Cfg.image_subdir .. "/" .. pngname
+    local result = os.execute(get_paste_command(pngdir, pngname))
+    if result > 0 then
+        vim.api.nvim_err_writeln(
+            string.format(
+                "Unable to write image %s (exit code: %d).  Is there an image on the clipboard? ",
+                png,
+                result
+            )
+        )
+        return
     end
 
-    os.execute("xclip -selection clipboard -t image/png -o > " .. pngpath)
-    if file_exists(pngpath) then
+    if file_exists(png) then
         if M.Cfg.image_link_style == "markdown" then
             vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", true, true)
         else
             vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", true, true)
         end
+    else
+        vim.api.nvim_err_writeln("Unable to write image " .. png)
     end
 end
 -- end of image stuff
