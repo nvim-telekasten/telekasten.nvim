@@ -16,6 +16,10 @@ daily note (or cancel out and keep browsing your calendar). The daily note
 will be created if it doesn't exist. Days with daily notes get marked in the
 calendar.
 
+For Windows users, many of the functions that require navigating file folders
+do not work. This is due to how Telescope handles paths and the odd way that
+Windows structures its paths. It is advised you don't use Windows.
+
 To find out more:
 https://github.com/renerocksai/telekasten.nvim
 
@@ -137,6 +141,20 @@ telekasten.setup({opts})
         your notes will be stored.
 
         Default: '~/zettelkasten'
+
+        ----------------------
+        Note to Windows users: 
+
+        If you must use Windows, avoid using the drive path. You may use it, 
+        but telekasten will ignore the drive name and create your main markdown
+        / zettelkasten folder in the same drive that neovim executes from. This
+        is because of how Telescope handles files paths. Windows paths must be 
+        stripped of the drive name or else the path will not be read correctly.
+        This is done automatically but is advised that you avoid adding it.
+
+        It is recommended that if your path is not the default to write it
+        like a Unix path with '/' instead of '\', or to escape the '\' as '\\'.
+        ----------------------
 
                                    *telekasten.settings.take_over_my_home*
     take_over_my_home: ~

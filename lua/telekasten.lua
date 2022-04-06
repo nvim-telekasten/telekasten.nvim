@@ -23,10 +23,35 @@ local Path = require("plenary.path")
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
 
+-- Cleans home path for Windows users
+-- Needs to be before default config, else with no user config
+-- home will not be cleaned and issues will still occur
+local function CleanPath(path)
+    -- File path delimeter for Windows machines
+    local windows_delim = "\\"
+    -- Returns the path delimeter for the machine
+    -- '\\' for Windows, '/' for Unix
+    local system_delim = package.config:sub(1, 1)
+    local new_path_start
+
+    -- Removes portion of path before '\\' for Windows machines
+    -- since Telescope does not like that
+    if system_delim == windows_delim then
+        new_path_start = path:find(windows_delim) -- Find the first '\\'
+        if new_path_start ~= nil then
+            path = path:sub(new_path_start) -- Start path at the first '\\'
+        end
+    end
+
+    -- Returns cleaned path
+    return path
+end
+
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
 local home = vim.fn.expand("~/zettelkasten")
+home = CleanPath(home)
 local M = {}
 
 M.Cfg = {
@@ -2696,6 +2721,9 @@ local function Setup(cfg)
         -- merge everything but calendar opts
         -- they will be merged later
         if k ~= "calendar_opts" then
+            if k == "home" then
+                v = CleanPath(v)
+            end
             M.Cfg[k] = v
             if debug then
                 print(
