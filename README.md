@@ -242,6 +242,13 @@ require('telekasten').setup({
     -- markdown file extension
     extension    = ".md",
 
+    -- prefix file with uuid
+    prefix_title_by_uuid = false,
+    -- file uuid type ("rand" or input for os.date()")
+    uuid_type = "%Y%m%d%H%M",
+    -- UUID separator
+    uuid_sep = "-",
+
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,
     dailies_create_nonexisting = true,
@@ -721,6 +728,7 @@ Currently, the following substitutions will be made during new note creation:
 | specifier in template | expands to | example |
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
+| `{{uuid}}` | UUID for the note | 202201271129 |
 | `{{date}}` | date in iso format | 2021-11-21 |
 | `{{prevday}}` | previous day's date in iso format | 2021-11-20 |
 | `{{nextday}}` | next day's date in iso format | 2021-11-22 |

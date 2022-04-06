@@ -71,6 +71,14 @@ telekasten.setup({opts})
       -- markdown file extension
       extension    = ".md",
 
+      -- prefix file with uuid
+      prefix_title_by_uuid = false,
+      -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
+      uuid_type = "%Y%m%d%H%M",
+      -- UUID separator
+      uuid_sep = "-",
+
+
       templates = '/path/to/directory',     -- path to templates
       extension = '.file extension',        -- file extension of note files
 
@@ -199,6 +207,25 @@ telekasten.setup({opts})
         Filename extension of your markdown note files.
 
         Default: '.md'
+
+                                *telekasten.settings.prefix_title_by_uuid*
+    prefix_title_by_uuid: ~
+        Adds an Universal Unique Identifier before the file name.
+
+        Default: 'false'
+
+                                           *telekasten.settings.uuid_type*
+    uuid_type: ~
+        Type of UUID. Could be 'rand' for a random 6 character string, or a
+        time format to input in os.date() such as %Y%m%d%H%M.
+
+        Default: '%Y%m%d%H%M'
+
+                                            *telekasten.settings.uuid_sep*
+    uuid_sep: ~
+        Separator between UUID and title in filaneme.
+
+        Default: '-'
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
@@ -759,6 +786,7 @@ The following substitutions will be made during new note creation:
 | in template     | expands to            | example                     |
 +-----------------+-----------------------+-----------------------------+
 | `{{title}}`       | the title of the note | My new note                 |
+| `{{uuid}}`        | UUID of the note      | 202201271129                |
 | `{{date}}`        | date in iso format    | 2021-11-21                  |
 | `{{prevday}}`     | previous day, iso     | 2021-11-20                  |
 | `{{nextday}}`     | next day, iso         | 2021-11-22                  |
