@@ -1907,7 +1907,7 @@ local function ShowBacklinks(opts)
         prompt_title = "Search",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
-        default_text = "\\[\\[" .. title .. "\\]\\]",
+        default_text = "\\[\\[" .. title .. "(#.+)*\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
