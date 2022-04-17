@@ -9,6 +9,7 @@ M.is_tag_or_link_at = function(line, col, opts)
         and line:sub(1, 4) == "tags"
 
     local seen_bracket = false
+    local seen_parenthesis = false
     local cannot_be_tag = false
 
     while col >= 1 do
@@ -20,8 +21,17 @@ M.is_tag_or_link_at = function(line, col, opts)
             end
         end
 
+        if seen_parenthesis then
+            -- Media link, currently identified by not link nor tag
+            if char == "]" then
+                return nil, nil
+            end
+        end
+
         if char == "[" then
             seen_bracket = true
+        elseif char == "(" then
+            seen_parenthesis = true
         end
 
         if is_tagline == true then
