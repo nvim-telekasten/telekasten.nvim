@@ -11,8 +11,8 @@ syn region Comment matchgroup=Comment start="<!--" end="-->"  contains=tkTag kee
 syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline
 syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline
 
-syntax match tkTag "\v#[a-zA-Z]+[a-zA-Z0-9/\-_]*"
-syntax match tkTag "\v:[a-zA-Z]+[a-zA-Z0-9/\-_]*:"
+syntax match tkTag "\v#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*"
+syntax match tkTag "\v:[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*:"
 
 syntax match tkTagSep "\v\s*,\s*" contained
 syntax region tkTag matchgroup=tkBrackets start=/^tags\s*:\s*\[\s*/ end=/\s*\]\s*$/ contains=tkTagSep display oneline
@@ -28,7 +28,7 @@ let b:current_syntax = 'telekasten'
 "     hi tklink ctermfg=72 cterm=bold,underline
 "     hi tkBrackets ctermfg=gray
 
-" " Highlight ==highlighted== text 
+" " Highlight ==highlighted== text
 "     hi tkHighlight ctermbg=yellow ctermfg=darkred cterm=bold
 "
 " " Tags

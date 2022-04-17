@@ -1,9 +1,10 @@
 local Job = require("plenary.job")
 
 local M = {}
-local hashtag_re = "(^|\\s|'|\")#[a-zA-Z]+[a-zA-Z0-9/\\-_]*"
-local colon_re = "(^|\\s):[a-zA-Z]+[a-zA-Z0-9/\\-_]*:"
-local yaml_re = "(^|\\s)tags:\\s*\\[([a-zA-Z]+[a-zA-Z0-9/\\-_]*(,\\s)*)*]"
+local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
+local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
+local yaml_re =
+    "(^|\\s)tags:\\s*\\[([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s)*)*]"
 
 local function command_find_all_tags(opts)
     opts = opts or {}
