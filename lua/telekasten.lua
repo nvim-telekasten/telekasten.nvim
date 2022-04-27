@@ -1622,7 +1622,7 @@ local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
     local newname = vim.fn.input("New name: ")
-    newname = newname:gsub("(" .. M.Cfg.extension .. ")$", "")
+    newname = newname:gsub("(%" .. M.Cfg.extension .. ")$", "")
     local newpath = newname:match("(.*/)") or ""
     newpath = M.Cfg.home .. "/" .. newpath
 
@@ -1648,11 +1648,10 @@ local function RenameNote()
             return
         end
 
+        oldTitle = oldfile.title:gsub(" ", "\\ ")
         vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
-        vim.cmd("bdelete " .. oldfile.title .. M.Cfg.extension)
-        os.execute(
-            "rm " .. M.Cfg.home .. "/" .. oldfile.title .. M.Cfg.extension
-        )
+        vim.cmd("bdelete " .. oldTitle .. M.Cfg.extension)
+        os.execute("rm " .. M.Cfg.home .. "/" .. oldTitle .. M.Cfg.extension)
     end
 
     if M.Cfg.rename_update_links == true then
