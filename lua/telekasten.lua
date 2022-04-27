@@ -1622,7 +1622,7 @@ local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
     local newname = vim.fn.input("New name: ")
-    newname = newname:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    newname = newname:gsub("(" .. M.Cfg.extension .. ")$", "")
     local newpath = newname:match("(.*/)") or ""
     newpath = M.Cfg.home .. "/" .. newpath
 
