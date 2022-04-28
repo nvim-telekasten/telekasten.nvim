@@ -313,11 +313,11 @@ local function recursive_substitution(dir, old, new)
         sedcommand = "sed -i ''"
     end
 
-    local replace_cmd = "rg -l -t markdown '"
+    local replace_cmd = "rg -0 -l -t markdown '"
         .. old
         .. "' "
         .. dir
-        .. " | xargs "
+        .. " | xargs -0 "
         .. sedcommand
         .. " 's|"
         .. old
