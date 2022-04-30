@@ -2009,7 +2009,13 @@ local function CreateNoteSelectTemplate(opts)
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
-    title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
+
+    local pat = "(" .. M.Cfg.extension:gsub("%.", "%%.") .. ")$"
+    local rcount
+    repeat
+        title, rcount = title:gsub(pat, "")
+    until rcount == 0
+
     if #title > 0 then
         on_create_with_template(opts, title)
     end
@@ -2086,7 +2092,13 @@ local function CreateNote(opts)
     end
 
     local title = vim.fn.input("Title: ")
-    title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
+
+    local pat = "(" .. M.Cfg.extension:gsub("%.", "%%.") .. ")$"
+    local rcount
+    repeat
+        title, rcount = title:gsub(pat, "")
+    until rcount == 0
+
     if #title > 0 then
         on_create(opts, title)
     end
