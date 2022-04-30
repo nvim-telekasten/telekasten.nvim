@@ -1996,7 +1996,6 @@ local function on_create_with_template(opts, title)
             map("n", "<c-i>", picker_actions.paste_link(opts))
             return true
         end,
-        sort = M.Cfg.sort,
     })
 end
 
@@ -2070,7 +2069,6 @@ local function on_create(opts, title)
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
-        sort = M.Cfg.sort,
     })
 end
 
