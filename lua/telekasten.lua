@@ -19,39 +19,16 @@ local tagutils = require("taglinks.tagutils")
 local linkutils = require("taglinks.linkutils")
 local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
+local pathutils = require("telekasten.utils.pathutils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
-
--- Cleans home path for Windows users
--- Needs to be before default config, else with no user config
--- home will not be cleaned and issues will still occur
-local function CleanPath(path)
-    -- File path delimeter for Windows machines
-    local windows_delim = "\\"
-    -- Returns the path delimeter for the machine
-    -- '\\' for Windows, '/' for Unix
-    local system_delim = package.config:sub(1, 1)
-    local new_path_start
-
-    -- Removes portion of path before '\\' for Windows machines
-    -- since Telescope does not like that
-    if system_delim == windows_delim then
-        new_path_start = path:find(windows_delim) -- Find the first '\\'
-        if new_path_start ~= nil then
-            path = path:sub(new_path_start) -- Start path at the first '\\'
-        end
-    end
-
-    -- Returns cleaned path
-    return path
-end
 
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
 local home = vim.fn.expand("~/zettelkasten")
-home = CleanPath(home)
+home = pathutils.clean_path(home) -- Clean path now in case no user config provided
 local M = {}
 
 M.Cfg = {
@@ -161,20 +138,6 @@ M.Cfg = {
     rename_update_links = true,
 }
 
-local function file_exists(fname)
-    if fname == nil then
-        return false
-    end
-
-    local f = io.open(fname, "r")
-    if f ~= nil then
-        io.close(f)
-        return true
-    else
-        return false
-    end
-end
-
 local function random_variable(length)
     math.randomseed(os.clock() ^ 5)
     local res = ""
@@ -215,50 +178,19 @@ local function print_error(s)
     vim.cmd("echohl None")
 end
 
-local function check_dir_and_ask(dir, purpose)
-    local ret = false
-    if dir ~= nil and Path:new(dir):exists() == false then
-        vim.cmd("echohl ErrorMsg")
-        local answer = vim.fn.input(
-            "Telekasten.nvim: "
-                .. purpose
-                .. " folder "
-                .. dir
-                .. " does not exist!"
-                .. " Shall I create it? [y/N] "
-        )
-        vim.cmd("echohl None")
-        answer = vim.fn.trim(answer)
-        if answer == "y" or answer == "Y" then
-            if Path:new(dir):mkdir({ exists_ok = false }) then
-                vim.cmd('echomsg " "')
-                vim.cmd('echomsg "' .. dir .. ' created"')
-                ret = true
-            else
-                -- unreachable: plenary.Path:mkdir() will error out
-                print_error("Could not create directory " .. dir)
-                ret = false
-            end
-        end
-    else
-        ret = true
-    end
-    return ret
-end
-
 local function global_dir_check()
     local ret
     if M.Cfg.home == nil then
         print_error("Telekasten.nvim: home is not configured!")
         ret = false
     else
-        ret = check_dir_and_ask(M.Cfg.home, "home")
+        ret = pathutils.check_dir_and_ask(M.Cfg.home, "home")
     end
 
-    ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
-    ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
-    ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
+    ret = ret and pathutils.check_dir_and_ask(M.Cfg.dailies, "dailies")
+    ret = ret and pathutils.check_dir_and_ask(M.Cfg.weeklies, "weeklies")
+    ret = ret and pathutils.check_dir_and_ask(M.Cfg.templates, "templates")
+    ret = ret and pathutils.check_dir_and_ask(M.Cfg.image_subdir, "images")
 
     return ret
 end
@@ -342,49 +274,6 @@ end
 -- image stuff
 -- ----------------------------------------------------------------------------
 
-local function make_relative_path(bufferpath, imagepath, sep)
-    sep = sep or "/"
-
-    -- Split the buffer and image path into their dirs/files
-    local buffer_dirs = {}
-    for w in string.gmatch(bufferpath, "([^" .. sep .. "]+)") do
-        buffer_dirs[#buffer_dirs + 1] = w
-    end
-    local image_dirs = {}
-    for w in string.gmatch(imagepath, "([^" .. sep .. "]+)") do
-        image_dirs[#image_dirs + 1] = w
-    end
-
-    -- The parts of the dir list that match won't matter, so skip them
-    local i = 1
-    while i < #image_dirs and i < #buffer_dirs do
-        if image_dirs[i] ~= buffer_dirs[i] then
-            break
-        else
-            i = i + 1
-        end
-    end
-
-    -- Append ../ to walk up from the buffer location and the path downward
-    -- to the location of the image file in order to create a relative path
-    local relative_path = ""
-    while i <= #image_dirs or i <= #buffer_dirs do
-        if i <= #image_dirs then
-            if relative_path == "" then
-                relative_path = image_dirs[i]
-            else
-                relative_path = relative_path .. sep .. image_dirs[i]
-            end
-        end
-        if i <= #buffer_dirs - 1 then
-            relative_path = ".." .. sep .. relative_path
-        end
-        i = i + 1
-    end
-
-    return relative_path
-end
-
 local function imgFromClipboard()
     if not global_dir_check() then
         return
@@ -446,7 +335,7 @@ local function imgFromClipboard()
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
     local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
     local png = pngdir .. "/" .. pngname
-    local relpath = make_relative_path(vim.fn.expand("%"), png, "/")
+    local relpath = pathutils.make_relative_path(vim.fn.expand("%"), png, "/")
 
     local result = os.execute(get_paste_command(pngdir, pngname))
     if result > 0 then
@@ -460,7 +349,7 @@ local function imgFromClipboard()
         return
     end
 
-    if file_exists(png) then
+    if pathutils.file_exists(png) then
         if M.Cfg.image_link_style == "markdown" then
             vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", true, true)
         else
@@ -649,7 +538,7 @@ local function create_note_from_template(
 )
     -- first, read the template file
     local lines = {}
-    if file_exists(templatefn) then
+    if pathutils.file_exists(templatefn) then
         for line in io.lines(templatefn) do
             lines[#lines + 1] = line
         end
@@ -712,7 +601,7 @@ function Pinfo:resolve_path(p, opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
-    self.fexists = file_exists(p)
+    self.fexists = pathutils.file_exists(p)
     self.filepath = p
     self.root_dir = M.Cfg.home
     self.is_daily_or_weekly = false
@@ -811,7 +700,10 @@ function Pinfo:resolve_link(title, opts)
     self.template = nil
     self.calendar_info = nil
 
-    if opts.weeklies and file_exists(opts.weeklies .. "/" .. self.filename) then
+    if
+        opts.weeklies
+        and pathutils.file_exists(opts.weeklies .. "/" .. self.filename)
+    then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
@@ -821,7 +713,10 @@ function Pinfo:resolve_link(title, opts)
         self.is_daily_or_weekly = true
         self.is_weekly = true
     end
-    if opts.dailies and file_exists(opts.dailies .. "/" .. self.filename) then
+    if
+        opts.dailies
+        and pathutils.file_exists(opts.dailies .. "/" .. self.filename)
+    then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
@@ -831,7 +726,7 @@ function Pinfo:resolve_link(title, opts)
         self.is_daily_or_weekly = true
         self.is_daily = true
     end
-    if file_exists(opts.home .. "/" .. self.filename) then
+    if pathutils.file_exists(opts.home .. "/" .. self.filename) then
         self.filepath = opts.home .. "/" .. self.filename
         self.fexists = true
     end
@@ -843,7 +738,7 @@ function Pinfo:resolve_link(title, opts)
         for _, folder in pairs(subdirs) do
             tempfn = folder .. "/" .. self.filename
             -- [[testnote]]
-            if file_exists(tempfn) then
+            if pathutils.file_exists(tempfn) then
                 self.filepath = tempfn
                 self.fexists = true
                 -- print("Found: " ..self.filename)
@@ -941,10 +836,6 @@ end
 -- 	return ending == "" or s:sub(-#ending) == ending
 -- end
 
-local function file_extension(fname)
-    return fname:match("^.+(%..+)$")
-end
-
 local function filter_filetypes(flist, ftypes)
     local new_fl = {}
     ftypes = ftypes or { M.Cfg.extension }
@@ -955,7 +846,7 @@ local function filter_filetypes(flist, ftypes)
     end
 
     for _, fn in pairs(flist) do
-        if ftypeok[file_extension(fn)] then
+        if ftypeok[pathutils.file_extension(fn)] then
             table.insert(new_fl, fn)
         end
     end
@@ -1181,7 +1072,7 @@ function picker_actions.close(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         if opts.erase then
-            if file_exists(opts.erase_file) then
+            if pathutils.file_exists(opts.erase_file) then
                 vim.fn.delete(opts.erase_file)
             end
         end
@@ -1295,7 +1186,7 @@ local function FindDailyNotes(opts)
 
     local today = os.date(dateformats.date)
     local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = pathutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -1344,7 +1235,7 @@ local function FindWeeklyNotes(opts)
 
     local title = os.date(dateformats.isoweek)
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = pathutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -1475,7 +1366,7 @@ local function PreviewImg(opts)
     local fname = vim.fn.getreg('"0')
 
     -- check if fname exists anywhere
-    local fexists = file_exists(M.Cfg.home .. "/" .. fname)
+    local fexists = pathutils.file_exists(M.Cfg.home .. "/" .. fname)
 
     if fexists == true then
         find_files_sorted({
@@ -1636,7 +1527,7 @@ local function RenameNote()
     end
 
     local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = pathutils.file_exists(fname)
     if fexists then
         print_error("File alreay exists. Renaming abandonned")
         return
@@ -1644,7 +1535,7 @@ local function RenameNote()
 
     -- Savas newfile, delete buffer of old one and remove old file
     if newname ~= "" and newname ~= oldfile.title then
-        if not (check_dir_and_ask(newpath, "Renamed file")) then
+        if not (pathutils.check_dir_and_ask(newpath, "Renamed file")) then
             return
         end
 
@@ -1697,7 +1588,7 @@ local function GotoDate(opts)
     local word = opts.date or os.date(dateformats.date)
 
     local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = pathutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -2537,7 +2428,7 @@ local function GotoThisWeek(opts)
     local dinfo = calculate_dates()
     local title = dinfo.isoweek
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = pathutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -2578,7 +2469,7 @@ local function CalendarSignDay(day, month, year)
         .. "/"
         .. string.format("%04d-%02d-%02d", year, month, day)
         .. M.Cfg.extension
-    if file_exists(fn) then
+    if pathutils.file_exists(fn) then
         return 1
     end
     return 0
@@ -2780,7 +2671,7 @@ local function Setup(cfg)
         -- they will be merged later
         if k ~= "calendar_opts" then
             if k == "home" then
-                v = CleanPath(v)
+                v = pathutils.clean_path(v)
             end
             M.Cfg[k] = v
             if debug then
