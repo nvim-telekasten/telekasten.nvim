@@ -1661,7 +1661,7 @@ local function RenameNote()
             return
         end
 
-        oldTitle = oldfile.title:gsub(" ", "\\ ")
+        local oldTitle = oldfile.title:gsub(" ", "\\ ")
         vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldTitle .. M.Cfg.extension)
         os.execute("rm " .. M.Cfg.home .. "/" .. oldTitle .. M.Cfg.extension)
