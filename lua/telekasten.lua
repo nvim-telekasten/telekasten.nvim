@@ -341,6 +341,12 @@ local function save_all_tk_buffers()
     end
 end
 
+-- strip an extension from a file name, escaping "." properly, eg:
+-- strip_extension("path/Filename.md", ".md") -> "path/Filename"
+local function strip_extension(str, ext)
+    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
+end
+
 -- ----------------------------------------------------------------------------
 -- image stuff
 -- ----------------------------------------------------------------------------
@@ -2009,13 +2015,7 @@ local function CreateNoteSelectTemplate(opts)
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
-
-    local pat = "(" .. M.Cfg.extension:gsub("%.", "%%.") .. ")$"
-    local rcount
-    repeat
-        title, rcount = title:gsub(pat, "")
-    until rcount == 0
-
+    title = strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create_with_template(opts, title)
     end
@@ -2092,13 +2092,7 @@ local function CreateNote(opts)
     end
 
     local title = vim.fn.input("Title: ")
-
-    local pat = "(" .. M.Cfg.extension:gsub("%.", "%%.") .. ")$"
-    local rcount
-    repeat
-        title, rcount = title:gsub(pat, "")
-    until rcount == 0
-
+    title = strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create(opts, title)
     end
