@@ -271,6 +271,9 @@ require('telekasten').setup({
     -- markdown: ![](image_subdir/xxxxx.png)
     image_link_style = "markdown",
 
+    -- default sort option: 'filename', 'modified'
+    sort = "filename",
+
     -- integrate with calendar-vim
     plug_into_calendar = true,
     calendar_opts = {
