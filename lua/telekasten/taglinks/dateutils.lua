@@ -1,5 +1,5 @@
 local M = {}
-local date = require("taglinks.date")
+local date = require("telekasten.taglinks.date")
 
 --- returns the day of week (1..Monday, ..., 7..Sunday) for Dec, 31st of year
 --- see https://webspace.science.uu.nl/~gent0113/calendar/isocalendar.htm
