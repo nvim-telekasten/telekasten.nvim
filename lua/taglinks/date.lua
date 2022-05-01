@@ -1104,11 +1104,11 @@ local tvspec = {
 }
 function dobj:fmt0(str)
     return (
-            gsub(str, "%%[%a%%\b\f]", function(x)
-                local f = tvspec[x]
-                return (f and f(self)) or x
-            end)
-        )
+        gsub(str, "%%[%a%%\b\f]", function(x)
+            local f = tvspec[x]
+            return (f and f(self)) or x
+        end)
+    )
 end
 function dobj:fmt(str)
     str = str or self.fmtstr or fmtstr

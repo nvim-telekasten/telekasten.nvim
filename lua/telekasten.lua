@@ -76,6 +76,9 @@ M.Cfg = {
     -- markdown: ![](image_subdir/xxxxx.png)
     image_link_style = "markdown",
 
+    -- default sort option: 'filename', 'modified'
+    sort = "filename",
+
     -- when linking to a note in subdir/, create a [[subdir/title]] link
     -- instead of a [[title only]] link
     subdirs_in_links = true,
@@ -268,6 +271,12 @@ local function save_all_tk_buffers()
             vim.cmd(i .. "bufdo w")
         end
     end
+end
+
+-- strip an extension from a file name, escaping "." properly, eg:
+-- strip_extension("path/Filename.md", ".md") -> "path/Filename"
+local function strip_extension(str, ext)
+    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
 end
 
 -- ----------------------------------------------------------------------------
@@ -828,10 +837,6 @@ function Pinfo:resolve_link(title, opts)
     return self
 end
 
-local function order_numeric(a, b)
-    return a > b
-end
-
 -- local function endswith(s, ending)
 -- 	return ending == "" or s:sub(-#ending) == ending
 -- end
@@ -904,7 +909,16 @@ local function find_files_sorted(opts)
     local file_list = scan.scan_dir(opts.cwd, {})
     local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
     file_list = filter_filetypes(file_list, filter_extensions)
-    table.sort(file_list, order_numeric)
+    local sort_option = opts.sort or "filename"
+    if sort_option == "modified" then
+        table.sort(file_list, function(a, b)
+            return vim.fn.getftime(a) > vim.fn.getftime(b)
+        end)
+    else
+        table.sort(file_list, function(a, b)
+            return a > b
+        end)
+    end
 
     local counts = nil
     if opts.show_link_counts then
@@ -1213,6 +1227,7 @@ local function FindDailyNotes(opts)
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1262,6 +1277,7 @@ local function FindWeeklyNotes(opts)
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1313,6 +1329,7 @@ local function InsertLink(opts)
             return true
         end,
         find_command = M.Cfg.find_command,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1397,6 +1414,7 @@ local function PreviewImg(opts)
                 map("n", "<c-cr>", picker_actions.paste_img_link(opts))
                 return true
             end,
+            sort = M.Cfg.sort,
         })
     else
         print("File not found: " .. M.Cfg.home .. "/" .. fname)
@@ -1447,6 +1465,7 @@ local function BrowseImg(opts)
             map("n", "<c-cr>", picker_actions.paste_img_link(opts))
             return true
         end,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1539,7 +1558,7 @@ local function RenameNote()
             return
         end
 
-        oldTitle = oldfile.title:gsub(" ", "\\ ")
+        local oldTitle = oldfile.title:gsub(" ", "\\ ")
         vim.cmd("saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension)
         vim.cmd("bdelete " .. oldTitle .. M.Cfg.extension)
         os.execute("rm " .. M.Cfg.home .. "/" .. oldTitle .. M.Cfg.extension)
@@ -1684,6 +1703,7 @@ local function FindNotes(opts)
             map("n", "<c-cr>", picker_actions.paste_link(opts))
             return true
         end,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1734,6 +1754,7 @@ local function InsertImgLink(opts)
             map("n", "<c-cr>", picker_actions.paste_img_link(opts))
             return true
         end,
+        sort = M.Cfg.sort,
     })
 end
 
@@ -1885,7 +1906,7 @@ local function CreateNoteSelectTemplate(opts)
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
-    title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    title = strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create_with_template(opts, title)
     end
@@ -1962,7 +1983,7 @@ local function CreateNote(opts)
     end
 
     local title = vim.fn.input("Title: ")
-    title = title:gsub("[" .. M.Cfg.extension .. "]+$", "")
+    title = strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create(opts, title)
     end
@@ -2095,6 +2116,7 @@ local function FollowLink(opts)
                 map("n", "<esc>", picker_actions.close(opts))
                 return true
             end,
+            sort = M.Cfg.sort,
         })
     end
 

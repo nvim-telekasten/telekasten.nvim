@@ -92,6 +92,8 @@ telekasten.setup({opts})
       -- markdown: ![](image_subdir/xxxxx.png)
       image_link_style = "wiki",
 
+      -- default sort option: 'filename', 'modified'
+      sort = "filename",
 
       -- specific note templates
       -- set to `nil` or do not specify if you do not want a template
@@ -244,6 +246,16 @@ telekasten.setup({opts})
         - 'markdown' .. `![](image_subdir/image_name)`
 
         Default: 'markdown'
+
+                                    *telekasten.settings.sort*
+    sort: ~
+        Order the notes by the option.
+
+        Valid options are:
+        - 'filename'
+        - 'modified'
+
+        Default: 'filename'
 
                            *telekasten.settings.follow_create_nonexisting*
     follow_creates_nonexisting: ~
