@@ -1,4 +1,6 @@
 -- Utils for path checks and path maniupulation
+local Path = require("plenary.path")
+local misc = require("telekasten.utils.misc")
 
 local M = {}
 
@@ -39,6 +41,7 @@ M.file_exists = function(fname)
     end
 end
 
+-- Check if dir exists and ask if it should be created
 M.check_dir_and_ask = function(dir, purpose)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
@@ -60,7 +63,7 @@ M.check_dir_and_ask = function(dir, purpose)
                 ret = true
             else
                 -- unreachable: plenary.Path:mkdir() will error out
-                print_error("Could not create directory " .. dir)
+                misc.print_error("Could not create directory " .. dir)
                 ret = false
             end
         end
@@ -70,6 +73,7 @@ M.check_dir_and_ask = function(dir, purpose)
     return ret
 end
 
+-- Make image path relative to the current buffer
 M.make_relative_path = function(bufferpath, imagepath, sep)
     sep = sep or "/"
 
@@ -113,7 +117,8 @@ M.make_relative_path = function(bufferpath, imagepath, sep)
     return relative_path
 end
 
-local function file_extension(fname)
+-- Return file extension
+M.file_extension = function(fname)
     return fname:match("^.+(%..+)$")
 end
 

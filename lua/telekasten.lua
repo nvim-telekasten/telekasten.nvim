@@ -20,6 +20,7 @@ local linkutils = require("taglinks.linkutils")
 local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
 local pathutils = require("telekasten.utils.pathutils")
+local misc = require("telekasten.utils.misc")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -175,16 +176,10 @@ local function concat_uuid_title(uuid, title)
     end
 end
 
-local function print_error(s)
-    vim.cmd("echohl ErrorMsg")
-    vim.cmd("echomsg " .. '"' .. s .. '"')
-    vim.cmd("echohl None")
-end
-
 local function global_dir_check()
     local ret
     if M.Cfg.home == nil then
-        print_error("Telekasten.nvim: home is not configured!")
+        misc.print_error("Telekasten.nvim: home is not configured!")
         ret = false
     else
         ret = pathutils.check_dir_and_ask(M.Cfg.home, "home")
@@ -1548,7 +1543,7 @@ local function RenameNote()
     local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
     local fexists = pathutils.file_exists(fname)
     if fexists then
-        print_error("File alreay exists. Renaming abandonned")
+        misc.print_error("File alreay exists. Renaming abandonned")
         return
     end
 
