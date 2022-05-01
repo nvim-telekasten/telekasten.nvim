@@ -268,12 +268,6 @@ local function save_all_tk_buffers()
     end
 end
 
--- strip an extension from a file name, escaping "." properly, eg:
--- strip_extension("path/Filename.md", ".md") -> "path/Filename"
-local function strip_extension(str, ext)
-    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
-end
-
 -- ----------------------------------------------------------------------------
 -- image stuff
 -- ----------------------------------------------------------------------------
@@ -616,7 +610,7 @@ function Pinfo:resolve_path(p, opts)
     local pp = Path:new(p)
     local p_splits = pp:_split()
     self.filename = p_splits[#p_splits]
-    self.title = self.filename:gsub(M.Cfg.extension, "")
+    self.title = pathutils.strip_extension(self.filename, M.Cfg.extension)
 
     if vim.startswith(p, M.Cfg.home) then
         self.root_dir = M.Cfg.home
@@ -1527,7 +1521,7 @@ local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
     local newname = vim.fn.input("New name: ")
-    newname = newname:gsub("(%" .. M.Cfg.extension .. ")$", "")
+    newname = pathutils.strip_extension(newname, M.Cfg.extension)
     local newpath = newname:match("(.*/)") or ""
     newpath = M.Cfg.home .. "/" .. newpath
 
@@ -1901,7 +1895,7 @@ local function CreateNoteSelectTemplate(opts)
     -- vim.ui.input causes ppl problems - see issue #4
     -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
     local title = vim.fn.input("Title: ")
-    title = strip_extension(title, M.Cfg.extension)
+    title = pathutils.strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create_with_template(opts, title)
     end
@@ -1978,7 +1972,7 @@ local function CreateNote(opts)
     end
 
     local title = vim.fn.input("Title: ")
-    title = strip_extension(title, M.Cfg.extension)
+    title = pathutils.strip_extension(title, M.Cfg.extension)
     if #title > 0 then
         on_create(opts, title)
     end

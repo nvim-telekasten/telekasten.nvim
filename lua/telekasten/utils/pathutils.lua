@@ -122,4 +122,10 @@ M.file_extension = function(fname)
     return fname:match("^.+(%..+)$")
 end
 
+-- strip an extension from a file name, escaping "." properly, eg:
+-- strip_extension("path/Filename.md", ".md") -> "path/Filename"
+M.strip_extension = function(str, ext)
+    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
+end
+
 return M
