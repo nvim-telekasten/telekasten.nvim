@@ -1,6 +1,7 @@
 -- Utils for path checks and path maniupulation
 local Path = require("plenary.path")
 local misc = require("telekasten.utils.misc")
+local strutils = require("telekasten.utils.stringutils")
 
 local M = {}
 
@@ -125,7 +126,7 @@ end
 -- strip an extension from a file name, escaping "." properly, eg:
 -- strip_extension("path/Filename.md", ".md") -> "path/Filename"
 M.strip_extension = function(str, ext)
-    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
+    return str:gsub("(" .. strutils.escape(ext) .. ")$", "")
 end
 
 return M

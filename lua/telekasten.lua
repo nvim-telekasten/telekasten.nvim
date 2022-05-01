@@ -20,6 +20,7 @@ local linkutils = require("telekasten.taglinks.linkutils")
 local dateutils = require("telekasten.taglinks.dateutils")
 local Path = require("plenary.path")
 local pathutils = require("telekasten.utils.pathutils")
+local strutils = require("telekasten.utils.stringutils")
 local misc = require("telekasten.utils.misc")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
@@ -193,36 +194,12 @@ local function global_dir_check()
     return ret
 end
 
---- escapes a string for use as exact pattern within gsub
-local function escape(s)
-    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
-end
-
 local function make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
         ret = M.Cfg.home .. "/" .. path
     end
     return ret
-end
-
--- sanitize strings
-local escape_chars = function(string)
-    return string.gsub(string, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
-        ["\\"] = "\\\\",
-        ["-"] = "\\-",
-        ["("] = "\\(",
-        [")"] = "\\)",
-        ["["] = "\\[",
-        ["]"] = "\\]",
-        ["{"] = "\\{",
-        ["}"] = "\\}",
-        ["?"] = "\\?",
-        ["+"] = "\\+",
-        ["*"] = "\\*",
-        ["^"] = "\\^",
-        ["$"] = "\\$",
-    })
 end
 
 local function recursive_substitution(dir, old, new)
@@ -235,8 +212,8 @@ local function recursive_substitution(dir, old, new)
         return
     end
 
-    old = escape_chars(old)
-    new = escape_chars(new)
+    old = strutils.escape_chars(old)
+    new = strutils.escape_chars(new)
 
     local sedcommand = "sed -i"
     if vim.fn.has("mac") == 1 then
@@ -632,8 +609,8 @@ function Pinfo:resolve_path(p, opts)
 
     -- now work out subdir relative to root
     self.sub_dir = p
-        :gsub(escape(self.root_dir .. "/"), "")
-        :gsub(escape(self.filename), "")
+        :gsub(strutils.escape(self.root_dir .. "/"), "")
+        :gsub(strutils.escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
 
@@ -802,8 +779,8 @@ function Pinfo:resolve_link(title, opts)
 
     -- now work out subdir relative to root
     self.sub_dir = self.filepath
-        :gsub(escape(self.root_dir .. "/"), "")
-        :gsub(escape(self.filename), "")
+        :gsub(strutils.escape(self.root_dir .. "/"), "")
+        :gsub(strutils.escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
 
@@ -918,7 +895,7 @@ local function find_files_sorted(opts)
     local function iconic_display(display_entry)
         local display_opts = {
             path_display = function(_, e)
-                return e:gsub(escape(opts.cwd .. "/"), "")
+                return e:gsub(strutils.escape(opts.cwd .. "/"), "")
             end,
         }
 
@@ -1146,7 +1123,7 @@ function picker_actions.paste_img_link(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = fn:gsub(strutils.escape(M.Cfg.home .. "/"), "")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -1163,7 +1140,7 @@ function picker_actions.yank_img_link(opts)
         end
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = fn:gsub(strutils.escape(M.Cfg.home .. "/"), "")
         local imglink = "![](" .. fn .. ")"
         vim.fn.setreg('"', imglink)
         print("yanked " .. imglink)
@@ -1729,7 +1706,7 @@ local function InsertImgLink(opts)
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 local fn = selection.value
-                fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+                fn = fn:gsub(strutils.escape(M.Cfg.home .. "/"), "")
                 vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
                 if opts.i then
                     vim.api.nvim_feedkeys("A", "m", false)
@@ -2123,7 +2100,7 @@ local function FollowLink(opts)
         local function iconic_display(display_entry)
             local display_opts = {
                 path_display = function(_, e)
-                    return e:gsub(escape(opts.cwd .. "/"), "")
+                    return e:gsub(strutils.escape(opts.cwd .. "/"), "")
                 end,
             }
 
