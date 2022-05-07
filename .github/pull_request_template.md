@@ -17,7 +17,7 @@
 ## Type of change
 
 <!--
-  What type of change does your PR introduce to Home Assistant?
+  What type of change does your PR introduce to Telekasten?
   NOTE: Please, check only 1! box!
   If your PR requires multiple boxes to be checked, you'll most likely need to
   split it into multiple PRs. This makes things easier and faster to code review.
