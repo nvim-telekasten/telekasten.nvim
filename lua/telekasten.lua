@@ -89,6 +89,9 @@ M.Cfg = {
     dailies_create_nonexisting = true,
     weeklies_create_nonexisting = true,
 
+    -- skip telescope prompt for goto_today and goto_thisweek
+    journal_auto_open = false,
+
     -- templates for new notes
     -- template_new_note = home .. "/" .. "templates/new_note.md",
     -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
@@ -1712,6 +1715,7 @@ local function GotoDate(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
 
     local word = opts.date or os.date(dateformats.date)
 
@@ -1735,31 +1739,35 @@ local function GotoDate(opts)
         opts.erase_file = fname
     end
 
-    find_files_sorted({
-        prompt_title = "Goto day",
-        cwd = M.Cfg.dailies,
-        default_text = word,
-        find_command = M.Cfg.find_command,
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                actions.close(prompt_bufnr)
+    if opts.journal_auto_open then
+        vim.cmd("e " .. fname)
+    else
+        find_files_sorted({
+            prompt_title = "Goto day",
+            cwd = M.Cfg.dailies,
+            default_text = word,
+            find_command = M.Cfg.find_command,
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
 
-                -- open the new note
-                if opts.calendar == true then
-                    vim.cmd("wincmd w")
-                end
-                vim.cmd("e " .. fname)
-                picker_actions.post_open()
-            end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-c>", picker_actions.close(opts))
-            map("n", "<esc>", picker_actions.close(opts))
-            return true
-        end,
-    })
+                    -- open the new note
+                    if opts.calendar == true then
+                        vim.cmd("wincmd w")
+                    end
+                    vim.cmd("e " .. fname)
+                    picker_actions.post_open()
+                end)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
+                return true
+            end,
+        })
+    end
 end
 
 --
@@ -2551,6 +2559,7 @@ local function GotoThisWeek(opts)
         or M.Cfg.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
 
     if not global_dir_check() then
         return
@@ -2572,22 +2581,26 @@ local function GotoThisWeek(opts)
         opts.erase_file = fname
     end
 
-    find_files_sorted({
-        prompt_title = "Goto this week:",
-        cwd = M.Cfg.weeklies,
-        default_text = title,
-        find_command = M.Cfg.find_command,
-        attach_mappings = function(_, map)
-            actions.select_default:replace(picker_actions.select_default)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-c>", picker_actions.close(opts))
-            map("n", "<esc>", picker_actions.close(opts))
-            return true
-        end,
-    })
+    if opts.journal_auto_open then
+        vim.cmd("e " .. fname)
+    else
+        find_files_sorted({
+            prompt_title = "Goto this week:",
+            cwd = M.Cfg.weeklies,
+            default_text = title,
+            find_command = M.Cfg.find_command,
+            attach_mappings = function(_, map)
+                actions.select_default:replace(picker_actions.select_default)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
+                return true
+            end,
+        })
+    end
 end
 
 --

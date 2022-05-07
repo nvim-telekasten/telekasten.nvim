@@ -254,6 +254,9 @@ require('telekasten').setup({
     dailies_create_nonexisting = true,
     weeklies_create_nonexisting = true,
 
+    -- skip telescope prompt for goto_today and goto_thisweek
+    journal_auto_open = false,
+
     -- template for new notes (new_note, follow_link)
     -- set to `nil` or do not specify if you do not want a template
     template_new_note = home .. '/' .. 'templates/new_note.md',
@@ -362,6 +365,7 @@ END
 | `follow_creates_nonexisting` | following a link to a non-existing note will create it | true |
 | `dailies_create_nonexisting` | following a link to a non-existing daily note will create it | true |
 | `weekly_create_nonexisting` | following a link to a non-existing weekly note will create it | true |
+| `journal_auto_open` | skip telekscope picker and automatically open the note with goto_today and goto_thisweek | false |
 | `template_new_note` | markdown template for new notes | ~/zettelkasten/templates/new_note.md |
 | | set to `nil` if you want none | |
 | `template_new_daily` | markdown template for new daily notes | ~/zettelkasten/templates/daily.md |
