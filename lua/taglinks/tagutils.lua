@@ -1,7 +1,8 @@
 local Job = require("plenary.job")
 
 local M = {}
-local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
+local hashtag_re =
+    "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*)"
 local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
 local yaml_re =
     "(^|\\s)tags:\\s*\\[([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s)*)*]"
@@ -19,7 +20,7 @@ local function command_find_all_tags(opts)
         re = yaml_re
     end
 
-    return "rg", { "--vimgrep", "-o", re, "--", opts.cwd }
+    return "rg", { "--vimgrep", "--pcre2", "-o", re, "--", opts.cwd }
 end
 
 -- strips away leading ' or " , then trims whitespace
@@ -108,7 +109,7 @@ end
 
 M.do_find_all_tags = function(opts)
     local cmd, args = command_find_all_tags(opts)
-    -- print(cmd .. " " .. vim.inspect(args))
+    --print(cmd .. " " .. vim.inspect(args))
     local ret = {}
     local _ = Job
         :new({
