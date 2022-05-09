@@ -1269,7 +1269,7 @@ function picker_actions.paste_img_link(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = make_relative_path(vim.fn.expand("%"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
         if opts.insert_after_inserting or opts.i then
