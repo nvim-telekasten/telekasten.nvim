@@ -1332,7 +1332,7 @@ end
 -- FindWeeklyNotes:
 -- ---------------
 --
--- Select from daily notes
+-- Select from weekly notes
 --
 local function FindWeeklyNotes(opts)
     opts = opts or {}
@@ -1343,21 +1343,6 @@ local function FindWeeklyNotes(opts)
 
     if not global_dir_check() then
         return
-    end
-
-    local title = os.date(dateformats.isoweek)
-    local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-    local fexists = file_exists(fname)
-    if
-        (fexists ~= true)
-        and (
-            (opts.weeklies_create_nonexisting == true)
-            or M.Cfg.weeklies_create_nonexisting == true
-        )
-    then
-        create_note_from_template(title, _, fname, M.note_type_templates.weekly)
-        opts.erase = true
-        opts.erase_file = fname
     end
 
     find_files_sorted({
