@@ -458,7 +458,7 @@ local function imgFromClipboard()
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
     local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
     local png = pngdir .. "/" .. pngname
-    local relpath = make_relative_path(vim.fn.expand("%"), png, "/")
+    local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
     local result = os.execute(get_paste_command(pngdir, pngname))
     if result > 0 then
@@ -1269,8 +1269,7 @@ function picker_actions.paste_img_link(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
-        fn = make_relative_path(vim.fn.expand("%"), fn, "/")
+        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -1287,8 +1286,7 @@ function picker_actions.yank_img_link(opts)
         end
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
-        fn = make_relative_path(vim.fn.expand("%"), fn, "/")
+        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.fn.setreg('"', imglink)
         print("yanked " .. imglink)
