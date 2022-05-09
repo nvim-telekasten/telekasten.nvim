@@ -1286,7 +1286,7 @@ function picker_actions.yank_img_link(opts)
         end
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = make_relative_path(vim.fn.expand('%'), fn, '/')
         local imglink = "![](" .. fn .. ")"
         vim.fn.setreg('"', imglink)
         print("yanked " .. imglink)
