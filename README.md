@@ -706,9 +706,10 @@ previewers for `.md` files.
 
 ### 2.5 Note templates
 
-The functions `goto_today`, `goto_thisweek`, `find_daily_notes`, `find_weekly_notes`, and `follow_link` can create
-non-existing notes. This allows you to 'go to today' without having to create today's note beforehand. When you just
-type `[[some link]]` and then call `follow_link`, the 'some link' note can be generated.
+The functions `goto_today`, `goto_thisweek`, and `follow_link` can create
+non-existing notes. This allows you to 'go to today' without having to create
+today's note beforehand. When you just type `[[some link]]` and then call
+`follow_link`, the 'some link' note can be generated.
 
 The following table shows what action creates what kind of non-existing note:
 
@@ -716,9 +717,7 @@ The following table shows what action creates what kind of non-existing note:
 | --- | --- | --- |
 | `goto_today()` | `dailies_create_nonexisting` | today's daily note |
 | [ENTER] on a day in the calendar | `dailies_create_nonexisting` | selected day's daily note |
-| `find_daily_notes()` | `dailies_create_nonexisting` | today's daily note |
 | `goto_thisweek()` | `weeklies_create_nonexisting` | this week's weekly note |
-| `find_weekly_notes()` | `weeklies_create_nonexisting` | this week's weekly note |
 | `follow_link()` | `follow_creates_nonexisting` | new note |
 | `new_note()` | always true | new note |
 | `new_templated_note()` | always true | new note |
