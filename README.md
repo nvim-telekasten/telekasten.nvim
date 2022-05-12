@@ -242,8 +242,12 @@ require('telekasten').setup({
     -- markdown file extension
     extension    = ".md",
 
-    -- prefix file with uuid
-    prefix_title_by_uuid = false,
+    -- Generate note filenames. One of:
+    -- "title" (default) - Use title if supplied, uuid otherwise
+    -- "uuid" - Use uuid
+    -- "uuid-title" - Prefix title by uuid
+    -- "title-uuid" - Suffix title with uuid
+    new_note_filename = "title",
     -- file uuid type ("rand" or input for os.date()")
     uuid_type = "%Y%m%d%H%M",
     -- UUID separator

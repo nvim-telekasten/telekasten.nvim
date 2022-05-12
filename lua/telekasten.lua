@@ -77,8 +77,12 @@ M.Cfg = {
     -- markdown file extension
     extension = ".md",
 
-    -- prefix file with uuid
-    prefix_title_by_uuid = false,
+    -- Generate note filenames. One of:
+    -- "title" (default) - Use title if supplied, uuid otherwise
+    -- "uuid" - Use uuid
+    -- "uuid-title" - Prefix title by uuid
+    -- "title-uuid" - Suffix title with uuid
+    new_note_filename = "title",
     -- file uuid type ("rand" or input for os.date()")
     uuid_type = "%Y%m%d%H%M",
     -- UUID separator
@@ -202,12 +206,18 @@ local function get_uuid(opts)
     return uuid
 end
 
-local function concat_uuid_title(uuid, title)
+local function generate_note_filename(uuid, title)
     local sep = M.Cfg.uuid_sep or "-"
-    if uuid == nil or not M.Cfg.prefix_title_by_uuid then
-        return title
+    if not M.Cfg.new_note_filename == "uuid" and #title > 0 then
+        if M.Cfg.new_note_filename == "uuid-title" then
+            return uuid .. sep .. title
+        elseif M.Cfg.new_note_filename == "title-uuid" then
+            return title .. sep .. uuid
+        else
+            return title
+        end
     else
-        return uuid .. sep .. title
+        return uuid
     end
 end
 
@@ -1968,7 +1978,7 @@ local function on_create_with_template(opts, title)
 
     local uuid = get_uuid(opts)
     local pinfo = Pinfo:new({
-        title = concat_uuid_title(uuid, title),
+        title = generate_note_filename(uuid, title),
         opts,
     })
     local fname = pinfo.filepath
@@ -2016,13 +2026,13 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    -- vim.ui.input causes ppl problems - see issue #4
-    -- vim.ui.input({ prompt = "Title: " }, on_create_with_template)
-    local title = vim.fn.input("Title: ")
-    title = strip_extension(title, M.Cfg.extension)
-    if #title > 0 then
+    vim.ui.input({ prompt = "Title: " }, function(title)
+        if not title then
+            title = ""
+        end
+        title = strip_extension(title, M.Cfg.extension)
         on_create_with_template(opts, title)
-    end
+    end)
 end
 
 --
@@ -2046,7 +2056,7 @@ local function on_create(opts, title)
 
     local uuid = get_uuid(opts)
     local pinfo = Pinfo:new({
-        title = concat_uuid_title(uuid, title),
+        title = generate_note_filename(uuid, title),
         opts,
     })
     local fname = pinfo.filepath
@@ -2067,7 +2077,7 @@ local function on_create(opts, title)
     find_files_sorted({
         prompt_title = "Created note...",
         cwd = pinfo.root_dir,
-        default_text = concat_uuid_title(uuid, title),
+        default_text = generate_note_filename(uuid, title),
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -2084,8 +2094,6 @@ end
 
 local function CreateNote(opts)
     opts = opts or {}
-    -- vim.ui.input causes ppl problems - see issue #4
-    -- vim.ui.input({ prompt = "Title: " }, on_create)
 
     if not global_dir_check() then
         return
@@ -2095,11 +2103,13 @@ local function CreateNote(opts)
         return CreateNoteSelectTemplate(opts)
     end
 
-    local title = vim.fn.input("Title: ")
-    title = strip_extension(title, M.Cfg.extension)
-    if #title > 0 then
+    vim.ui.input({ prompt = "Title: ", default = "" }, function(title)
+        if not title then
+            title = ""
+        end
+        title = strip_extension(title, M.Cfg.extension)
         on_create(opts, title)
-    end
+    end)
 end
 
 --
