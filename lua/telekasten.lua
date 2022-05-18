@@ -1501,12 +1501,13 @@ local function PreviewImg(opts)
     local fname = vim.fn.getreg('"0')
 
     -- check if fname exists anywhere
-    local fexists = file_exists(M.Cfg.home .. "/" .. fname)
+    local imageDir = M.Cfg.image_subdir or M.Cfg.home
+    local fexists = file_exists(imageDir .. "/" .. fname)
 
     if fexists == true then
         find_files_sorted({
             prompt_title = "Preview image/media",
-            cwd = M.Cfg.home,
+            cwd = imageDir,
             default_text = fname,
             find_command = M.Cfg.find_command,
             filter_extensions = {
