@@ -191,24 +191,20 @@ local function random_variable(length)
 end
 
 local function get_uuid(opts)
-    opts.prefix_title_by_uuid = opts.prefix_title_by_uuid
-        or M.Cfg.prefix_title_by_uuid
     opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
     local uuid
-    if opts.prefix_title_by_uuid then
-        if opts.uuid_type ~= "rand" then
-            uuid = os.date(opts.uuid_type)
-        else
-            uuid = random_variable(6)
-        end
+    if opts.uuid_type ~= "rand" then
+        uuid = os.date(opts.uuid_type)
+    else
+        uuid = random_variable(6)
     end
     return uuid
 end
 
 local function concat_uuid_title(uuid, title)
     local sep = M.Cfg.uuid_sep or "-"
-    if uuid == nil then
+    if uuid == nil or not M.Cfg.prefix_title_by_uuid then
         return title
     else
         return uuid .. sep .. title
@@ -458,7 +454,7 @@ local function imgFromClipboard()
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
     local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
     local png = pngdir .. "/" .. pngname
-    local relpath = make_relative_path(vim.fn.expand("%"), png, "/")
+    local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
     local result = os.execute(get_paste_command(pngdir, pngname))
     if result > 0 then
@@ -1269,7 +1265,7 @@ function picker_actions.paste_img_link(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -1286,7 +1282,7 @@ function picker_actions.yank_img_link(opts)
         end
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.fn.setreg('"', imglink)
         print("yanked " .. imglink)
@@ -1857,7 +1853,7 @@ local function InsertImgLink(opts)
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 local fn = selection.value
-                fn = fn:gsub(escape(M.Cfg.home .. "/"), "")
+                fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
                 vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
                 if opts.i then
                     vim.api.nvim_feedkeys("A", "m", false)
