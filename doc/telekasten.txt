@@ -71,8 +71,12 @@ telekasten.setup({opts})
       -- markdown file extension
       extension    = ".md",
 
-      -- prefix file with uuid
-      prefix_title_by_uuid = false,
+      -- Generate note filenames. One of:
+      -- "title" (default) - Use title if supplied, uuid otherwise
+      -- "uuid" - Use uuid
+      -- "uuid-title" - Prefix title by uuid
+      -- "title-uuid" - Suffix title with uuid
+      new_note_filename = "title",
       -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
       uuid_type = "%Y%m%d%H%M",
       -- UUID separator
@@ -210,11 +214,18 @@ telekasten.setup({opts})
 
         Default: '.md'
 
-                                *telekasten.settings.prefix_title_by_uuid*
-    prefix_title_by_uuid: ~
-        Adds an Universal Unique Identifier before the file name.
+                                   *telekasten.settings.new_note_filename*
+    new_note_filename: ~
+        Configures the filenames of newly created notes. See |uuid_sep|
+        for 'uuid-title' and 'title-uuid' separator.
 
-        Default: 'false'
+        Valid options are:
+        - 'title' .. title only
+        - 'uuid' .. uuid only
+        - 'uuid-title' .. prefix title by uuid
+        - 'title-uuid' .. suffix title with uuid
+
+        Default: 'title'
 
                                            *telekasten.settings.uuid_type*
     uuid_type: ~
