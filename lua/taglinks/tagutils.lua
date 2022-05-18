@@ -10,6 +10,14 @@ local yaml_re =
 local function command_find_all_tags(opts)
     opts = opts or {}
     opts.cwd = opts.cwd or "."
+    opts.templateDir = opts.templateDir or ""
+
+    -- do not list tags in the template directory
+    local globArg = ""
+    if opts.templateDir ~= "" then
+        globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
+    end
+
     local re = hashtag_re
 
     if opts.tag_notation == ":tag:" then
@@ -20,7 +28,16 @@ local function command_find_all_tags(opts)
         re = yaml_re
     end
 
-    return "rg", { "--vimgrep", "--pcre2", "-o", re, "--", opts.cwd }
+    return "rg",
+        {
+            "--vimgrep",
+            "--pcre2",
+            globArg,
+            "-o",
+            re,
+            "--",
+            opts.cwd,
+        }
 end
 
 -- strips away leading ' or " , then trims whitespace

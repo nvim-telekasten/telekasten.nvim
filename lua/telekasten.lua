@@ -2720,6 +2720,7 @@ local function FindAllTags(opts)
     local i = opts.i
     opts.cwd = M.Cfg.home
     opts.tag_notation = M.Cfg.tag_notation
+    opts.templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
 
     if not global_dir_check() then
         return
