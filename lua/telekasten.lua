@@ -208,7 +208,7 @@ end
 
 local function generate_note_filename(uuid, title)
     local sep = M.Cfg.uuid_sep or "-"
-    if not M.Cfg.new_note_filename == "uuid" and #title > 0 then
+    if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
         if M.Cfg.new_note_filename == "uuid-title" then
             return uuid .. sep .. title
         elseif M.Cfg.new_note_filename == "title-uuid" then
