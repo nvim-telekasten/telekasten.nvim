@@ -5,7 +5,7 @@ local hashtag_re =
     "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*)"
 local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
 local yaml_re =
-    "(^|\\s)tags:\\s*\\[\\s*([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s)*)*\\s*]"
+    "(^|\\s)tags:\\s*\\[\\s*([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s*)*)*\\s*]"
 
 local function command_find_all_tags(opts)
     opts = opts or {}
