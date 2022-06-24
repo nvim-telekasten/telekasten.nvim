@@ -2734,6 +2734,7 @@ local function FindAllTags(opts)
     opts.tag_notation = M.Cfg.tag_notation
     local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
     opts.templateDir = templateDir
+    opts.rg_pcre = M.Cfg.rg_pcre
 
     if not global_dir_check() then
         return
@@ -2913,6 +2914,16 @@ local function Setup(cfg)
     M.Cfg.dailies = make_config_path_absolute(M.Cfg.dailies)
     M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
     M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
+
+    -- Check if ripgrep is compiled with --pcre
+    -- ! This will need to be fixed when neovim moves to lua >=5.2 by the following:
+    -- M.Cfg.rg_pcre = os.execute("echo 'hello' | rg --pcr2 hello &> /dev/null") or false
+
+    M.Cfg.rg_pcre = false
+    local has_pcre = os.execute("echo 'hello' | rg --pcre2 hello &> /dev/null")
+    if has_pcre == 0 then
+        M.Cfg.rg_pcre = true
+    end
 end
 
 M.find_notes = FindNotes
