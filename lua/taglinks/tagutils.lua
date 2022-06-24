@@ -143,10 +143,7 @@ local function parse_entry(opts, line, ret)
 end
 
 M.do_find_all_tags = function(opts)
-    opts = opts or {}
-
     local cmd, args = command_find_all_tags(opts)
-    print(args)
     --print(cmd .. " " .. vim.inspect(args))
     local ret = {}
     local _ = Job
