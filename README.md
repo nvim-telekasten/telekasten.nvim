@@ -704,6 +704,16 @@ The only symbols allowed are:
 Numbers are allowed in tags, as long as a tag is not purely numeric. For example, #1984 is not a valid tag, but `#y1984`
 is.
 
+**Note**: When using the `#tag` notation, telekasten will try to differentiate
+an actual tag from an hexadecimal code (e.g. `#FF0000`) to prevent false
+matches. This is achieved by using the `--pcre2` flag of `ripgrep`. However,
+some linux distribution (mostly the ones based on Debian) do not compile ripgrep
+with this flag by default, making it impossible to use. If this is the case, the
+tag functions of telekasten will not be able to differentiate color codes from
+actual tags and will return everything. A workaround is to either use the
+`:tag:` notation or to recompile ripgrep locally with the appropriate flag (see
+issues # 115 and #145).
+
 **Note**: For proper highlighting, the `auto_set_filetype` option is set to `true` by default. This automatically
 switches the filetype of opened notes from `markdown` to `telekasten`, and also registers the syntax with telescope
 previewers for `.md` files.
