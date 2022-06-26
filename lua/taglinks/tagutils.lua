@@ -1,7 +1,9 @@
 local Job = require("plenary.job")
 
 local M = {}
-local hashtag_re =
+local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
+-- PCRE hashtag allows to remove the hex color codes from hastags
+local hashtag_re_pcre =
     "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*)"
 local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
 local yaml_re =
@@ -11,6 +13,7 @@ local function command_find_all_tags(opts)
     opts = opts or {}
     opts.cwd = opts.cwd or "."
     opts.templateDir = opts.templateDir or ""
+    opts.rg_pcre = opts.rg_pcre or false
 
     -- do not list tags in the template directory
     local globArg = ""
@@ -28,8 +31,20 @@ local function command_find_all_tags(opts)
         re = yaml_re
     end
 
-    return "rg",
-        {
+    local rg_args = {
+        "--vimgrep",
+        globArg,
+        "-o",
+        re,
+        "--",
+        opts.cwd,
+    }
+
+    -- PCRE engine allows to remove hex color codes from #hastags
+    if opts.rg_pcre then
+        re = hashtag_re_pcre
+
+        rg_args = {
             "--vimgrep",
             "--pcre2",
             globArg,
@@ -38,6 +53,9 @@ local function command_find_all_tags(opts)
             "--",
             opts.cwd,
         }
+    end
+
+    return "rg", rg_args
 end
 
 -- strips away leading ' or " , then trims whitespace
