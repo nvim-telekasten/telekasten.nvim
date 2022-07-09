@@ -60,6 +60,8 @@ code in Copilot.
 
 ![Logo of the GiveUpGitHub campaign](https://sfconservancy.org/img/GiveUpGitHub.png)
 
+---
+
 Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in
 the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep
 browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the
