@@ -231,7 +231,7 @@ To avoid the most common Windows issue:
 
 - Best option: don't use Windows if possible
 - Second best option: try WSL2 on Windows and pretend you're on Linux
-- if you **must** use Windows, use `/Users/myname/zettelkasten` instead of `~/zettelkasten`
+- if you **must** use Windows, it is preferable to use `C:/Users/myname/zettelkasten` instead of `~/zettelkasten`
 - **NEVER** use `C:\Users\myname` style paths
 - Using `vim.fn.expand("~/zettelkasten")` should work now but mileage will vary with anything outside of finding and opening files
 
