@@ -2687,7 +2687,6 @@ local function SetupCalendar(opts)
         let g:calendar_action = 'MyCalAction'
         " let g:calendar_begin = 'MyCalBegin'
 
-        let g:calendar_monday = {{calendar_monday}}
         let g:calendar_mark = '{{calendar_mark}}'
         let g:calendar_weeknm = {{weeknm}}
     ]]
@@ -2696,6 +2695,9 @@ local function SetupCalendar(opts)
         cmd = cmd:gsub("{{" .. k .. "}}", v)
     end
     vim.cmd(cmd)
+    if opts.calendar_monday == 1 then
+        vim.cmd("let g:calendar_monday = 1")
+    end
 end
 
 local function ToggleTodo(opts)
