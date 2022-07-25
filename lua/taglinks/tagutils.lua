@@ -41,7 +41,7 @@ local function command_find_all_tags(opts)
     }
 
     -- PCRE engine allows to remove hex color codes from #hastags
-    if opts.rg_pcre then
+    if opts.rg_pcre and (re == hashtag_re) then
         re = hashtag_re_pcre
 
         rg_args = {
