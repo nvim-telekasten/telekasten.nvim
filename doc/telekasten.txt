@@ -37,6 +37,7 @@ CONTENTS
         3.3 Templates ................ |telekasten.templates|
         3.4 Calendar ................. |telekasten.calendar|
         3.5 Picker mappings .......... |telekasten.picker_mappings|
+        3.6 Mutliple home directories. |telekasten.switch_vaults|
     4. Suggested mappings ............ |telekasten.mappings|
     5. Credits ....................... |telekasten.credits|
 
@@ -125,6 +126,7 @@ telekasten.setup({opts})
                                          --   'left'
                                          --   'right'
                                          --   'left-fit'
+      },
 
       -- make syntax available to markdown buffers and telescope previewers
       install_syntax = true,
@@ -142,6 +144,12 @@ telekasten.setup({opts})
       -- when linking to a note in subdir/, create a [[subdir/title]] link
       -- instead of a [[title only]] link
       subdirs_in_links = true,
+
+      vaults = {
+        personal = {
+          --configuration for personal vault
+        }
+      },
     }
 <
 
@@ -910,6 +918,14 @@ the following mappings apply:
     Usually opens the selected note or performs the action defined by the called
     function. E.g. `insert_img_link()`'s action is to insert a link to the
     selected image.
+
+--------------------------------------------------------------------------------
+Section 3.6 Mutliple home directories               *telekasten.switch_vaults*
+
+You can have multiple home directories setup in telekasten. The configuration
+for each vault is stored as a map in telekasten. You can use `switch_vaults
+to launch a picker to choose the vaults. 
+
 
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*

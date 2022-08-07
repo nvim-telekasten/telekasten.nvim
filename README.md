@@ -368,6 +368,13 @@ require('telekasten').setup({
 
     -- should all links be updated when a file is renamed
     rename_update_links = true,
+
+    vaults = {
+        vault2 = {
+            -- alternate configuration for vault2 here. Missing values are defaulted to
+            -- default values from telekasten.
+        },
+    },
 })
 END
 ```
@@ -632,6 +639,7 @@ The plugin defines the following functions:
 - `panel()` : brings up the command palette
 - `show_tags()` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
 - `rename_note()` : rename the current note and update the links pointing to it
+- `switch_vault()` : switch the vault
 
 To use one of the functions above, just run them with the `:lua ...` command.
 
