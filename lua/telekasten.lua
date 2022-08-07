@@ -19,6 +19,7 @@ local tagutils = require("taglinks.tagutils")
 local linkutils = require("taglinks.linkutils")
 local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
+local vaultPicker = require("vaultpicker")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -26,125 +27,136 @@ local vim = vim
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
-local home = vim.fn.expand("~/zettelkasten")
+local _home = vim.fn.expand("~/zettelkasten")
 local M = {}
+local function defaultConfig(home)
+    if home == nil then
+        home = _home
+    end
 
-M.Cfg = {
-    home = home,
+    local cfg = {
+        home = home,
 
-    -- if true, telekasten will be enabled when opening a note within the configured home
-    take_over_my_home = true,
+        -- if true, telekasten will be enabled when opening a note within the configured home
+        take_over_my_home = true,
 
-    -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
-    --                               and thus the telekasten syntax will not be loaded either
-    auto_set_filetype = true,
+        -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
+        --                               and thus the telekasten syntax will not be loaded either
+        auto_set_filetype = true,
 
-    -- dir names for special notes (absolute path or subdir name)
-    dailies = home .. "/" .. "daily",
-    weeklies = home .. "/" .. "weekly",
-    templates = home .. "/" .. "templates",
+        -- dir names for special notes (absolute path or subdir name)
+        dailies = home .. "/" .. "daily",
+        weeklies = home .. "/" .. "weekly",
+        templates = home .. "/" .. "templates",
 
-    -- image (sub)dir for pasting
-    -- dir name (absolute path or subdir name)
-    -- or nil if pasted images shouldn't go into a special subdir
-    image_subdir = nil,
+        -- image (sub)dir for pasting
+        -- dir name (absolute path or subdir name)
+        -- or nil if pasted images shouldn't go into a special subdir
+        image_subdir = nil,
 
-    -- markdown file extension
-    extension = ".md",
+        -- markdown file extension
+        extension = ".md",
 
-    -- Generate note filenames. One of:
-    -- "title" (default) - Use title if supplied, uuid otherwise
-    -- "uuid" - Use uuid
-    -- "uuid-title" - Prefix title by uuid
-    -- "title-uuid" - Suffix title with uuid
-    new_note_filename = "title",
-    -- file uuid type ("rand" or input for os.date()")
-    uuid_type = "%Y%m%d%H%M",
-    -- UUID separator
-    uuid_sep = "-",
+        -- Generate note filenames. One of:
+        -- "title" (default) - Use title if supplied, uuid otherwise
+        -- "uuid" - Use uuid
+        -- "uuid-title" - Prefix title by uuid
+        -- "title-uuid" - Suffix title with uuid
+        new_note_filename = "title",
+        -- file uuid type ("rand" or input for os.date()")
+        uuid_type = "%Y%m%d%H%M",
+        -- UUID separator
+        uuid_sep = "-",
 
-    -- following a link to a non-existing note will create it
-    follow_creates_nonexisting = true,
-    dailies_create_nonexisting = true,
-    weeklies_create_nonexisting = true,
+        -- following a link to a non-existing note will create it
+        follow_creates_nonexisting = true,
+        dailies_create_nonexisting = true,
+        weeklies_create_nonexisting = true,
 
-    -- skip telescope prompt for goto_today and goto_thisweek
-    journal_auto_open = false,
+        -- skip telescope prompt for goto_today and goto_thisweek
+        journal_auto_open = false,
 
-    -- templates for new notes
-    -- template_new_note = home .. "/" .. "templates/new_note.md",
-    -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
-    -- template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
+        -- templates for new notes
+        -- template_new_note = home .. "/" .. "templates/new_note.md",
+        -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
+        -- template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
 
-    -- image link style
-    -- wiki:     ![[image name]]
-    -- markdown: ![](image_subdir/xxxxx.png)
-    image_link_style = "markdown",
+        -- image link style
+        -- wiki:     ![[image name]]
+        -- markdown: ![](image_subdir/xxxxx.png)
+        image_link_style = "markdown",
 
-    -- default sort option: 'filename', 'modified'
-    sort = "filename",
+        -- default sort option: 'filename', 'modified'
+        sort = "filename",
 
-    -- when linking to a note in subdir/, create a [[subdir/title]] link
-    -- instead of a [[title only]] link
-    subdirs_in_links = true,
+        -- when linking to a note in subdir/, create a [[subdir/title]] link
+        -- instead of a [[title only]] link
+        subdirs_in_links = true,
 
-    -- integrate with calendar-vim
-    plug_into_calendar = true,
-    calendar_opts = {
-        -- calendar week display mode: 1 .. 'WK01', 2 .. 'WK 1', 3 .. 'KW01', 4 .. 'KW 1', 5 .. '1'
-        weeknm = 4,
-        -- use monday as first day of week: 1 .. true, 0 .. false
-        calendar_monday = 1,
-        -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
-        calendar_mark = "left-fit",
-    },
-    close_after_yanking = false,
-    insert_after_inserting = true,
+        -- integrate with calendar-vim
+        plug_into_calendar = true,
+        calendar_opts = {
+            -- calendar week display mode: 1 .. 'WK01', 2 .. 'WK 1', 3 .. 'KW01', 4 .. 'KW 1', 5 .. '1'
+            weeknm = 4,
+            -- use monday as first day of week: 1 .. true, 0 .. false
+            calendar_monday = 1,
+            -- calendar mark: where to put mark for marked days: 'left', 'right', 'left-fit'
+            calendar_mark = "left-fit",
+        },
+        close_after_yanking = false,
+        insert_after_inserting = true,
 
-    -- tag notation: '#tag', ':tag:', 'yaml-bare'
-    tag_notation = "#tag",
+        -- tag notation: '#tag', ':tag:', 'yaml-bare'
+        tag_notation = "#tag",
 
-    -- command palette theme: dropdown (window) or ivy (bottom panel)
-    command_palette_theme = "ivy",
+        -- command palette theme: dropdown (window) or ivy (bottom panel)
+        command_palette_theme = "ivy",
 
-    -- tag list theme:
-    -- get_cursor: small tag list at cursor; ivy and dropdown like above
-    show_tags_theme = "ivy",
+        -- tag list theme:
+        -- get_cursor: small tag list at cursor; ivy and dropdown like above
+        show_tags_theme = "ivy",
 
-    -- template_handling
-    -- What to do when creating a new note via `new_note()` or `follow_link()`
-    -- to a non-existing note
-    -- - prefer_new_note: use `new_note` template
-    -- - smart: if day or week is detected in title, use daily / weekly templates (default)
-    -- - always_ask: always ask before creating a note
-    template_handling = "smart",
+        -- template_handling
+        -- What to do when creating a new note via `new_note()` or `follow_link()`
+        -- to a non-existing note
+        -- - prefer_new_note: use `new_note` template
+        -- - smart: if day or week is detected in title, use daily / weekly templates (default)
+        -- - always_ask: always ask before creating a note
+        template_handling = "smart",
 
-    -- path handling:
-    --   this applies to:
-    --     - new_note()
-    --     - new_templated_note()
-    --     - follow_link() to non-existing note
-    --
-    --   it does NOT apply to:
-    --     - goto_today()
-    --     - goto_thisweek()
-    --
-    --   Valid options:
-    --     - smart: put daily-looking notes in daily, weekly-looking ones in weekly,
-    --              all other ones in home, except for notes/with/subdirs/in/title.
-    --              (default)
-    --
-    --     - prefer_home: put all notes in home except for goto_today(), goto_thisweek()
-    --                    except for notes/with/subdirs/in/title.
-    --
-    --     - same_as_current: put all new notes in the dir of the current note if
-    --                        present or else in home
-    --                        except for notes/with/subdirs/in/title.
-    new_note_location = "smart",
+        -- path handling:
+        --   this applies to:
+        --     - new_note()
+        --     - new_templated_note()
+        --     - follow_link() to non-existing note
+        --
+        --   it does NOT apply to:
+        --     - goto_today()
+        --     - goto_thisweek()
+        --
+        --   Valid options:
+        --     - smart: put daily-looking notes in daily, weekly-looking ones in weekly,
+        --              all other ones in home, except for notes/with/subdirs/in/title.
+        --              (default)
+        --
+        --     - prefer_home: put all notes in home except for goto_today(), goto_thisweek()
+        --                    except for notes/with/subdirs/in/title.
+        --
+        --     - same_as_current: put all new notes in the dir of the current note if
+        --                        present or else in home
+        --                        except for notes/with/subdirs/in/title.
+        new_note_location = "smart",
 
-    -- should all links be updated when a file is renamed
-    rename_update_links = true,
-}
+        -- should all links be updated when a file is renamed
+        rename_update_links = true,
+    }
+    M.Cfg = cfg
+    M.note_type_templates = {
+        normal = M.Cfg.template_new_note,
+        daily = M.Cfg.template_new_daily,
+        weekly = M.Cfg.template_new_weekly,
+    }
+end
 
 local function file_exists(fname)
     if fname == nil then
@@ -463,13 +475,8 @@ local function imgFromClipboard()
         vim.api.nvim_err_writeln("Unable to write image " .. png)
     end
 end
--- end of image stuff
 
-M.note_type_templates = {
-    normal = M.Cfg.template_new_note,
-    daily = M.Cfg.template_new_daily,
-    weekly = M.Cfg.template_new_weekly,
-}
+-- end of image stuff
 
 local function daysuffix(day)
     day = tostring(day)
@@ -737,8 +744,7 @@ function Pinfo:resolve_path(p, opts)
     end
 
     -- now work out subdir relative to root
-    self.sub_dir = p
-        :gsub(escape(self.root_dir .. "/"), "")
+    self.sub_dir = p:gsub(escape(self.root_dir .. "/"), "")
         :gsub(escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
@@ -854,9 +860,7 @@ function Pinfo:resolve_link(title, opts)
         if opts.new_note_location == "smart" then
             self.filepath = opts.home .. "/" .. self.filename -- default
             self.is_daily, self.is_weekly, self.calendar_info =
-                check_if_daily_or_weekly(
-                    self.title
-                )
+                check_if_daily_or_weekly(self.title)
             if self.is_daily == true then
                 self.root_dir = opts.dailies
                 self.filepath = opts.dailies .. "/" .. self.filename
@@ -1029,11 +1033,8 @@ local function find_files_sorted(opts)
         local hl_group
         local display = utils.transform_path(display_opts, display_entry.value)
 
-        display, hl_group = utils.transform_devicons(
-            display_entry.value,
-            display,
-            false
-        )
+        display, hl_group =
+            utils.transform_devicons(display_entry.value, display, false)
 
         if hl_group then
             return display, { { { 1, 3 }, hl_group } }
@@ -2242,17 +2243,12 @@ local function FollowLink(opts)
             }
 
             local hl_group
-            local display = utils.transform_path(
-                display_opts,
-                display_entry.value
-            )
+            local display =
+                utils.transform_path(display_opts, display_entry.value)
 
             display_entry.filn = display_entry.filn or display:gsub(":.*", "")
-            display, hl_group = utils.transform_devicons(
-                display_entry.filn,
-                display,
-                false
-            )
+            display, hl_group =
+                utils.transform_devicons(display_entry.filn, display, false)
 
             if hl_group then
                 return display, { { { 1, 3 }, hl_group } }
@@ -2333,10 +2329,8 @@ local function FollowLink(opts)
         local find = (function()
             if Path.path.sep == "\\" then
                 return function(t)
-                    local start, _, filn, lnum, col, text = string.find(
-                        t,
-                        [[([^:]+):(%d+):(%d+):(.*)]]
-                    )
+                    local start, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
 
                     -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
                     if start == 3 then
@@ -2347,10 +2341,8 @@ local function FollowLink(opts)
                 end
             else
                 return function(t)
-                    local _, _, filn, lnum, col, text = string.find(
-                        t,
-                        [[([^:]+):(%d+):(%d+):(.*)]]
-                    )
+                    local _, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
                     return filn, lnum, col, text
                 end
             end
@@ -2757,47 +2749,50 @@ local function FindAllTags(opts)
     opts.cwd = M.Cfg.home
     opts.tag_notation = M.Cfg.tag_notation
     opts.i = i
-    pickers.new(opts, {
-        prompt_title = "Tags",
-        finder = finders.new_table({
-            results = taglist,
-            entry_maker = function(entry)
-                return {
-                    value = entry,
-                    -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
-                    display = string.format(
-                        "%" .. max_tag_len .. "s ... (%3d matches)",
-                        entry.tag,
-                        #entry.details
-                    ),
-                    ordinal = entry.tag,
-                }
-            end,
-        }),
-        sorter = conf.generic_sorter(opts),
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                -- actions for insert tag, default action: search for tag
-                local selection = action_state.get_selected_entry().value.tag
-                local follow_opts = {
-                    follow_tag = selection,
-                    show_link_counts = true,
-                    templateDir = templateDir,
-                }
-                actions._close(prompt_bufnr, false)
-                vim.schedule(function()
-                    FollowLink(follow_opts)
+    pickers
+        .new(opts, {
+            prompt_title = "Tags",
+            finder = finders.new_table({
+                results = taglist,
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
+                        display = string.format(
+                            "%" .. max_tag_len .. "s ... (%3d matches)",
+                            entry.tag,
+                            #entry.details
+                        ),
+                        ordinal = entry.tag,
+                    }
+                end,
+            }),
+            sorter = conf.generic_sorter(opts),
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    -- actions for insert tag, default action: search for tag
+                    local selection =
+                        action_state.get_selected_entry().value.tag
+                    local follow_opts = {
+                        follow_tag = selection,
+                        show_link_counts = true,
+                        templateDir = templateDir,
+                    }
+                    actions._close(prompt_bufnr, false)
+                    vim.schedule(function()
+                        FollowLink(follow_opts)
+                    end)
                 end)
-            end)
-            map("i", "<c-y>", picker_actions.yank_tag(opts))
-            map("i", "<c-i>", picker_actions.paste_tag(opts))
-            map("n", "<c-y>", picker_actions.yank_tag(opts))
-            map("n", "<c-i>", picker_actions.paste_tag(opts))
-            map("n", "<c-c>", picker_actions.close(opts))
-            map("n", "<esc>", picker_actions.close(opts))
-            return true
-        end,
-    }):find()
+                map("i", "<c-y>", picker_actions.yank_tag(opts))
+                map("i", "<c-i>", picker_actions.paste_tag(opts))
+                map("n", "<c-y>", picker_actions.yank_tag(opts))
+                map("n", "<c-i>", picker_actions.paste_tag(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
+                return true
+            end,
+        })
+        :find()
 end
 
 -- Setup(cfg)
@@ -2806,6 +2801,7 @@ end
 --
 local function Setup(cfg)
     cfg = cfg or {}
+    defaultConfig(cfg.home)
     local debug = cfg.debug
     for k, v in pairs(cfg) do
         -- merge everything but calendar opts
@@ -2826,7 +2822,6 @@ local function Setup(cfg)
             end
         end
     end
-
     -- TODO: this is obsolete:
     if vim.fn.executable("rg") == 1 then
         M.Cfg.find_command = { "rg", "--files", "--sortr", "created" }
@@ -2907,12 +2902,37 @@ local function Setup(cfg)
     end
 end
 
+local function _setup(cfg)
+    if cfg.vaults ~= nil and cfg.default_vault ~= nil then
+        M.vaults = cfg.vaults
+        cfg.vaults = nil
+        Setup(cfg.vaults[cfg.default_vault])
+    elseif cfg.vaults ~= nil and cfg.vaults["default"] ~= nil then
+        M.vaults = cfg.vaults
+        cfg.vaults = nil
+        Setup(cfg.vaults["default"])
+    elseif cfg.home ~= nil then
+        M.vaults = cfg.vaults
+        cfg.vaults = nil
+        M.vaults["default"] = cfg
+        Setup(cfg)
+    end
+end
+
+local function ChangeVault(opts)
+    vaultPicker.vaults(M, opts)
+end
+
+local function chdir(cfg)
+    Setup(cfg)
+    -- M.Cfg = vim.tbl_deep_extend("force", defaultConfig(new_home), cfg)
+end
 M.find_notes = FindNotes
 M.find_daily_notes = FindDailyNotes
 M.search_notes = SearchNotes
 M.insert_link = InsertLink
 M.follow_link = FollowLink
-M.setup = Setup
+M.setup = _setup
 M.goto_today = GotoToday
 M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
@@ -2932,6 +2952,8 @@ M.preview_img = PreviewImg
 M.browse_media = BrowseImg
 M.taglinks = taglinks
 M.show_tags = FindAllTags
+M.switch_vault = ChangeVault
+M.chdir = chdir
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -2978,32 +3000,35 @@ local TelekastenCmd = {
 TelekastenCmd.command = function(subcommand)
     local show = function(opts)
         opts = opts or {}
-        pickers.new(opts, {
-            prompt_title = "Command palette",
-            finder = finders.new_table({
-                results = TelekastenCmd.commands(),
-                entry_maker = function(entry)
-                    return {
-                        value = entry,
-                        display = entry[1],
-                        ordinal = entry[2],
-                    }
-                end,
-            }),
-            sorter = conf.generic_sorter(opts),
-            attach_mappings = function(prompt_bufnr, _)
-                actions.select_default:replace(function()
-                    -- important: actions.close(bufnr) is not enough
-                    -- it resulted in: preview_img NOT receiving the prompt as default text
-                    -- apparently it has sth to do with keeping insert mode
-                    actions._close(prompt_bufnr, true)
+        pickers
+            .new(opts, {
+                prompt_title = "Command palette",
+                finder = finders.new_table({
+                    results = TelekastenCmd.commands(),
+                    entry_maker = function(entry)
+                        return {
+                            value = entry,
+                            display = entry[1],
+                            ordinal = entry[2],
+                        }
+                    end,
+                }),
+                sorter = conf.generic_sorter(opts),
+                attach_mappings = function(prompt_bufnr, _)
+                    actions.select_default:replace(function()
+                        -- important: actions.close(bufnr) is not enough
+                        -- it resulted in: preview_img NOT receiving the prompt as default text
+                        -- apparently it has sth to do with keeping insert mode
+                        actions._close(prompt_bufnr, true)
 
-                    local selection = action_state.get_selected_entry().value[3]
-                    selection()
-                end)
-                return true
-            end,
-        }):find()
+                        local selection =
+                            action_state.get_selected_entry().value[3]
+                        selection()
+                    end)
+                    return true
+                end,
+            })
+            :find()
     end
     if subcommand then
         -- print("trying subcommand " .. "`" .. subcommand .. "`")
