@@ -371,8 +371,7 @@ require('telekasten').setup({
 	vaults = {
 
 	 	vault2 = {
-
--- alternate config for vault2 here. Missing values are defaulted to default values in telekasten 		
+ 	 	 	-- alternate configuration for vault2 here. Missing values are defaulted to default values from telekasten. 		
 		}
 	}
 })
