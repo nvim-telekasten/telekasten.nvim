@@ -4,7 +4,7 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 
-M = {}
+local M = {}
 local vaults = function(telekasten, opts)
     opts = opts or {}
     local vaults = telekasten.vaults
