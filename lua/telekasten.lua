@@ -2912,7 +2912,7 @@ local function _setup(cfg)
         cfg.vaults = nil
         Setup(cfg.vaults["default"])
     elseif cfg.home ~= nil then
-        M.vaults = cfg.vaults
+        M.vaults = cfg.vaults or {}
         cfg.vaults = nil
         M.vaults["default"] = cfg
         Setup(cfg)

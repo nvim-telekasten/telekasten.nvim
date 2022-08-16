@@ -30,7 +30,7 @@ local vaults = function(telekasten, opts)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
-					-- print(vim.inspect(selection))
+                    -- print(vim.inspect(selection))
                     telekasten.chdir(selection.value[2])
                 end)
                 return true
