@@ -149,6 +149,11 @@ local function defaultConfig(home)
 
         -- should all links be updated when a file is renamed
         rename_update_links = true,
+
+        -- how to preview media files
+        -- "telescope-media-files" if you have telescope-media-files.nvim installed
+        -- "catimg-previewer" if you have catimg installed
+        media_previewer = "telescope-media-files",
     }
     M.Cfg = cfg
     M.note_type_templates = {
@@ -964,7 +969,16 @@ local media_files_base_directory = M.base_directory
     .. "/telescope-media-files.nvim"
 local defaulter = utils.make_default_callable
 local media_preview = defaulter(function(opts)
-    local preview_cmd = media_files_base_directory .. "/scripts/vimg"
+    local preview_cmd = ""
+    if M.Cfg.media_previewer == "telescope-media-files" then
+        preview_cmd = media_files_base_directory .. "/scripts/vimg"
+    end
+
+    if M.Cfg.media_previewer == "catimg-previewer" then
+        preview_cmd = M.base_directory
+            .. "/telekasten.nvim/scripts/catimg-previewer"
+    end
+
     if vim.fn.executable(preview_cmd) == 0 then
         print("Previewer not found: " .. preview_cmd)
         return conf.file_previewer(opts)
@@ -977,6 +991,7 @@ local media_preview = defaulter(function(opts)
             if vim.tbl_isempty(tmp_table) then
                 return { "echo", "" }
             end
+            print(tmp_table[1])
             return {
                 preview_cmd,
                 tmp_table[1],

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+img="$1"
+width="$4"
+height="$5"
+
+catimg "$img" -w${width}x${height}

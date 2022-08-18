@@ -377,6 +377,11 @@ require('telekasten').setup({
             -- home = "/home/user/vaults/personal",
         },
     },
+
+    -- how to preview media files
+    -- "telescope-media-files" if you have telescope-media-files.nvim installed
+    -- "catimg-previewer" if you have catimg installed
+    media_previewer = "telescope-media-files",
 })
 END
 ```
@@ -438,6 +443,9 @@ END
 | | - `prefer_home`: put all notes in home folder except for `goto_today()` and `goto_thisweek()`, and notes with `sub/folders` in the title ||
 | | - `same_as_current`: put all new notes in the directory of the currently open note (where the cursor is) if present or else into the home folder, except for notes with `sub/folders/` in the title||
 | `vaults` | a table of additional vault configurations. Default config values are assumed for all config settings that are not specified for additional vaults | `vaults = { second_vault = { home = "/home/rs/vaults/second", }, third_vault: { home = "/home/rs/vaults/third", }, }` |
+| `media_previewer` | how to preview media files | default: `telescope-media-files` |
+|| - `telescope-media-files` if you have telescope-media-files.nvim installed |
+|| - `catimg-previewer` if you have catimg installed |
 
 The calendar support has its own options, contained in `calendar_opts`:
 

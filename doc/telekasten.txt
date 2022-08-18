@@ -151,6 +151,10 @@ telekasten.setup({opts})
           -- home = "/home/user/vaults/personal",
         }
       },
+      -- how to preview media files
+      -- "telescope-media-files" if you have telescope-media-files.nvim installed
+      -- "catimg-previewer" if you have catimg installed
+      media_previewer = "telescope-media-files",
     }
 <
 
@@ -399,6 +403,18 @@ telekasten.setup({opts})
         has been renamed.
 
         Default: `true`
+
+                                       *telekasten.settings.media_previewer*
+    media_previewer:~
+        Previewer used for viewing media / image files. There are two
+        options:
+        - `'telescope-media-files'` : use the telescope-media-files.nvim
+          plugin
+        - `'catimg-previewer'` : use the built-in `catimg` previewer.
+          Requires `catimg` to be installed.
+
+        Default: `telescope-media-files`
+
                                                *telekasten.calendar_opts*
     -----------------------------------
     Valid keys for {opts.calendar_opts}
@@ -925,7 +941,7 @@ Section 3.6 Mutliple home directories               *telekasten.switch_vaults*
 
 You can have multiple home directories setup in telekasten. The configuration
 for each vault is stored as a map in telekasten. You can use `switch_vaults
-to launch a picker to choose the vaults. 
+to launch a picker to choose the vaults.
 
 
 ================================================================================
