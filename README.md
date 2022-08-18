@@ -373,6 +373,8 @@ require('telekasten').setup({
         vault2 = {
             -- alternate configuration for vault2 here. Missing values are defaulted to
             -- default values from telekasten.
+            -- e.g.
+            -- home = "/home/user/vaults/personal",
         },
     },
 })
@@ -435,6 +437,7 @@ END
 | | - `smart` (default): put daily-looking (date as title) into the daily folder, weekly-looking notes into the weekly folder, all other ones into the home folder, except for notes with `sub/folders` in the title.|  |
 | | - `prefer_home`: put all notes in home folder except for `goto_today()` and `goto_thisweek()`, and notes with `sub/folders` in the title ||
 | | - `same_as_current`: put all new notes in the directory of the currently open note (where the cursor is) if present or else into the home folder, except for notes with `sub/folders/` in the title||
+| `vaults` | a table of additional vault configurations. Default config values are assumed for all config settings that are not specified for additional vaults | `vaults = { second_vault = { home = "/home/rs/vaults/second", }, third_vault: { home = "/home/rs/vaults/third", }, }` |
 
 The calendar support has its own options, contained in `calendar_opts`:
 
@@ -543,6 +546,9 @@ the list for a more detailed description:
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
 - `rename_note` : Rename current note and update the links pointing to it
+- `show_tags` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
+- `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
+  option for more.
 
 The Telekasten command supports sub-command completion, in my case by pressing <kbd>TAB</kbd>.
 

@@ -147,7 +147,8 @@ telekasten.setup({opts})
 
       vaults = {
         personal = {
-          --configuration for personal vault
+          -- configuration for personal vault. E.g.:
+          -- home = "/home/user/vaults/personal",
         }
       },
     }
