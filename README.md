@@ -27,7 +27,7 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 - paste images from clipboard
 - toggle [ ] todo status of line
 - insert links to images
-- **image previews**, via extension _(Linux only)_
+- **image previews**, via `catimg` or extension _(Linux only)_
 
 <div align="center">
 
@@ -118,6 +118,8 @@ of being able to edit it.
     - [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
     - [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
     - [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
+      - [catimg](#catimg)
+      - [telescope-media-files.nvim](#telescope-media-filesnvim)
   - [0.1 Install the plugin](#01-install-the-plugin)
     - [0.1.0 Other useful plugins](#010-other-useful-plugins)
   - [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
@@ -178,10 +180,24 @@ On Macs, you should not install a separate tool.  Installing xclip will prevent 
 
 #### 0.0.4 For image previews: telescope-media-files.nvim (optional)
 
-**ONLY supported on Linux**
+There are two supported ways to preview images:
 
-To preview images, PDFs, etc. in Telescope while searching for an image to insert a link to, you need to install the
-Telescope extension [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim).
+- via [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim)
+  - **ONLY supported on Linux**
+- via [catimg](https://github.com/posva/catimg)
+  - supported at least on Linux and macOS
+
+##### catimg
+
+Just install [catimg](https://github.com/posva/catimg), then set
+`media_previewer` to `"catimg-previewer"` in the config.
+
+##### telescope-media-files.nvim
+
+Per default, or by setting `media_previewer` to `"telescope-media-files"` in the
+config, images, PDFs, etc. can be previewed in Telescope while searching for an
+image to insert a link to, you need to install the Telescope extension
+[telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim).
 
 This extension has its own list of prerequisites, of which I recommend (and use) the following:
 
