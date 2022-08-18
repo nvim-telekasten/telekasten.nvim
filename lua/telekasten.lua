@@ -3006,6 +3006,7 @@ local TelekastenCmd = {
             { "browse media", "browse_media", M.browse_media },
             { "panel", "panel", M.panel },
             { "show tags", "show_tags", M.show_tags },
+            { "switch vault", "switch vault", M.switch_vault },
         }
     end,
 }
