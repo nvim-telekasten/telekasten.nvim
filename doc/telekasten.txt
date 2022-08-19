@@ -154,6 +154,7 @@ telekasten.setup({opts})
       -- how to preview media files
       -- "telescope-media-files" if you have telescope-media-files.nvim installed
       -- "catimg-previewer" if you have catimg installed
+      -- "viu-previewer" if you have viu installed
       media_previewer = "telescope-media-files",
     }
 <
@@ -412,6 +413,8 @@ telekasten.setup({opts})
           plugin
         - `'catimg-previewer'` : use the built-in `catimg` previewer.
           Requires `catimg` to be installed.
+        - `'viu-previewer'` : use the built-in `viu` previewer.
+          Requires `viu` to be installed.
 
         Default: `telescope-media-files`
 

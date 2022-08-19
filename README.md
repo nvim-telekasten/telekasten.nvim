@@ -27,7 +27,7 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 - paste images from clipboard
 - toggle [ ] todo status of line
 - insert links to images
-- **image previews**, via `catimg` or extension _(Linux only)_
+- **image previews**, via `catimg`, `viu`, or extension
 
 <div align="center">
 
@@ -119,6 +119,7 @@ of being able to edit it.
     - [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
     - [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
       - [catimg](#catimg)
+      - [viu](#viu)
       - [telescope-media-files.nvim](#telescope-media-filesnvim)
   - [0.1 Install the plugin](#01-install-the-plugin)
     - [0.1.0 Other useful plugins](#010-other-useful-plugins)
@@ -186,11 +187,21 @@ There are two supported ways to preview images:
   - **ONLY supported on Linux**
 - via [catimg](https://github.com/posva/catimg)
   - supported at least on Linux and macOS
+- via [viu](https://github.com/atanunq/viu)
+  - supports both iTerm and Kitty graphics protocols.
+  - Note: on my Linux machine, Kitty graphics rendering inside neovim /
+    telescope does not work at all, so it falls back to block rendering
+    mode.
 
 ##### catimg
 
 Just install [catimg](https://github.com/posva/catimg), then set
 `media_previewer` to `"catimg-previewer"` in the config.
+
+##### viu
+
+Just install [viu](https://github.com/atanunq/viu), then set
+`media_previewer` to `"viu-previewer"` in the config.
 
 ##### telescope-media-files.nvim
 

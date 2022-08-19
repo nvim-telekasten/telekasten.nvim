@@ -153,6 +153,7 @@ local function defaultConfig(home)
         -- how to preview media files
         -- "telescope-media-files" if you have telescope-media-files.nvim installed
         -- "catimg-previewer" if you have catimg installed
+        -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
     }
     M.Cfg = cfg
@@ -977,6 +978,12 @@ local media_preview = defaulter(function(opts)
     if M.Cfg.media_previewer == "catimg-previewer" then
         preview_cmd = M.base_directory
             .. "/telekasten.nvim/scripts/catimg-previewer"
+    end
+
+    if vim.startswith(M.Cfg.media_previewer, "viu-previewer") then
+        preview_cmd = M.base_directory
+            .. "/telekasten.nvim/scripts/"
+            .. M.Cfg.media_previewer
     end
 
     if vim.fn.executable(preview_cmd) == 0 then
