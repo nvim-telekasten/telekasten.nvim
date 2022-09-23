@@ -613,7 +613,7 @@ local function linesubst(line, title, dates, uuid)
         uuid = ""
     end
 
-    shorttitle = string.match(title, '^.+/(.+)$')
+    local shorttitle = string.match(title, "^.+/(.+)$")
     if shorttitle == nil then
         shorttitle = title
     end
