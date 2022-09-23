@@ -613,6 +613,11 @@ local function linesubst(line, title, dates, uuid)
         uuid = ""
     end
 
+    shorttitle = string.match(title, '^.+/(.+)$')
+    if shorttitle == nil then
+        shorttitle = title
+    end
+
     local substs = {
         hdate = dates.hdate,
         week = dates.week,
@@ -637,6 +642,7 @@ local function linesubst(line, title, dates, uuid)
         saturday = dates.saturday,
 
         title = title,
+        shorttitle = shorttitle,
         uuid = uuid,
     }
     for k, v in pairs(substs) do
