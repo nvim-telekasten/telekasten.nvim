@@ -112,32 +112,32 @@ of being able to edit it.
 
 <!-- vim-markdown-toc GFM -->
 
-- [0. Install and setup](#0-install-and-setup)
-  - [0.0 Prerequisites](#00-prerequisites)
-    - [0.0.1 Telescope](#001-telescope)
-    - [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
-    - [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
-    - [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
-      - [catimg](#catimg)
-      - [viu](#viu)
-      - [telescope-media-files.nvim](#telescope-media-filesnvim)
-  - [0.1 Install the plugin](#01-install-the-plugin)
-    - [0.1.0 Other useful plugins](#010-other-useful-plugins)
-  - [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
-  - [0.3 Configure your own colors](#03-configure-your-own-colors)
-- [1. Get Help](#1-get-help)
-- [2. Use it](#2-use-it)
-  - [2.0 Telekasten command](#20-telekasten-command)
-  - [2.1 Telekasten command palette](#21-telekasten-command-palette)
-  - [2.2 Telekasten lua functions](#22-telekasten-lua-functions)
-  - [2.3 Link notation](#23-link-notation)
-  - [2.4 Tag notation](#24-tag-notation)
-  - [2.5 Note templates](#25-note-templates)
-    - [2.5.1 Template files](#251-template-files)
-  - [2.6 Using the calendar](#26-using-the-calendar)
-  - [2.7 Using the telescope pickers](#27-using-the-telescope-pickers)
-- [3. Bind it](#3-bind-it)
-- [4. The hardcoded stuff](#4-the-hardcoded-stuff)
+* [0. Install and setup](#0-install-and-setup)
+    * [0.0 Prerequisites](#00-prerequisites)
+        * [0.0.1 Telescope](#001-telescope)
+        * [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
+        * [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
+        * [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
+            * [catimg](#catimg)
+            * [viu](#viu)
+            * [telescope-media-files.nvim](#telescope-media-filesnvim)
+    * [0.1 Install the plugin](#01-install-the-plugin)
+        * [0.1.0 Other useful plugins](#010-other-useful-plugins)
+    * [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
+    * [0.3 Configure your own colors](#03-configure-your-own-colors)
+* [1. Get Help](#1-get-help)
+* [2. Use it](#2-use-it)
+    * [2.0 Telekasten command](#20-telekasten-command)
+    * [2.1 Telekasten command palette](#21-telekasten-command-palette)
+    * [2.2 Telekasten lua functions](#22-telekasten-lua-functions)
+    * [2.3 Link notation](#23-link-notation)
+    * [2.4 Tag notation](#24-tag-notation)
+    * [2.5 Note templates](#25-note-templates)
+        * [2.5.1 Template files](#251-template-files)
+    * [2.6 Using the calendar](#26-using-the-calendar)
+    * [2.7 Using the telescope pickers](#27-using-the-telescope-pickers)
+* [3. Bind it](#3-bind-it)
+* [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
 <!-- vim-markdown-toc -->
 
@@ -823,6 +823,7 @@ Currently, the following substitutions will be made during new note creation:
 | specifier in template | expands to | example |
 | --- | --- | --- |
 | `{{title}}` | the title of the note | My new note |
+| `{{shorttitle}}` | the short title of the note | dir/subdir/My Note -> My Note |
 | `{{uuid}}` | UUID for the note | 202201271129 |
 | `{{date}}` | date in iso format | 2021-11-21 |
 | `{{prevday}}` | previous day's date in iso format | 2021-11-20 |
