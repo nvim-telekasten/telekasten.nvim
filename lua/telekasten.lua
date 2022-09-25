@@ -2717,13 +2717,14 @@ local function ToggleTodo(opts)
     -- - [x] by -
     -- enter insert mode if opts.i == true
     opts = opts or {}
-    -- Neovim sends wrong visual selection when using a mapping
-    -- See https://github.com/neovim/neovim/issues/15144
-    vim.cmd("execute 'normal! \\<ESC>'")
     local startline = vim.api.nvim_buf_get_mark(0, "<")[1]
     local endline = vim.api.nvim_buf_get_mark(0, ">")[1]
     local cursorlinenr = vim.api.nvim_win_get_cursor(0)[1]
-    if startline == 0 or endline == 0 then
+    -- to avoid the visual range marks not being reset when calling
+    -- command from normal mode
+    vim.api.nvim_buf_set_mark(0, "<", 0, 0, {})
+    vim.api.nvim_buf_set_mark(0, ">", 0, 0, {})
+    if startline <= 0 or endline <= 0 then
         startline = cursorlinenr
         endline = cursorlinenr
     end
