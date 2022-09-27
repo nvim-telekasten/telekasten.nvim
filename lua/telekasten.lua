@@ -200,10 +200,15 @@ local function get_uuid(opts)
 end
 
 local function generate_note_filename(uuid, title)
+    local pp = Path:new(title)
+    local p_splits = pp:_split()
+    local filename = p_splits[#p_splits]
+    local subdir = title:gsub(filename, "")
+
     local sep = M.Cfg.uuid_sep or "-"
     if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
         if M.Cfg.new_note_filename == "uuid-title" then
-            return uuid .. sep .. title
+            return subdir .. uuid .. sep .. filename
         elseif M.Cfg.new_note_filename == "title-uuid" then
             return title .. sep .. uuid
         else
