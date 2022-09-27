@@ -649,6 +649,11 @@ telekasten.toggle_todo({opts})~
   Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`,
   and `-` .
 
+  This can also be used in visual mode to toggle the status of multiple lines.
+  If using a keymapping to `toggle_todo` in visual mode, make sure the `rhs` is
+  `:Telekasten` `toggle_todo<CR>` instead of `<cmd>Telekasten` `toggle_todo<CR>`
+  to avoid neovim sending the wrong visual selection.
+
   Valid keys for {opts}
 
   i:~
