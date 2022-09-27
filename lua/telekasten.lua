@@ -756,8 +756,7 @@ function Pinfo:resolve_path(p, opts)
     end
 
     -- now work out subdir relative to root
-    self.sub_dir = p
-        :gsub(escape(self.root_dir .. "/"), "")
+    self.sub_dir = p:gsub(escape(self.root_dir .. "/"), "")
         :gsub(escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
@@ -873,9 +872,7 @@ function Pinfo:resolve_link(title, opts)
         if opts.new_note_location == "smart" then
             self.filepath = opts.home .. "/" .. self.filename -- default
             self.is_daily, self.is_weekly, self.calendar_info =
-                check_if_daily_or_weekly(
-                    self.title
-                )
+                check_if_daily_or_weekly(self.title)
             if self.is_daily == true then
                 self.root_dir = opts.dailies
                 self.filepath = opts.dailies .. "/" .. self.filename
@@ -997,23 +994,25 @@ local media_preview = defaulter(function(opts)
         return conf.file_previewer(opts)
     end
     return previewers.new_termopen_previewer({
-        get_command = opts.get_command or function(entry)
-            local tmp_table = vim.split(entry.value, "\t")
-            local preview = opts.get_preview_window()
-            opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.loop.cwd()
-            if vim.tbl_isempty(tmp_table) then
-                return { "echo", "" }
-            end
-            print(tmp_table[1])
-            return {
-                preview_cmd,
-                tmp_table[1],
-                preview.col,
-                preview.line + 1,
-                preview.width,
-                preview.height,
-            }
-        end,
+        get_command = opts.get_command
+            or function(entry)
+                local tmp_table = vim.split(entry.value, "\t")
+                local preview = opts.get_preview_window()
+                opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
+                    or vim.loop.cwd()
+                if vim.tbl_isempty(tmp_table) then
+                    return { "echo", "" }
+                end
+                print(tmp_table[1])
+                return {
+                    preview_cmd,
+                    tmp_table[1],
+                    preview.col,
+                    preview.line + 1,
+                    preview.width,
+                    preview.height,
+                }
+            end,
     })
 end, {})
 
@@ -1064,11 +1063,8 @@ local function find_files_sorted(opts)
         local hl_group
         local display = utils.transform_path(display_opts, display_entry.value)
 
-        display, hl_group = utils.transform_devicons(
-            display_entry.value,
-            display,
-            false
-        )
+        display, hl_group =
+            utils.transform_devicons(display_entry.value, display, false)
 
         if hl_group then
             return display, { { { 1, 3 }, hl_group } }
@@ -2277,17 +2273,12 @@ local function FollowLink(opts)
             }
 
             local hl_group
-            local display = utils.transform_path(
-                display_opts,
-                display_entry.value
-            )
+            local display =
+                utils.transform_path(display_opts, display_entry.value)
 
             display_entry.filn = display_entry.filn or display:gsub(":.*", "")
-            display, hl_group = utils.transform_devicons(
-                display_entry.filn,
-                display,
-                false
-            )
+            display, hl_group =
+                utils.transform_devicons(display_entry.filn, display, false)
 
             if hl_group then
                 return display, { { { 1, 3 }, hl_group } }
@@ -2368,10 +2359,8 @@ local function FollowLink(opts)
         local find = (function()
             if Path.path.sep == "\\" then
                 return function(t)
-                    local start, _, filn, lnum, col, text = string.find(
-                        t,
-                        [[([^:]+):(%d+):(%d+):(.*)]]
-                    )
+                    local start, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
 
                     -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
                     if start == 3 then
@@ -2382,10 +2371,8 @@ local function FollowLink(opts)
                 end
             else
                 return function(t)
-                    local _, _, filn, lnum, col, text = string.find(
-                        t,
-                        [[([^:]+):(%d+):(%d+):(.*)]]
-                    )
+                    local _, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
                     return filn, lnum, col, text
                 end
             end
@@ -2792,47 +2779,50 @@ local function FindAllTags(opts)
     opts.cwd = M.Cfg.home
     opts.tag_notation = M.Cfg.tag_notation
     opts.i = i
-    pickers.new(opts, {
-        prompt_title = "Tags",
-        finder = finders.new_table({
-            results = taglist,
-            entry_maker = function(entry)
-                return {
-                    value = entry,
-                    -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
-                    display = string.format(
-                        "%" .. max_tag_len .. "s ... (%3d matches)",
-                        entry.tag,
-                        #entry.details
-                    ),
-                    ordinal = entry.tag,
-                }
-            end,
-        }),
-        sorter = conf.generic_sorter(opts),
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                -- actions for insert tag, default action: search for tag
-                local selection = action_state.get_selected_entry().value.tag
-                local follow_opts = {
-                    follow_tag = selection,
-                    show_link_counts = true,
-                    templateDir = templateDir,
-                }
-                actions._close(prompt_bufnr, false)
-                vim.schedule(function()
-                    FollowLink(follow_opts)
+    pickers
+        .new(opts, {
+            prompt_title = "Tags",
+            finder = finders.new_table({
+                results = taglist,
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
+                        display = string.format(
+                            "%" .. max_tag_len .. "s ... (%3d matches)",
+                            entry.tag,
+                            #entry.details
+                        ),
+                        ordinal = entry.tag,
+                    }
+                end,
+            }),
+            sorter = conf.generic_sorter(opts),
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    -- actions for insert tag, default action: search for tag
+                    local selection =
+                        action_state.get_selected_entry().value.tag
+                    local follow_opts = {
+                        follow_tag = selection,
+                        show_link_counts = true,
+                        templateDir = templateDir,
+                    }
+                    actions._close(prompt_bufnr, false)
+                    vim.schedule(function()
+                        FollowLink(follow_opts)
+                    end)
                 end)
-            end)
-            map("i", "<c-y>", picker_actions.yank_tag(opts))
-            map("i", "<c-i>", picker_actions.paste_tag(opts))
-            map("n", "<c-y>", picker_actions.yank_tag(opts))
-            map("n", "<c-i>", picker_actions.paste_tag(opts))
-            map("n", "<c-c>", picker_actions.close(opts))
-            map("n", "<esc>", picker_actions.close(opts))
-            return true
-        end,
-    }):find()
+                map("i", "<c-y>", picker_actions.yank_tag(opts))
+                map("i", "<c-i>", picker_actions.paste_tag(opts))
+                map("n", "<c-y>", picker_actions.yank_tag(opts))
+                map("n", "<c-i>", picker_actions.paste_tag(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
+                return true
+            end,
+        })
+        :find()
 end
 
 -- Setup(cfg)
@@ -3043,32 +3033,35 @@ local TelekastenCmd = {
 TelekastenCmd.command = function(subcommand)
     local show = function(opts)
         opts = opts or {}
-        pickers.new(opts, {
-            prompt_title = "Command palette",
-            finder = finders.new_table({
-                results = TelekastenCmd.commands(),
-                entry_maker = function(entry)
-                    return {
-                        value = entry,
-                        display = entry[1],
-                        ordinal = entry[2],
-                    }
-                end,
-            }),
-            sorter = conf.generic_sorter(opts),
-            attach_mappings = function(prompt_bufnr, _)
-                actions.select_default:replace(function()
-                    -- important: actions.close(bufnr) is not enough
-                    -- it resulted in: preview_img NOT receiving the prompt as default text
-                    -- apparently it has sth to do with keeping insert mode
-                    actions._close(prompt_bufnr, true)
+        pickers
+            .new(opts, {
+                prompt_title = "Command palette",
+                finder = finders.new_table({
+                    results = TelekastenCmd.commands(),
+                    entry_maker = function(entry)
+                        return {
+                            value = entry,
+                            display = entry[1],
+                            ordinal = entry[2],
+                        }
+                    end,
+                }),
+                sorter = conf.generic_sorter(opts),
+                attach_mappings = function(prompt_bufnr, _)
+                    actions.select_default:replace(function()
+                        -- important: actions.close(bufnr) is not enough
+                        -- it resulted in: preview_img NOT receiving the prompt as default text
+                        -- apparently it has sth to do with keeping insert mode
+                        actions._close(prompt_bufnr, true)
 
-                    local selection = action_state.get_selected_entry().value[3]
-                    selection()
-                end)
-                return true
-            end,
-        }):find()
+                        local selection =
+                            action_state.get_selected_entry().value[3]
+                        selection()
+                    end)
+                    return true
+                end,
+            })
+            :find()
     end
     if subcommand then
         -- print("trying subcommand " .. "`" .. subcommand .. "`")
