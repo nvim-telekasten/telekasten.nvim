@@ -2736,7 +2736,11 @@ local function ToggleTodo(opts)
                 repline = curline:gsub("%- %[ %]", "- [x]", 1)
             else
                 if vim.startswith(stripped, "- [x]") then
-                    repline = curline:gsub("%- %[x%]", "-", 1)
+                    if opts.onlyTodo then
+                        repline = curline:gsub("%- %[x%]", "- [ ]", 1)
+                    else
+                        repline = curline:gsub("%- %[x%]", "-", 1)
+                    end
                 else
                     repline = curline:gsub("(%S)", "- [ ] %1", 1)
                 end

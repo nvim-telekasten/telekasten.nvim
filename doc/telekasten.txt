@@ -663,6 +663,13 @@ telekasten.toggle_todo({opts})~
 
     Default: `nil`
 
+  onlyTodo:
+    If true, it will avoid circling back to a regular list - when toggle_todo
+    is called on - [x] items.
+
+    Default: nil
+
+
                                                 *telekasten.show_backlinks()*
 telekasten.show_backlinks()~
   Opens a telescope search for notes that `[[link]]` back to the current note.
