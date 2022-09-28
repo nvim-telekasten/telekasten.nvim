@@ -1533,7 +1533,8 @@ local function PreviewImg(opts)
             preview_type = "media",
 
             attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function() actions.close(prompt_bufnr)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
                 end)
                 map("i", "<c-y>", picker_actions.yank_img_link(opts))
                 map("i", "<c-i>", picker_actions.paste_img_link(opts))
@@ -2721,11 +2722,13 @@ local function ToggleTodo(opts)
         endline = cursorlinenr
     end
     for curlinenr = startline, endline do
-        local curline = vim.api.nvim_buf_get_lines(0, curlinenr - 1, curlinenr, false)[1]
+        local curline =
+            vim.api.nvim_buf_get_lines(0, curlinenr - 1, curlinenr, false)[1]
         local stripped = vim.trim(curline)
         local repline
         if
-            vim.startswith(stripped, "- ") and not vim.startswith(stripped, "- [")
+            vim.startswith(stripped, "- ")
+            and not vim.startswith(stripped, "- [")
         then
             repline = curline:gsub("%- ", "- [ ] ", 1)
         else
@@ -2739,7 +2742,13 @@ local function ToggleTodo(opts)
                 end
             end
         end
-        vim.api.nvim_buf_set_lines(0, curlinenr - 1, curlinenr, false, { repline })
+        vim.api.nvim_buf_set_lines(
+            0,
+            curlinenr - 1,
+            curlinenr,
+            false,
+            { repline }
+        )
         if opts.i then
             vim.api.nvim_feedkeys("A", "m", false)
         end
