@@ -8,7 +8,7 @@ function! s:telekasten_complete(arg,line,pos)
   return join(l:candidates, "\n")
 endfunction
 
-command! -nargs=? -complete=custom,s:telekasten_complete Telekasten lua require('telekasten').panel(<f-args>)
+command! -nargs=? -range -complete=custom,s:telekasten_complete Telekasten lua require('telekasten').panel(<f-args>)
 
 " overriding does not work -- so this is done by the plugin now in post_open()
 " au BufNewFile,BufRead *.markdown,*.mdown,*.mkd,*.mkdn,*.mdwn,*.md  setf telekasten

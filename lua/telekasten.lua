@@ -1533,8 +1533,7 @@ local function PreviewImg(opts)
             preview_type = "media",
 
             attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
+                actions.select_default:replace(function() actions.close(prompt_bufnr)
                 end)
                 map("i", "<c-y>", picker_actions.yank_img_link(opts))
                 map("i", "<c-i>", picker_actions.paste_img_link(opts))
@@ -2710,28 +2709,40 @@ local function ToggleTodo(opts)
     -- - [x] by -
     -- enter insert mode if opts.i == true
     opts = opts or {}
-    local linenr = vim.api.nvim_win_get_cursor(0)[1]
-    local curline = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
-    local stripped = vim.trim(curline)
-    local repline
-    if
-        vim.startswith(stripped, "- ") and not vim.startswith(stripped, "- [")
-    then
-        repline = curline:gsub("%- ", "- [ ] ", 1)
-    else
-        if vim.startswith(stripped, "- [ ]") then
-            repline = curline:gsub("%- %[ %]", "- [x]", 1)
+    local startline = vim.api.nvim_buf_get_mark(0, "<")[1]
+    local endline = vim.api.nvim_buf_get_mark(0, ">")[1]
+    local cursorlinenr = vim.api.nvim_win_get_cursor(0)[1]
+    -- to avoid the visual range marks not being reset when calling
+    -- command from normal mode
+    vim.api.nvim_buf_set_mark(0, "<", 0, 0, {})
+    vim.api.nvim_buf_set_mark(0, ">", 0, 0, {})
+    if startline <= 0 or endline <= 0 then
+        startline = cursorlinenr
+        endline = cursorlinenr
+    end
+    for curlinenr = startline, endline do
+        local curline = vim.api.nvim_buf_get_lines(0, curlinenr - 1, curlinenr, false)[1]
+        local stripped = vim.trim(curline)
+        local repline
+        if
+            vim.startswith(stripped, "- ") and not vim.startswith(stripped, "- [")
+        then
+            repline = curline:gsub("%- ", "- [ ] ", 1)
         else
-            if vim.startswith(stripped, "- [x]") then
-                repline = curline:gsub("%- %[x%]", "-", 1)
+            if vim.startswith(stripped, "- [ ]") then
+                repline = curline:gsub("%- %[ %]", "- [x]", 1)
             else
-                repline = curline:gsub("(%S)", "- [ ] %1", 1)
+                if vim.startswith(stripped, "- [x]") then
+                    repline = curline:gsub("%- %[x%]", "-", 1)
+                else
+                    repline = curline:gsub("(%S)", "- [ ] %1", 1)
+                end
             end
         end
-    end
-    vim.api.nvim_buf_set_lines(0, linenr - 1, linenr, false, { repline })
-    if opts.i then
-        vim.api.nvim_feedkeys("A", "m", false)
+        vim.api.nvim_buf_set_lines(0, curlinenr - 1, curlinenr, false, { repline })
+        if opts.i then
+            vim.api.nvim_feedkeys("A", "m", false)
+        end
     end
 end
 
