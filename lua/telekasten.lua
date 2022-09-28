@@ -2975,6 +2975,44 @@ local function chdir(cfg)
     -- M.Cfg = vim.tbl_deep_extend("force", defaultConfig(new_home), cfg)
 end
 
+
+--
+-- OpenAgenda:
+-- ----------
+--
+-- See all todo's in your agenda file.
+-- Creates the agenda.md if necessary.
+--
+local function OpenAgenda()
+    opts = opts or {}
+
+    if not global_dir_check() then
+        return
+    end
+
+    local fname = M.Cfg.home .. "/agenda" .. M.Cfg.extension
+    local fexists = file_exists(fname)
+    if not fexists then
+        create_note_from_template("agenda", _, fname)
+    end
+
+    vim.cmd("e " .. fname)
+end
+
+local function ShowTodos()
+    local fname = M.Cfg.home .. "/agenda" .. M.Cfg.extension
+    local fexists = file_exists(fname)
+    if not fexists then
+        create_note_from_template("agenda", _, fname)
+    end
+
+    for line in io.lines(fname) do
+        if string.match(line, "- %[[ x]%]") then
+            print(line)
+        end
+    end
+end
+
 M.find_notes = FindNotes
 M.find_daily_notes = FindDailyNotes
 M.search_notes = SearchNotes
@@ -3002,6 +3040,8 @@ M.taglinks = taglinks
 M.show_tags = FindAllTags
 M.switch_vault = ChangeVault
 M.chdir = chdir
+M.open_agenda = OpenAgenda
+M.show_todos = ShowTodos
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -3030,6 +3070,8 @@ local TelekastenCmd = {
                 M.paste_img_and_link,
             },
             { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "open agenda", "open_agenda", M.open_agenda },
+            { "show todos", "show_todos", M.show_todos },
             { "show backlinks", "show_backlinks", M.show_backlinks },
             { "find friend notes", "find_friends", M.find_friends },
             {
