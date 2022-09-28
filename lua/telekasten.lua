@@ -2980,7 +2980,7 @@ end
 -- OpenAgenda:
 -- ----------
 --
--- See all todo's in your agenda file.
+-- Opens the agenda.md file where your todos are stored.
 -- Creates the agenda.md if necessary.
 --
 local function OpenAgenda()
@@ -2999,7 +2999,14 @@ local function OpenAgenda()
     vim.cmd("e " .. fname)
 end
 
-local function ShowTodos()
+--
+-- ShowAgenda:
+-- ----------
+--
+-- See all todo's in your agenda file.
+-- Creates the agenda.md if necessary.
+--
+local function ShowAgenda()
     local fname = M.Cfg.home .. "/agenda" .. M.Cfg.extension
     local fexists = file_exists(fname)
     if not fexists then
@@ -3041,7 +3048,7 @@ M.show_tags = FindAllTags
 M.switch_vault = ChangeVault
 M.chdir = chdir
 M.open_agenda = OpenAgenda
-M.show_todos = ShowTodos
+M.show_agenda = ShowAgenda
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -3071,7 +3078,7 @@ local TelekastenCmd = {
             },
             { "toggle todo", "toggle_todo", M.toggle_todo },
             { "open agenda", "open_agenda", M.open_agenda },
-            { "show todos", "show_todos", M.show_todos },
+            { "show agenda", "show_agenda", M.show_agenda },
             { "show backlinks", "show_backlinks", M.show_backlinks },
             { "find friend notes", "find_friends", M.find_friends },
             {
