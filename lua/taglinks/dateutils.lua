@@ -6,11 +6,11 @@ local date = require("taglinks.date")
 --- see https://en.wikipedia.org/wiki/ISO_week_date
 M.dow_for_year = function(year)
     return (
-            year
-            + math.floor(year / 4)
-            - math.floor(year / 100)
-            + math.floor(year / 400)
-        ) % 7
+        year
+        + math.floor(year / 4)
+        - math.floor(year / 100)
+        + math.floor(year / 400)
+    ) % 7
 end
 
 M.weeks_in_year = function(year)

@@ -146,26 +146,24 @@ M.do_find_all_tags = function(opts)
     local cmd, args = command_find_all_tags(opts)
     --print(cmd .. " " .. vim.inspect(args))
     local ret = {}
-    local _ = Job
-        :new({
-            command = cmd,
-            args = args,
-            enable_recording = true,
-            on_exit = function(j, return_val)
-                if return_val == 0 then
-                    for _, line in pairs(j:result()) do
-                        parse_entry(opts, line, ret)
-                    end
-                else
-                    print("rg return value: " .. tostring(return_val))
-                    print("stderr: ", vim.inspect(j:stderr_result()))
+    local _ = Job:new({
+        command = cmd,
+        args = args,
+        enable_recording = true,
+        on_exit = function(j, return_val)
+            if return_val == 0 then
+                for _, line in pairs(j:result()) do
+                    parse_entry(opts, line, ret)
                 end
-            end,
-            on_stderr = function(err, data, _)
-                print("error: " .. tostring(err) .. "data: " .. data)
-            end,
-        })
-        :sync()
+            else
+                print("rg return value: " .. tostring(return_val))
+                print("stderr: ", vim.inspect(j:stderr_result()))
+            end
+        end,
+        on_stderr = function(err, data, _)
+            print("error: " .. tostring(err) .. "data: " .. data)
+        end,
+    }):sync()
     -- print("final results: " .. vim.inspect(ret))
     return ret
 end

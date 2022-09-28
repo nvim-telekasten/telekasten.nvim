@@ -433,11 +433,8 @@ function strwalker:match(s)
 end
 function strwalker:__call(s, f) -- print("strwalker:__call "..s..self:aimchr())
     local is, ie
-    is, ie, self[1], self[2], self[3], self[4], self[5] = find(
-        self.s,
-        s,
-        self.i
-    )
+    is, ie, self[1], self[2], self[3], self[4], self[5] =
+        find(self.s, s, self.i)
     if is then
         self.e, self.i = self.i, 1 + ie
         if f then
@@ -627,13 +624,13 @@ local function date_parse(str)
     end
     --  create date object
     dn = (
-            y
-            and (
-                (w and makedaynum_isoywd(y, w, u))
-                or (j and makedaynum(y, 0, j))
-                or makedaynum(y, m, d)
-            )
-        ) or DAYNUM_DEF
+        y
+        and (
+            (w and makedaynum_isoywd(y, w, u))
+            or (j and makedaynum(y, 0, j))
+            or makedaynum(y, m, d)
+        )
+    ) or DAYNUM_DEF
     df = makedayfrc(h or 0, r or 0, s or 0, 0) + ((z or 0) * TICKSPERMIN)
     --print("Zone",h,r,s,z,m,d,y,df)
     return date_new(dn, df) -- no need to :normalize();

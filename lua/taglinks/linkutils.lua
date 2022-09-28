@@ -97,12 +97,8 @@ M.generate_backlink_map = function(opts)
                 link_counts[note_fn] = link_counts[note_fn] + 1
 
                 -- and: inc the backlinks of the linked note
-                local fexists, backlinked_file = resolve_link(
-                    linktitle,
-                    file_list,
-                    subdir_list,
-                    opts
-                )
+                local fexists, backlinked_file =
+                    resolve_link(linktitle, file_list, subdir_list, opts)
                 -- print(
                 --     "note for link `"
                 --         .. linktitle
