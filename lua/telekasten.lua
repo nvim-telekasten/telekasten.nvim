@@ -20,6 +20,7 @@ local linkutils = require("taglinks.linkutils")
 local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
 local vaultPicker = require("vaultpicker")
+local tkutils = require("telekasten.utils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -2038,7 +2039,7 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    vim.ui.input({ prompt = "Title: " }, function(title)
+    tkutils.prompt_title(function(title)
         if not title then
             title = ""
         end
@@ -2115,7 +2116,7 @@ local function CreateNote(opts)
         return CreateNoteSelectTemplate(opts)
     end
 
-    vim.ui.input({ prompt = "Title: ", default = "" }, function(title)
+    tkutils.prompt_title(function(title)
         if not title then
             title = ""
         end
