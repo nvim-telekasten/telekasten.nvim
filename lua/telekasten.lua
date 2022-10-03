@@ -229,28 +229,26 @@ end
 local function check_dir_and_ask(dir, purpose)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
-        vim.cmd("echohl ErrorMsg")
-        local answer = vim.fn.input(
-            "Telekasten.nvim: "
+        vim.ui.select({ "No (default)", "Yes" }, {
+            prompt = "Telekasten.nvim: "
                 .. purpose
                 .. " folder "
                 .. dir
                 .. " does not exist!"
-                .. " Shall I create it? [y/N] "
-        )
-        vim.cmd("echohl None")
-        answer = vim.fn.trim(answer)
-        if answer == "y" or answer == "Y" then
-            if Path:new(dir):mkdir({ exists_ok = false }) then
-                vim.cmd('echomsg " "')
-                vim.cmd('echomsg "' .. dir .. ' created"')
-                ret = true
-            else
-                -- unreachable: plenary.Path:mkdir() will error out
-                print_error("Could not create directory " .. dir)
-                ret = false
+                .. " Shall I create it? ",
+        }, function(answer)
+            if answer == "Yes" then
+                if Path:new(dir):mkdir({ exists_ok = false }) then
+                    vim.cmd('echomsg " "')
+                    vim.cmd('echomsg "' .. dir .. ' created"')
+                    ret = true
+                else
+                    -- unreachable: plenary.Path:mkdir() will error out
+                    print_error("Could not create directory " .. dir)
+                    ret = false
+                end
             end
-        end
+        end)
     else
         ret = true
     end
@@ -1714,14 +1712,14 @@ local function RenameNote()
                 #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1
                 and M.Cfg.auto_set_filetype == true
             then
-                local answer = vim.fn.input(
-                    "Telekasten.nvim:"
-                        .. "Save all telekasten buffers before updating links? [Y/n]"
-                )
-                answer = vim.fn.trim(answer)
-                if answer ~= "n" and answer ~= "N" then
-                    save_all_tk_buffers()
-                end
+                vim.ui.select({ "Yes (default)", "No" }, {
+                    prompt = "Telekasten.nvim: "
+                        .. "Save all telekasten buffers before updating links?",
+                }, function(answer)
+                    if answer ~= "No" then
+                        save_all_tk_buffers()
+                    end
+                end)
             end
 
             recursive_substitution(M.Cfg.home, oldlink, newlink)
