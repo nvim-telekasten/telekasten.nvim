@@ -1,3 +1,4 @@
 .luacheckcache
 tags
 scratch/
+*.patch
