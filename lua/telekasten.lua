@@ -336,11 +336,17 @@ local function recursive_substitution(dir, old, new)
     os.execute(replace_cmd)
 end
 
-local function save_all_tk_buffers()
+local function save_all_mod_buffers()
     for i = 1, vim.fn.bufnr("$") do
         if
-            vim.fn.getbufvar(i, "&filetype") == "telekasten"
-            and vim.fn.getbufvar(i, "&mod") == 1
+            vim.fn.getbufvar(i, "&mod") == 1
+            and (
+                (
+                    M.Cfg.auto_set_filetype == true
+                    and vim.fn.getbufvar(i, "&filetype") == "telekasten"
+                )
+                or M.Cfg.auto_set_filetype == false
+            )
         then
             vim.cmd(i .. "bufdo w")
         end
@@ -1707,17 +1713,14 @@ local function RenameNote()
             local oldlink = "[[" .. oldfile.title
             local newlink = "[[" .. newname
 
-            -- Save open telekasten buffers before looking for links to replace
-            if
-                #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1
-                and M.Cfg.auto_set_filetype == true
-            then
+            -- Save open buffers before looking for links to replace
+            if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
                 vim.ui.select({ "Yes (default)", "No" }, {
                     prompt = "Telekasten.nvim: "
-                        .. "Save all telekasten buffers before updating links?",
+                        .. "Save all modified buffers before updating links?",
                 }, function(answer)
                     if answer ~= "No" then
-                        save_all_tk_buffers()
+                        save_all_mod_buffers()
                     end
                 end)
             end
