@@ -353,12 +353,6 @@ local function save_all_mod_buffers()
     end
 end
 
--- strip an extension from a file name, escaping "." properly, eg:
--- strip_extension("path/Filename.md", ".md") -> "path/Filename"
-local function strip_extension(str, ext)
-    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
-end
-
 -- ----------------------------------------------------------------------------
 -- image stuff
 -- ----------------------------------------------------------------------------
@@ -1666,12 +1660,7 @@ end
 local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
-    tkutils.prompt_title(function(newname)
-        if not newname then
-            newname = ""
-        end
-        newname = strip_extension(newname, M.Cfg.extension)
-
+    tkutils.prompt_title(M.Cfg.extension, function(newname)
         local newpath = newname:match("(.*/)") or ""
         newpath = M.Cfg.home .. "/" .. newpath
 
@@ -2049,11 +2038,7 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    tkutils.prompt_title(function(title)
-        if not title then
-            title = ""
-        end
-        title = strip_extension(title, M.Cfg.extension)
+    tkutils.prompt_title(M.Cfg.extension, function(title)
         on_create_with_template(opts, title)
     end)
 end
@@ -2126,11 +2111,7 @@ local function CreateNote(opts)
         return CreateNoteSelectTemplate(opts)
     end
 
-    tkutils.prompt_title(function(title)
-        if not title then
-            title = ""
-        end
-        title = strip_extension(title, M.Cfg.extension)
+    tkutils.prompt_title(M.Cfg.extension, function(title)
         on_create(opts, title)
     end)
 end
