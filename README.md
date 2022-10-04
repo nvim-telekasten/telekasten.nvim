@@ -116,7 +116,7 @@ of being able to edit it.
   - [0.0 Prerequisites](#00-prerequisites)
     - [0.0.1 Telescope](#001-telescope)
     - [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
-    - [0.0.3 For pasting images: xclip (optional)](#003-for-pasting-images-xclip-optional)
+    - [0.0.3 For pasting images: xclip (optional), wl-clipboard (optional)](#003-for-pasting-images-xclip-optional-wl-clipboard-optional)
     - [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
       - [catimg](#catimg)
       - [viu](#viu)
@@ -164,7 +164,7 @@ See below for installing and using it.
 
 ---
 
-#### 0.0.3 For pasting images: xclip (optional)
+#### 0.0.3 For pasting images: xclip (optional), wl-clipboard (optional)
 
 Telekasten.nvim supports pasting images from the clipboard. Currently, this is implemented for systems that have
 the `xclip` utility installed or on macs.
@@ -174,6 +174,8 @@ On Ubuntu/Debian like systems:
 ```console
 sudo apt-get install xclip
 ```
+
+On [Wayland](https://wayland.freedesktop.org/) systems you can install [wl-clipboard](https://github.com/bugaevc/wl-clipboard)
 
 On Macs, you should not install a separate tool.  Installing xclip will prevent this feature from working properly.
 
