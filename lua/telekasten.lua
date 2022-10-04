@@ -415,10 +415,7 @@ local function imgFromClipboard()
         end
     elseif vim.fn.executable("wl-paste") == 1 then
         get_paste_command = function(dir, filename)
-        return "wl-paste -n -t image/png > "
-                .. dir
-                .. "/"
-                .. filename
+            return "wl-paste -n -t image/png > " .. dir .. "/" .. filename
         end
     elseif vim.fn.executable("osascript") == 1 then
         get_paste_command = function(dir, filename)
