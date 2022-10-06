@@ -563,7 +563,7 @@ the list for a more detailed description:
 
 - `panel` : brings up the [command palette](#21-telekasten-command-palette)
 - `find_notes` : Find notes by title (filename)
-- `show_tags` : Search through all tags
+- `show_tags` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
 - `find_daily_notes` : Find daily notes by title (date)
 - `search_notes` : Search (grep) in all notes
 - `insert_link` : Insert a link to a note
@@ -583,7 +583,6 @@ the list for a more detailed description:
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
 - `rename_note` : Rename current note and update the links pointing to it
-- `show_tags` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
 - `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
   option for more.
 
