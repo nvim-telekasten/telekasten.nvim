@@ -156,6 +156,9 @@ local function defaultConfig(home)
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
+
+        -- fallback handler for links that can't be processed by Telekasten
+        follow_link_fallback = nil,
     }
     M.Cfg = cfg
     M.note_type_templates = {
@@ -1473,6 +1476,10 @@ local function check_for_link_or_tag()
 end
 
 local function follow_url(url)
+    if M.Cfg.follow_link_fallback then
+        return M.Cfg.follow_link_fallback(url)
+    end
+
     -- we just leave it to the OS's handler to deal with what kind of URL it is
     local function format_command(cmd)
         return 'call jobstart(["'
