@@ -418,18 +418,13 @@ telekasten.setup({opts})
 
         Default: `telescope-media-files`
 
-                                    *telekasten.settings.follow_link_fallback*
-    follow_link_fallback({url})~
-        A customizable fallback handler for links that can't be processed by Telekasten
+                                    *telekasten.settings.follow_url_fallback*
+    follow_url_fallback:~
+        A customizable fallback handler for urls.
+        When it set to nil, Telekasten will use `xdg-open` or `open`
 
         Default: `nil`
-        Example: >
-            local function follow_url(url)
-                local command
-                command = 'call jobstart("firefox --new-window ' .. url .. '")'
-                vim.cmd(command)
-            end
-<
+        Example: `"call jobstart('firefox --new-window {{url}}')"`
                                                *telekasten.calendar_opts*
     -----------------------------------
     Valid keys for {opts.calendar_opts}

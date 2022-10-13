@@ -157,8 +157,8 @@ local function defaultConfig(home)
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
 
-        -- fallback handler for links that can't be processed by Telekasten
-        follow_link_fallback = nil,
+        -- A customizable fallback handler for urls.
+        follow_url_fallback = nil,
     }
     M.Cfg = cfg
     M.note_type_templates = {
@@ -1476,8 +1476,9 @@ local function check_for_link_or_tag()
 end
 
 local function follow_url(url)
-    if M.Cfg.follow_link_fallback then
-        return M.Cfg.follow_link_fallback(url)
+    if M.Cfg.follow_url_fallback then
+        local cmd = string.gsub(M.Cfg.follow_url_fallback, "{{url}}", url)
+        return vim.cmd(cmd)
     end
 
     -- we just leave it to the OS's handler to deal with what kind of URL it is
