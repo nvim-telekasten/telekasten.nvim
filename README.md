@@ -411,6 +411,9 @@ require('telekasten').setup({
     -- "telescope-media-files" if you have telescope-media-files.nvim installed
     -- "catimg-previewer" if you have catimg installed
     media_previewer = "telescope-media-files",
+
+    -- A customizable fallback handler for urls.
+    follow_url_fallback = nil,
 })
 END
 ```
@@ -475,6 +478,7 @@ END
 | `media_previewer` | how to preview media files | default: `telescope-media-files` |
 || - `telescope-media-files` if you have telescope-media-files.nvim installed |
 || - `catimg-previewer` if you have catimg installed |
+| `follow_url_fallback ` | A customizable fallback handler for urls. | default: `nil` |
 
 The calendar support has its own options, contained in `calendar_opts`:
 
