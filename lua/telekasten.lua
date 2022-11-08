@@ -168,6 +168,11 @@ local function defaultConfig(home)
     }
 end
 
+--- escapes a string for use as exact pattern within gsub
+local function escape(s)
+    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
 local function file_exists(fname)
     if fname == nil then
         return false
@@ -207,7 +212,7 @@ local function generate_note_filename(uuid, title)
     local pp = Path:new(title)
     local p_splits = pp:_split()
     local filename = p_splits[#p_splits]
-    local subdir = title:gsub(filename, "")
+    local subdir = title:gsub(escape(filename), "")
 
     local sep = M.Cfg.uuid_sep or "-"
     if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
@@ -273,11 +278,6 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
 
     return ret
-end
-
---- escapes a string for use as exact pattern within gsub
-local function escape(s)
-    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
 local function make_config_path_absolute(path)
