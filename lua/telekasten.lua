@@ -1629,12 +1629,12 @@ local function FindFriends(opts)
 
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
-    title = title:gsub("^(%[)(.+)(%])$", "%2")
+    title = string.sub(title, 0, string.find(title, "%s*|") - 1)
 
     builtin.live_grep({
         prompt_title = "Notes referencing `" .. title .. "`",
         cwd = M.Cfg.home,
-        default_text = "\\[\\[" .. title .. "\\]\\]",
+        default_text = "\\[\\[" .. title .. "([#|].+)\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
