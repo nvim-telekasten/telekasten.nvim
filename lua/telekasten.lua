@@ -2182,7 +2182,10 @@ local function FollowLink(opts)
             vim.cmd("normal yi]")
             title = vim.fn.getreg('"0')
             -- this should remove link alias
-            title = string.sub(title, 0, string.find(title, "%s*|") - 1)
+            local split_index = string.find(title, "%s*|")
+            if split_index ~= nil and type(split_index) == 'number' then
+                title = string.sub(title, 0, split_index - 1)
+            end
             title = title:gsub("^(%[)(.+)(%])$", "%2")
         else
             -- we are in an external [link]
