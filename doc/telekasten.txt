@@ -744,6 +744,10 @@ Note links~
 `[[A cool title#^xxxxxxxx]]`  ....... links to the paragraph with id ^xxxxxxxx
                                     within the note named 'A cool title'
 
+`[[201705061300|A cool title]]` ..... links to the note named `201705061300` but
+                                    shows the link as `A cool title` if
+                                    `conceallevel=2`
+
 `[[A cool title|xxxxxxxx]]`  ........ links note 'A cool title' with using
                                     name.
 
