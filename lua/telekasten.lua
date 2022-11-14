@@ -2575,7 +2575,6 @@ local function FollowLink(opts)
     end
 end
 
-
 --
 -- GotoThisWeek:
 -- -------------
