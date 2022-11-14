@@ -173,6 +173,14 @@ local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
+local function remove_alias(link)
+    local split_index = string.find(link, "%s*|")
+    if split_index ~= nil and type(split_index) == "number" then
+        return string.sub(link, 0, split_index - 1)
+    end
+    return link
+end
+
 local function file_exists(fname)
     if fname == nil then
         return false
@@ -1629,12 +1637,13 @@ local function FindFriends(opts)
 
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
-    title = string.sub(title, 0, string.find(title, "%s*|") - 1)
+    title = remove_alias(title)
+    title = title:gsub("^(%[)(.+)(%])$", "%2")
 
     builtin.live_grep({
         prompt_title = "Notes referencing `" .. title .. "`",
         cwd = M.Cfg.home,
-        default_text = "\\[\\[" .. title .. "([#|].+)\\]\\]",
+        default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -1965,7 +1974,7 @@ local function ShowBacklinks(opts)
         prompt_title = "Search",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
-        default_text = "\\[\\[" .. title .. "([#|].+)*\\]\\]",
+        default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -2181,11 +2190,7 @@ local function FollowLink(opts)
             -- we are in a link
             vim.cmd("normal yi]")
             title = vim.fn.getreg('"0')
-            -- this should remove link alias
-            local split_index = string.find(title, "%s*|")
-            if split_index ~= nil and type(split_index) == 'number' then
-                title = string.sub(title, 0, split_index - 1)
-            end
+            title = remove_alias(title)
             title = title:gsub("^(%[)(.+)(%])$", "%2")
         else
             -- we are in an external [link]
@@ -2569,6 +2574,7 @@ local function FollowLink(opts)
         picker:find()
     end
 end
+
 
 --
 -- GotoThisWeek:
