@@ -8,7 +8,7 @@ unlet b:current_syntax
 
 syn region Comment matchgroup=Comment start="<!--" end="-->"  contains=tkTag keepend
 
-syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline contains=tkAliasedLink
+syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline 
 syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline contains=tkHighlightedAliasedLink
 
 syntax match tkTag "\v#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*"
