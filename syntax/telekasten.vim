@@ -20,7 +20,7 @@ syntax region tkTag matchgroup=tkBrackets start=/^tags\s*:\s*\[\s*/ end=/\s*\]\s
 syntax region tkAliasedLink start="\[\[[^\]]\+|" end="\]\]" keepend oneline contains=tkLinkAlias,tkLinkBody
 syntax region tkHighlightedAliasedLink start="\[\[[^\]]\+|" end="\]\]" keepend oneline contained contains=tkLinkAlias,tkLinkBody
 syntax region tkLinkAlias start="|"ms=s+1 end=".+\]\]"me=e-2 keepend contained
-syntax region tkLinkBody start="\[\["ms=s+2 end="|"me=e-1 keepend contained conceal cchar=…
+syntax region tkLinkBody start="\[\["ms=s+2 end="|" keepend contained conceal
 
 let b:current_syntax = 'telekasten'
 
