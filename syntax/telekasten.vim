@@ -8,7 +8,7 @@ unlet b:current_syntax
 
 syn region Comment matchgroup=Comment start="<!--" end="-->"  contains=tkTag keepend
 
-syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline
+syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ display oneline contains=tkAliasedLink
 syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline contains=tkHighlightedAliasedLink
 
 syntax match tkTag "\v#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*"
@@ -25,11 +25,11 @@ syntax region tkLinkBody start="\[\["ms=s+2 end="|"me=e-1 keepend contained conc
 let b:current_syntax = 'telekasten'
 
 " " just blue
-"     hi tklink ctermfg=Blue cterm=bold,underline
+"     hi tkLink ctermfg=Blue cterm=bold,underline
 "     hi tkBrackets ctermfg=gray
 
 " " for gruvbox
-"     hi tklink ctermfg=72 cterm=bold,underline
+"     hi tkLink ctermfg=72 cterm=bold,underline
 "     hi tkBrackets ctermfg=gray
 
 " " Highlight ==highlighted== text
