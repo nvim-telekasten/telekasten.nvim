@@ -475,9 +475,17 @@ groups:
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
 - `tkTag` :  well, tags
+- `tkAliasedLink` : link with alias
+- `tkHighlightedAliasedLink` : link with alias in `tkAliasedLink`
+- `tkLinkAlias` : body of the link (left part of `[[aaa|bbb]]`)
+- `tkLinkBody` : alias of the link (right part of `[[aaa|bbb]]`)
 
 `tkHighlight`, has nothing to do with links but I added it anyway, since I like
 highlighting text when taking notes.
+
+Plugin supports wiki-link aliases: `[[value|alias]]`. These links will be
+concealed to `[[alias]]` if `conceallevel=2`.
+
 
 I also like the navigation buttons of the calendar to appear less prevalent, so
 I redefine the `CalNavi` class as well.
@@ -735,6 +743,9 @@ Note links~
 
 `[[A cool title#^xxxxxxxx]]`  ....... links to the paragraph with id ^xxxxxxxx
                                     within the note named 'A cool title'
+
+`[[A cool title|xxxxxxxx]]`  ........ links note 'A cool title' with using
+                                    name.
 
 `[[#Heading 27]]`  .................. links to the heading 'Heading 27' within
                                     all notes
