@@ -744,6 +744,9 @@ Note links~
 `[[A cool title#^xxxxxxxx]]`  ....... links to the paragraph with id ^xxxxxxxx
                                     within the note named 'A cool title'
 
+`[[A cool title|xxxxxxxx]]`  ........ links note 'A cool title' with using
+                                    name.
+
 `[[#Heading 27]]`  .................. links to the heading 'Heading 27' within
                                     all notes
 
