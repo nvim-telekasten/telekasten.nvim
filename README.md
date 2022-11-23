@@ -666,12 +666,12 @@ The plugin defines the following functions:
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
       useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#3-bind-it).
     - example: `toggle_todo({ i=true })`
+    - this function also accepts `{v}` for visual mode. If `true`, then it will look for a visual range of text to
+      toggle. When setting this to a keymapping, use `:` instead of `<cr>` to create the command as seen below:
+    - example keymapping: `:lua require('telekasten').toggle_todo({ v = true })<cr>`
     - this function has also a `{onlyTodo}` parameter. If `true`, this will
       avoid circling back to a regular list (`-`).
     - this function can also be used in `visual` mode  to toggle the status of multiple lines.
-    - if using a keymapping to `toggle_todo` in visual mode, make sure to use `:Telekasten toggle_todo<CR>`
-      instead of `<cmd>Telekasten toggle_todo<CR>` to avoid neovim sending the wrong visual selection to
-      telekasten.
 - `show_backlinks()` : opens a telescope search for notes that `[[link]]` back to the current note.
 - `find_friends()` : opens a telescope search for notes that also `[[link]]` to the link under the cursor.
 - `insert_img_link()` : opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and places a markdown
