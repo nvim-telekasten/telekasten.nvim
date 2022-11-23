@@ -13,6 +13,13 @@ M.is_tag_or_link_at = function(line, col, opts)
     local seen_hashtag = false
     local cannot_be_tag = false
 
+    -- Solves [[Link]]
+    --     at ^
+    -- In this case we try to move col forward to match the link.
+    if "[" == line:sub(col, col) then
+        col = math.max(col + 1, string.len(line))
+    end
+
     while col >= 1 do
         char = line:sub(col, col)
 

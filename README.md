@@ -478,7 +478,7 @@ END
 | `media_previewer` | how to preview media files | default: `telescope-media-files` |
 || - `telescope-media-files` if you have telescope-media-files.nvim installed |
 || - `catimg-previewer` if you have catimg installed |
-| `follow_url_fallback ` | A customizable fallback handler for urls. | default: `nil` |
+| `follow_url_fallback` | A customizable fallback handler for urls. | default: `nil` |
 
 The calendar support has its own options, contained in `calendar_opts`:
 
@@ -710,6 +710,8 @@ The following links are supported:
                                       named 'A cool title'
 - [[A cool title#^xxxxxxxx]]  ....... links to the paragraph with id ^xxxxxxxx within the note
                                       named 'A cool title'
+- [[201705061300|A cool title]] ..... links to the note named `201705061300` but shows the link as
+                                      `A cool title` if `conceallevel=2`
 - [[#Heading 27]]  .................. links to the heading 'Heading 27' within all notes
 - [[#^xxxxxxxx]]  ................... links to the paragraph with id ^xxxxxxxx within all notes
 
