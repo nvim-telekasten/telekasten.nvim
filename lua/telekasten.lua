@@ -168,6 +168,19 @@ local function defaultConfig(home)
     }
 end
 
+--- escapes a string for use as exact pattern within gsub
+local function escape(s)
+    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
+end
+
+local function remove_alias(link)
+    local split_index = string.find(link, "%s*|")
+    if split_index ~= nil and type(split_index) == "number" then
+        return string.sub(link, 0, split_index - 1)
+    end
+    return link
+end
+
 local function file_exists(fname)
     if fname == nil then
         return false
@@ -207,7 +220,7 @@ local function generate_note_filename(uuid, title)
     local pp = Path:new(title)
     local p_splits = pp:_split()
     local filename = p_splits[#p_splits]
-    local subdir = title:gsub(filename, "")
+    local subdir = title:gsub(escape(filename), "")
 
     local sep = M.Cfg.uuid_sep or "-"
     if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
@@ -273,11 +286,6 @@ local function global_dir_check()
     ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
 
     return ret
-end
-
---- escapes a string for use as exact pattern within gsub
-local function escape(s)
-    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
 local function make_config_path_absolute(path)
@@ -1629,12 +1637,13 @@ local function FindFriends(opts)
 
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
+    title = remove_alias(title)
     title = title:gsub("^(%[)(.+)(%])$", "%2")
 
     builtin.live_grep({
         prompt_title = "Notes referencing `" .. title .. "`",
         cwd = M.Cfg.home,
-        default_text = "\\[\\[" .. title .. "\\]\\]",
+        default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -1965,7 +1974,7 @@ local function ShowBacklinks(opts)
         prompt_title = "Search",
         cwd = M.Cfg.home,
         search_dirs = { M.Cfg.home },
-        default_text = "\\[\\[" .. title .. "(#.+)*\\]\\]",
+        default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
         find_command = M.Cfg.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
@@ -2182,6 +2191,7 @@ local function FollowLink(opts)
             vim.cmd("normal yi]")
             title = vim.fn.getreg('"0')
             title = title:gsub("^(%[)(.+)(%])$", "%2")
+            title = remove_alias(title)
         else
             -- we are in an external [link]
             vim.cmd("normal yi)")
