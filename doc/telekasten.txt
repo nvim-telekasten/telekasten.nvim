@@ -670,7 +670,7 @@ telekasten.toggle_todo({opts})~
   to avoid neovim sending the wrong visual selection.
 
   Valid keys for {opts}
- bv  z
+
   i:~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
