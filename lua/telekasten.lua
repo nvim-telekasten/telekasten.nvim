@@ -2723,6 +2723,7 @@ local function ToggleTodo(opts)
     -- - [ ] by - [x]
     -- - [x] by -
     -- enter insert mode if opts.i == true
+    -- if opts.v = true, then look for marks to toggle
     opts = opts or {}
     local startline = vim.api.nvim_buf_get_mark(0, "<")[1]
     local endline = vim.api.nvim_buf_get_mark(0, ">")[1]
@@ -2731,7 +2732,7 @@ local function ToggleTodo(opts)
     -- command from normal mode
     vim.api.nvim_buf_set_mark(0, "<", 0, 0, {})
     vim.api.nvim_buf_set_mark(0, ">", 0, 0, {})
-    if startline <= 0 or endline <= 0 then
+    if startline <= 0 or endline <= 0 or opts.v ~= true then
         startline = cursorlinenr
         endline = cursorlinenr
     end
