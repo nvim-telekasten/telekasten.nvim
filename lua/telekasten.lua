@@ -1442,38 +1442,72 @@ local function InsertLink(opts)
         return
     end
 
-    find_files_sorted({
-        prompt_title = "Insert link to note",
-        cwd = M.Cfg.home,
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                actions.close(prompt_bufnr)
-                local selection = action_state.get_selected_entry()
-                local pinfo = Pinfo:new({
-                    filepath = selection.value,
-                    opts,
-                })
-                vim.api.nvim_put(
-                    { "[[" .. pinfo.title .. "]]" },
-                    "",
-                    true,
-                    true
-                )
-                if opts.i then
-                    vim.api.nvim_feedkeys("A", "m", false)
-                end
-            end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
-            return true
-        end,
-        find_command = M.Cfg.find_command,
-        sort = M.Cfg.sort,
-    })
+    if opts.with_live_grep then
+        builtin.live_grep({
+            prompt_title = "Insert link to note with live grep",
+            cwd = M.Cfg.home,
+            find_command = M.Cfg.find_command,
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    local pinfo = Pinfo:new({
+                        filepath = selection.filename,
+                        opts,
+                    })
+                    vim.api.nvim_put(
+                        { "[[" .. pinfo.title .. "]]" },
+                        "",
+                        true,
+                        true
+                    )
+                    if opts.i then
+                        vim.api.nvim_feedkeys("A", "m", false)
+                    end
+                end)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("i", "<c-cr>", picker_actions.paste_link(opts))
+                map("n", "<c-cr>", picker_actions.paste_link(opts))
+                return true
+            end,
+        })
+    else
+        find_files_sorted({
+            prompt_title = "Insert link to note",
+            cwd = M.Cfg.home,
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    local pinfo = Pinfo:new({
+                        filepath = selection.value,
+                        opts,
+                    })
+                    vim.api.nvim_put(
+                        { "[[" .. pinfo.title .. "]]" },
+                        "",
+                        true,
+                        true
+                    )
+                    if opts.i then
+                        vim.api.nvim_feedkeys("A", "m", false)
+                    end
+                end)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("i", "<c-cr>", picker_actions.paste_link(opts))
+                map("n", "<c-cr>", picker_actions.paste_link(opts))
+                return true
+            end,
+            find_command = M.Cfg.find_command,
+            sort = M.Cfg.sort,
+        })
+    end
 end
 
 -- local function check_for_link_or_tag()
