@@ -652,7 +652,8 @@ The plugin defines the following functions:
   - **note**:
     - this function accepts a parameter `{i}`. If `true`, it will enter input mode by pressing the 'A' key. This is
       useful when being used in a simple `inoremap` key mapping like shown in [Bind it](#3-bind-it).
-    - example: `insert_link({ i=true })`
+      - example: `insert_link({ i=true })`
+    - this function accepts a parameter `{with_live_grep}`. If `true`, it will use live_grep picker and you can search file by file contents.
 - `follow_link()`: take text between brackets (linked note) or of a tag and open a Telescope file finder with it: selects note to
   open (incl. preview) - with optional note creation for non-existing notes, honoring the configured template
   - **note**:

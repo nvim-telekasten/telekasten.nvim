@@ -537,8 +537,15 @@ telekasten.new_templated_note()~
   See also:~
       - |telekasten.template_files|
                                                     *telekasten.find_notes()*
-telekasten.find_notes()~
+telekasten.find_notes({opts})~
   Opens a Telescope file finder and lets you pick a note by title (file name).
+
+  Valid keys for {opts}
+
+  with_live_grep:~
+    If `true`, it will use live_grep picker and you can search file by file contents.
+
+    Default: `nil`
 
                                               *telekasten.find_daily_notes()*
 telekasten.find_daily_notes()~
@@ -630,6 +637,11 @@ telekasten.insert_link({opts})~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
     |telekasten.mappings|.
+
+    Default: `nil`
+
+  with_live_grep:~
+    If `true`, it will use live_grep picker and you can search file by file contents.
 
     Default: `nil`
 
