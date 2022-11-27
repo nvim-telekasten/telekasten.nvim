@@ -1443,31 +1443,26 @@ local function InsertLink(opts)
     end
 
     local cwd = M.Cfg.home
-    local attach_mappings =  function(prompt_bufnr, map)
-	actions.select_default:replace(function()
-	    actions.close(prompt_bufnr)
-	    local selection = action_state.get_selected_entry()
-	    local pinfo = Pinfo:new({
-		filepath = selection.filename,
-		opts,
-	    })
-	    vim.api.nvim_put(
-		{ "[[" .. pinfo.title .. "]]" },
-		"",
-		true,
-		true
-	    )
-	    if opts.i then
-		vim.api.nvim_feedkeys("A", "m", false)
-	    end
-	end)
-	map("i", "<c-y>", picker_actions.yank_link(opts))
-	map("i", "<c-i>", picker_actions.paste_link(opts))
-	map("n", "<c-y>", picker_actions.yank_link(opts))
-	map("n", "<c-i>", picker_actions.paste_link(opts))
-	map("i", "<c-cr>", picker_actions.paste_link(opts))
-	map("n", "<c-cr>", picker_actions.paste_link(opts))
-	return true
+    local attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+            local pinfo = Pinfo:new({
+                filepath = selection.filename,
+                opts,
+            })
+            vim.api.nvim_put({ "[[" .. pinfo.title .. "]]" }, "", true, true)
+            if opts.i then
+                vim.api.nvim_feedkeys("A", "m", false)
+            end
+        end)
+        map("i", "<c-y>", picker_actions.yank_link(opts))
+        map("i", "<c-i>", picker_actions.paste_link(opts))
+        map("n", "<c-y>", picker_actions.yank_link(opts))
+        map("n", "<c-i>", picker_actions.paste_link(opts))
+        map("i", "<c-cr>", picker_actions.paste_link(opts))
+        map("n", "<c-cr>", picker_actions.paste_link(opts))
+        return true
     end
 
     if opts.with_live_grep then
@@ -1862,14 +1857,14 @@ local function FindNotes(opts)
     local find_command = M.Cfg.find_command
     local sort = M.Cfg.sort
     local attach_mappings = function(_, map)
-	actions.select_default:replace(picker_actions.select_default)
-	map("i", "<c-y>", picker_actions.yank_link(opts))
-	map("i", "<c-i>", picker_actions.paste_link(opts))
-	map("n", "<c-y>", picker_actions.yank_link(opts))
-	map("n", "<c-i>", picker_actions.paste_link(opts))
-	map("i", "<c-cr>", picker_actions.paste_link(opts))
-	map("n", "<c-cr>", picker_actions.paste_link(opts))
-	return true
+        actions.select_default:replace(picker_actions.select_default)
+        map("i", "<c-y>", picker_actions.yank_link(opts))
+        map("i", "<c-i>", picker_actions.paste_link(opts))
+        map("n", "<c-y>", picker_actions.yank_link(opts))
+        map("n", "<c-i>", picker_actions.paste_link(opts))
+        map("i", "<c-cr>", picker_actions.paste_link(opts))
+        map("n", "<c-cr>", picker_actions.paste_link(opts))
+        return true
     end
 
     if opts.with_live_grep then
@@ -1889,7 +1884,6 @@ local function FindNotes(opts)
             sort = sort,
         })
     end
-    
 end
 
 --
