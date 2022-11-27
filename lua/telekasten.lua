@@ -1443,6 +1443,8 @@ local function InsertLink(opts)
     end
 
     local cwd = M.Cfg.home
+    local find_command = M.Cfg.find_command
+    local sort = M.Cfg.sort
     local attach_mappings = function(prompt_bufnr, map)
         actions.select_default:replace(function()
             actions.close(prompt_bufnr)
@@ -1470,16 +1472,16 @@ local function InsertLink(opts)
             prompt_title = "Insert link to note with live grep",
             cwd = cwd,
             attach_mappings = attach_mappings,
-            find_command = M.Cfg.find_command,
-            sort = M.Cfg.sort,
+            find_command = find_command,
+            sort = sort,
         })
     else
         find_files_sorted({
             prompt_title = "Insert link to note",
             cwd = cwd,
             attach_mappings = attach_mappings,
-            find_command = M.Cfg.find_command,
-            sort = M.Cfg.sort,
+            find_command = find_command,
+            sort = sort,
         })
     end
 end
