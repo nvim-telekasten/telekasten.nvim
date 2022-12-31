@@ -64,7 +64,12 @@ local function defaultConfig(home)
         -- "uuid-title" - Prefix title by uuid
         -- "title-uuid" - Suffix title with uuid
         new_note_filename = "title",
-        -- file uuid type ("rand" or input for os.date()")
+
+        --[[ file UUID type
+           - "rand"
+           - string input for os.date()
+           - or custom lua function that returns a string
+        --]]
         uuid_type = "%Y%m%d%H%M",
         -- UUID separator
         uuid_sep = "-",
@@ -208,10 +213,12 @@ local function get_uuid(opts)
     opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
     local uuid
-    if opts.uuid_type ~= "rand" then
-        uuid = os.date(opts.uuid_type)
-    else
+    if opts.uuid_type == "rand" then
         uuid = random_variable(6)
+    elseif type(opts.uuid_type) == "function" then
+        uuid = opts.uuid_type()
+    else
+        uuid = os.date(opts.uuid_type)
     end
     return uuid
 end
