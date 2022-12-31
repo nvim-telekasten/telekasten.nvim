@@ -243,8 +243,9 @@ telekasten.setup({opts})
 
                                            *telekasten.settings.uuid_type*
     uuid_type: ~
-        Type of UUID. Could be 'rand' for a random 6 character string, or a
-        time format to input in os.date() such as %Y%m%d%H%M.
+        Type of UUID. Could be 'rand' for a random 6 character string, a
+        time format to input in os.date() such as '%Y%m%d%H%M', or any lua
+        function like os.time() that returns a string.
 
         Default: '%Y%m%d%H%M'
 
