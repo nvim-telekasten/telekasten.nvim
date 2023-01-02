@@ -302,7 +302,12 @@ require('telekasten').setup({
     -- "uuid-title" - Prefix title by uuid
     -- "title-uuid" - Suffix title with uuid
     new_note_filename = "title",
-    -- file uuid type ("rand" or input for os.date()")
+
+    --[[ file UUID type
+        - "rand"
+        - string input for os.date()
+        - or custom lua function that returns a string
+    --]]
     uuid_type = "%Y%m%d%H%M",
     -- UUID separator
     uuid_sep = "-",
