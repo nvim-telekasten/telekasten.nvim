@@ -78,11 +78,13 @@ telekasten.setup({opts})
       -- "uuid-title" - Prefix title by uuid
       -- "title-uuid" - Suffix title with uuid
       new_note_filename = "title",
-      -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
+      -- file uuid type ("rand", string input for os.date, or lua function)
       uuid_type = "%Y%m%d%H%M",
       -- UUID separator
       uuid_sep = "-",
 
+      -- replaces spaces in title with uuid_sep when used in filename
+      filename_replace_spaces = false,
 
       templates = '/path/to/directory',     -- path to templates
       extension = '.file extension',        -- file extension of note files
@@ -254,6 +256,14 @@ telekasten.setup({opts})
         Separator between UUID and title in filaneme.
 
         Default: '-'
+
+                             *telekasten.settings.filename_replace_spaces*
+    filename_replace_spaces: ~
+        Replaces spaces in the title with the |uuid_sep| when the note title
+        is used within the generated filename, i.e. when |new_note_filename|
+        includes 'title'.
+
+        Default: `false`
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~

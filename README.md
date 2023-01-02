@@ -312,6 +312,9 @@ require('telekasten').setup({
     -- UUID separator
     uuid_sep = "-",
 
+    -- replaces spaces in title with uuid_sep when used in filename
+    filename_replace_spaces = false,
+
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,
     dailies_create_nonexisting = true,
@@ -456,6 +459,7 @@ END
 | `calendar_opts` | options for calendar, see below | see below |
 | `close_after_yanking` | close telescope preview after yanking via <kbd>ctrl</kbd><kbd>y</kbd>| false |
 | `insert_after_inserting` | enter insert mode after inserting a link from a telescope picker via <kbd>ctrl</kbd><kbd>i</kbd>| true |
+| `filename_replace_spaces` | replace spaces in title with `uuid_sep` when used in filename | false |
 | `tag_notation` | the tag style you want to use| `#tag` |
 | | - `#tag` (default) | |
 | | - `:tag:` | |
