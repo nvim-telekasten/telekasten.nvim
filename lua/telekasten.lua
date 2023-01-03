@@ -552,6 +552,8 @@ local dateformats = {
     date = "%Y-%m-%d",
     week = "%V",
     isoweek = "%Y-W%V",
+    time24 = "%H:%M:%S",
+    time12 = "%I:%M:%S %p",
 }
 
 local function calculate_dates(date)
@@ -591,6 +593,8 @@ local function calculate_dates(date)
         .. ":"
         .. zonemin
 
+    dates.time24 = os.date(df.time24, time)
+    dates.time12 = os.date(df.time12, time)
     dates.date = os.date(df.date, time)
     dates.prevday = os.date(df.date, time - oneday)
     dates.nextday = os.date(df.date, time + oneday)
@@ -644,33 +648,12 @@ local function linesubst(line, title, dates, uuid)
         shorttitle = title
     end
 
-    local substs = {
-        hdate = dates.hdate,
-        week = dates.week,
-        date = dates.date,
-        isoweek = dates.isoweek,
-        year = dates.year,
-        rfc3339 = dates.rfc3339,
+    local substs = vim.tbl_extend("error", dates, {
+        shorttitle,
+        uuid,
+        title,
+    })
 
-        prevday = dates.prevday,
-        nextday = dates.nextday,
-        prevweek = dates.prevweek,
-        nextweek = dates.nextweek,
-        isoprevweek = dates.isoprevweek,
-        isonextweek = dates.isonextweek,
-
-        sunday = dates.sunday,
-        monday = dates.monday,
-        tuesday = dates.tuesday,
-        wednesday = dates.wednesday,
-        thursday = dates.thursday,
-        friday = dates.friday,
-        saturday = dates.saturday,
-
-        title = title,
-        shorttitle = shorttitle,
-        uuid = uuid,
-    }
     for k, v in pairs(substs) do
         line = line:gsub("{{" .. k .. "}}", v)
     end
