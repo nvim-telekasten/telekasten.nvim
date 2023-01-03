@@ -845,6 +845,8 @@ Currently, the following substitutions will be made during new note creation:
 | `{{shorttitle}}` | the short title of the note | dir/subdir/My Note -> My Note |
 | `{{uuid}}` | UUID for the note | 202201271129 |
 | `{{date}}` | date in iso format | 2021-11-21 |
+| `{{time24}}` | time with 24 hour clock | 19:12:23 |
+| `{{time12}}` | time with 12 hour clock | 07:12:23 PM |
 | `{{prevday}}` | previous day's date in iso format | 2021-11-20 |
 | `{{nextday}}` | next day's date in iso format | 2021-11-22 |
 | `{{hdate}}` | date in long format | Sunday, November 21st, 2021 |
