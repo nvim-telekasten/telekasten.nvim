@@ -74,6 +74,9 @@ local function defaultConfig(home)
         -- UUID separator
         uuid_sep = "-",
 
+        -- if not nil, replaces any spaces in the title when it is used in filename generation
+        filename_space_subst = nil,
+
         -- following a link to a non-existing note will create it
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
@@ -224,6 +227,10 @@ local function get_uuid(opts)
 end
 
 local function generate_note_filename(uuid, title)
+    if M.Cfg.filename_space_subst ~= nil then
+        title = escape(title):gsub(" ", M.Cfg.filename_space_subst)
+    end
+
     local pp = Path:new(title)
     local p_splits = pp:_split()
     local filename = p_splits[#p_splits]
