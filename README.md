@@ -312,6 +312,9 @@ require('telekasten').setup({
     -- UUID separator
     uuid_sep = "-",
 
+    -- if not nil, this string replaces spaces in the title when generating filenames
+    filename_space_subst = nil,
+
     -- following a link to a non-existing note will create it
     follow_creates_nonexisting = true,
     dailies_create_nonexisting = true,

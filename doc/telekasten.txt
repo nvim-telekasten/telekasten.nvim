@@ -255,6 +255,19 @@ telekasten.setup({opts})
 
         Default: '-'
 
+                                *telekasten.settings.filename_space_subst*
+    filename_space_subst: ~
+        When the note title is used within the filename, i.e.
+        |new_note_filename| contains 'title', spaces in the title will be
+        substituted for |filename_space_subst|.
+
+        e.g. if set to '_', '20230103-my new note title.md' would instead
+        become '20230103-my_new_note_title.md'
+
+        If set to `nil`, no substitution will occur.
+
+        Default: `nil`
+
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
         Path to the directory where pasted images should go to. Accepts
