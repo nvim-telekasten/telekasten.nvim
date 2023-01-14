@@ -37,31 +37,6 @@ mixing it with a journal, based on [telescope.nvim](https://github.com/nvim-tele
 
 ---
 
-== We're Using GitHub Under Protest ==
-
-This project is currently hosted on GitHub.  This is not ideal; GitHub is a
-proprietary, trade-secret system that is not Free and Open Souce Software
-(FOSS).  We are deeply concerned about using a proprietary system like GitHub
-to develop our FOSS project.  We have a
-[mailing list](https://lists.sr.ht/~renerocksai/telekasten.nvim-discuss) where the
-project contributors are actively discussing how we can move away from GitHub
-in the long term.  We urge you to read about the
-[Give up GitHub](https://GiveUpGitHub.org) campaign from
-[the Software Freedom Conservancy](https://sfconservancy.org) to understand
-some of the reasons why GitHub is not a good place to host FOSS projects.
-
-If you are a contributor who personally has already quit using GitHub, please
-[check this resource](https://man.sr.ht/git.sr.ht/#sending-patches-upstream) for how to send us contributions without
-using GitHub directly: send us patches to the [telekasten.nvim-devel mailing list](https://lists.sr.ht/~renerocksai/telekasten.nvim-devel) or clone the [sourcehut repository](https://git.sr.ht/~renerocksai/telekasten.nvim) and use the web-based "prepare patchset" tool.
-
-Any use of this project's code by GitHub Copilot, past or present, is done
-without our permission.  We do not consent to GitHub's use of this project's
-code in Copilot.
-
-![Logo of the GiveUpGitHub campaign](https://sfconservancy.org/img/GiveUpGitHub.png)
-
----
-
 Telekasten.nvim can optionally plug into [calendar-vim](https://github.com/renerocksai/calendar-vim): Selecting a day in
 the calendar will open up a telescope search with preview that lets you open the daily note (or cancel out and keep
 browsing your calendar). The daily note  will be created if it doesn't exist.  Days with daily notes get marked in the
