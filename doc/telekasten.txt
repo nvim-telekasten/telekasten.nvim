@@ -30,6 +30,8 @@ CONTENTS
 
     0. Note file naming .............. |telekasten.note_naming|
     1. Setup ......................... |telekasten.setup|
+        1.1 Requirements ..............|telekasten.requirements|
+        1.2 Configuration .............|telekasten.configuration|
     2. Colors ........................ |telekasten.colors|
     3. Usage ......................... |telekasten.usage|
         3.1 Link Notation ............ |telekasten.link_notation|
@@ -53,6 +55,12 @@ Currently, the following file naming conventions are hard-coded:
 ================================================================================
 Section 1: Setup                                            *telekasten.setup()*
 
+                                                      *telekasten.requirements*
+
+The following is a list of mandatory and optional requirements for running
+Telekasten and some of its key features.
+
+                                                      *telekasten.configuration*
 telekasten.setup({opts})
     Setup function to be run by user.  Configures the defaults, markdown
     directories, templates, and optional calendar integration of telekasten.
