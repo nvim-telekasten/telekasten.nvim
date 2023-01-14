@@ -103,39 +103,47 @@ for a complete list of optional dependencies (`:h telekasten.requirements`).
 
 <details>
 <summary>Packer.nvim</summary>
+
 ```lua
   use {
     'renerocksai/telekasten.nvim',
     requires = {'nvim-telescope/telescope.nvim}
   }
 ```
+
 </details>
 
 <details>
 <summary>Lazy.nvim</summary>
+
 ```lua
   {
     'renerocksai/telekasten.nvim',
     dependencies = {'nvim-telescope/telescope.nvim}
   },
 ```
+
 </details>
 
 
 <details>
 <summary>Vim-plug</summary>
+
 ```vim
   Plug 'nvim-telescope/telescope.nvim'
   Plug 'renerocksai/telekasten.nvim'
 ```
+
 </details>
 
 <details>
 <summary>Vundle</summary>
+
 ```vim
   Plugin 'nvim-telescope/telescope.nvim'
   Plugin 'renerocksai/telekasten.nvim'
 ```
+
 </details>
 
 
