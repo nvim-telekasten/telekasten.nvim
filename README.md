@@ -179,7 +179,8 @@ Various plugins or external tools can be used as image previewers to help you pi
 - xclip
 - [wl-clipboard](https://github.com/bugaevc/wl-clipboard)
 
-**Note:** This is supported by default on MacOS, it is not necessary to install any other tool.
+_Image pasting is supported by default on MacOS, it is not necessary to install any other tool._
+
 
 #### Other useful plugins
 
@@ -187,7 +188,7 @@ While they do not interact directly with Telekasten, the following plugins great
 
 - [telescope-bibtex.nvim](https://github.com/nvim-telescope/telescope-bibtex.nvim)
 - [telescope-symbols.nvim](https://github.com/nvim-telescope/telescope-symbols.nvim)
-- [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim)
+- [peek.nvim](https://github.com/toppair/peek.nvim) or [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim)
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc)
 
 
