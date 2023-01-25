@@ -660,9 +660,9 @@ local function linesubst(line, title, dates, uuid)
     end
 
     local substs = vim.tbl_extend("error", dates, {
-        shorttitle = shorttitle,
+        shorttitle = shorttitle:gsub("^%l", string.upper),
         uuid = uuid,
-        title = title,
+        title = title:gsub("^%l", string.upper),
     })
 
     for k, v in pairs(substs) do
