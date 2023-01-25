@@ -87,32 +87,32 @@ of being able to edit it.
 
 <!-- vim-markdown-toc GFM -->
 
-- [0. Install and setup](#0-install-and-setup)
-  - [0.0 Prerequisites](#00-prerequisites)
-    - [0.0.1 Telescope](#001-telescope)
-    - [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
-    - [0.0.3 For pasting images: xclip (optional), wl-clipboard (optional)](#003-for-pasting-images-xclip-optional-wl-clipboard-optional)
-    - [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
-      - [catimg](#catimg)
-      - [viu](#viu)
-      - [telescope-media-files.nvim](#telescope-media-filesnvim)
-  - [0.1 Install the plugin](#01-install-the-plugin)
-    - [0.1.0 Other useful plugins](#010-other-useful-plugins)
-  - [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
-  - [0.3 Configure your own colors](#03-configure-your-own-colors)
-- [1. Get Help](#1-get-help)
-- [2. Use it](#2-use-it)
-  - [2.0 Telekasten command](#20-telekasten-command)
-  - [2.1 Telekasten command palette](#21-telekasten-command-palette)
-  - [2.2 Telekasten lua functions](#22-telekasten-lua-functions)
-  - [2.3 Link notation](#23-link-notation)
-  - [2.4 Tag notation](#24-tag-notation)
-  - [2.5 Note templates](#25-note-templates)
-    - [2.5.1 Template files](#251-template-files)
-  - [2.6 Using the calendar](#26-using-the-calendar)
-  - [2.7 Using the telescope pickers](#27-using-the-telescope-pickers)
-- [3. Bind it](#3-bind-it)
-- [4. The hardcoded stuff](#4-the-hardcoded-stuff)
+* [0. Install and setup](#0-install-and-setup)
+    * [0.0 Prerequisites](#00-prerequisites)
+        * [0.0.1 Telescope](#001-telescope)
+        * [0.0.2 calendar-vim Plugin (optional)](#002-calendar-vim-plugin-optional)
+        * [0.0.3 For pasting images: xclip (optional), wl-clipboard (optional)](#003-for-pasting-images-xclip-optional-wl-clipboard-optional)
+        * [0.0.4 For image previews: telescope-media-files.nvim (optional)](#004-for-image-previews-telescope-media-filesnvim-optional)
+            * [catimg](#catimg)
+            * [viu](#viu)
+            * [telescope-media-files.nvim](#telescope-media-filesnvim)
+    * [0.1 Install the plugin](#01-install-the-plugin)
+        * [0.1.0 Other useful plugins](#010-other-useful-plugins)
+    * [0.2 Configure telekasten.nvim](#02-configure-telekastennvim)
+    * [0.3 Configure your own colors](#03-configure-your-own-colors)
+* [1. Get Help](#1-get-help)
+* [2. Use it](#2-use-it)
+    * [2.0 Telekasten command](#20-telekasten-command)
+    * [2.1 Telekasten command palette](#21-telekasten-command-palette)
+    * [2.2 Telekasten lua functions](#22-telekasten-lua-functions)
+    * [2.3 Link notation](#23-link-notation)
+    * [2.4 Tag notation](#24-tag-notation)
+    * [2.5 Note templates](#25-note-templates)
+        * [2.5.1 Template files](#251-template-files)
+    * [2.6 Using the calendar](#26-using-the-calendar)
+    * [2.7 Using the telescope pickers](#27-using-the-telescope-pickers)
+* [3. Bind it](#3-bind-it)
+* [4. The hardcoded stuff](#4-the-hardcoded-stuff)
 
 <!-- vim-markdown-toc -->
 
@@ -257,6 +257,11 @@ require('telekasten').setup({
     -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
     --                               and thus the telekasten syntax will not be loaded either
     auto_set_filetype = true,
+
+
+    -- auto-set telekasten syntax: if false, the telekasten syntax will not be used
+    -- this syntax setting is independent from auto-set filetype
+    auto_set_syntax = true,
 
     -- dir names for special notes (absolute path or subdir name)
     dailies      = home .. '/' .. 'daily',
@@ -448,7 +453,8 @@ END
 | | - `dropdown`: floating popup window ||
 | | - `get_cursor`: floating popup window at cursor position ||
 | `subdirs_in_links` | include subdirs (if applicable) in generated (yanked, inserted) links| true |
-| `auto_set_filetype` | if false (not recommended), the telekasten filetype will not be used and the telekasten syntax not be loaded; markdown files will get the markdown filetype. | default: `true` |
+| `auto_set_filetype` | if false, the telekasten filetype will not be used and the telekasten syntax not be loaded; markdown files will get the markdown filetype. | default: `true` |
+| `auto_set_syntax` | if false, the telekasten syntax will not be set. | default: `true` |
 | `template_handling` | Strategy for telekasten to pick a template when a new note is created via `new_note()` or by `follow_link()` to a non-existing note | smart |
 | | - `smart` (default): if day or week is detected in title, use daily / weekly templates, else the new note template|  |
 | | - `prefer_new_note`: use the `new_note` template ||
@@ -785,9 +791,10 @@ actual tags and will return everything. A workaround is to either use the
 `:tag:` notation or to recompile ripgrep locally with the appropriate flag (see
 issues # 115 and #145).
 
-**Note**: For proper highlighting, the `auto_set_filetype` option is set to `true` by default. This automatically
-switches the filetype of opened notes from `markdown` to `telekasten`, and also registers the syntax with telescope
-previewers for `.md` files.
+**Note**: For proper highlighting, the `auto_set_syntax` option is set to `true`
+by default, as is `auto_set_filetype`. The latter automatically switches the
+filetype of opened notes from `markdown` to `telekasten`, and also registers the
+syntax with telescope previewers for `.md` files.
 
 ### 2.5 Note templates
 

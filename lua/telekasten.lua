@@ -45,6 +45,10 @@ local function defaultConfig(home)
         --                               and thus the telekasten syntax will not be loaded either
         auto_set_filetype = true,
 
+        -- auto-set telekasten syntax: if false, the telekasten syntax will not be set
+        -- this syntax setting is independent from auto-set filetype
+        auto_set_syntax = true,
+
         -- dir names for special notes (absolute path or subdir name)
         dailies = home .. "/" .. "daily",
         weeklies = home .. "/" .. "weekly",
@@ -1212,6 +1216,9 @@ end
 picker_actions.post_open = function()
     if M.Cfg.auto_set_filetype then
         vim.cmd("set ft=telekasten")
+    end
+    if M.Cfg.auto_set_syntax then
+        vim.cmd("set syntax=telekasten")
     end
 end
 

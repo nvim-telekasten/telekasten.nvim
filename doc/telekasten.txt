@@ -195,9 +195,14 @@ telekasten.setup({opts})
 
                                    *telekasten.settings.auto_set_filetype*
     auto_set_filetype: ~
-        If `false` (not recommended), the telekasten filetype will not be used
-        and the telekasten syntax not be loaded; markdown files will get the
-        markdown filetype.
+        If `false`, the telekasten filetype will not be set. Markdown
+        files will get the markdown filetype.
+
+        Default: `true`
+
+                                   *telekasten.settings.auto_set_syntax*
+    auto_set_syntax: ~
+        If `false`, the telekasten syntax will not be set.
 
         Default: `true`
 
@@ -841,8 +846,9 @@ Tag syntax:~
   example, #1984 is not a valid tag, but `#y1984` is.
 
 Note:~
-  For proper highlighting, the `auto_set_filetype` option is set to `true` by
-  default. This automatically sets the to `telekasten`, and also registers the
+  For proper highlighting, the `auto_set_syntax` option is set to `true`
+  by default, as is `auto_set_filetype`. The latter automatically sets
+  the filetype of opened notes to `telekasten`, and also registers the
   syntax with telescope previewers for `.md` files.
 
 Note:
