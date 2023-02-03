@@ -3173,4 +3173,7 @@ end
 M.panel = TelekastenCmd.command
 M.Command = TelekastenCmd
 
+-- Load default setup
+Setup()
+
 return M
