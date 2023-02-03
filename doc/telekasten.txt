@@ -206,15 +206,15 @@ telekasten.setup({opts})
 
         Default: `true`
 
-                                               *telekasten.settings.daily*
-    daily: ~
+                                               *telekasten.settings.dailies*
+    dailies: ~
         Path to your daily notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
         Default: '~/zettelkasten/daily'
 
-                                              *telekasten.settings.weekly*
-    weekly: ~
+                                              *telekasten.settings.weeklies*
+    weeklies: ~
         Path to your weekly notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
@@ -317,7 +317,7 @@ telekasten.setup({opts})
         Default: true
 
                          *telekasten.settings.weeklies_create_nonexisting*
-    weekliesdailies_create_nonexisting: ~
+    weeklies_create_nonexisting: ~
         Flag that determines whether this week's note should always be created
         if not present. Also, whether weekly notes should be created when
         opening them via the calendar.

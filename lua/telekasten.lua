@@ -1777,8 +1777,8 @@ local function GotoDate(opts)
     if
         (fexists ~= true)
         and (
-            (opts.follow_creates_nonexisting == true)
-            or M.Cfg.follow_creates_nonexisting == true
+            (opts.dailies_create_nonexisting == true)
+            or M.Cfg.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -1839,7 +1839,7 @@ local function GotoToday(opts)
     local today = os.date(dateformats.date)
     opts.date_table = os.date("*t")
     opts.date = today
-    opts.follow_creates_nonexisting  = true -- Always use template if GotoToday
+    opts.dailies_create_nonexisting = true -- Always use template for GotoToday
     GotoDate(opts)
 end
 
