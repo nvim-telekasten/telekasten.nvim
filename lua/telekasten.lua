@@ -2999,7 +2999,8 @@ local function Setup(cfg)
     -- M.Cfg.rg_pcre = os.execute("echo 'hello' | rg --pcr2 hello &> /dev/null") or false
 
     M.Cfg.rg_pcre = false
-    local has_pcre = os.execute("echo 'hello' | rg --pcre2 hello > /dev/null 2>&1")
+    local has_pcre =
+        os.execute("echo 'hello' | rg --pcre2 hello > /dev/null 2>&1")
     if has_pcre == 0 then
         M.Cfg.rg_pcre = true
     end
