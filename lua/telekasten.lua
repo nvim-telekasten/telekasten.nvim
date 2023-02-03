@@ -1839,6 +1839,7 @@ local function GotoToday(opts)
     local today = os.date(dateformats.date)
     opts.date_table = os.date("*t")
     opts.date = today
+    opts.follow_creates_nonexisting  = true -- Always use template if GotoToday
     GotoDate(opts)
 end
 
