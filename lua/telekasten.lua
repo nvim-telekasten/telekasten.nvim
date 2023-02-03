@@ -232,7 +232,7 @@ end
 
 local function generate_note_filename(uuid, title)
     if M.Cfg.filename_space_subst ~= nil then
-        title = escape(title):gsub(" ", M.Cfg.filename_space_subst)
+        title = title:gsub(" ", M.Cfg.filename_space_subst)
     end
 
     local pp = Path:new(title)
