@@ -2964,7 +2964,7 @@ local function Setup(cfg)
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
-    if M.Cfg.auto_set_filetype then
+    if M.Cfg.auto_set_filetype or M.Cfg.auto_set_syntax then
         filetype.add_file("telekasten")
     end
     -- setting the syntax moved into plugin/telekasten.vim
