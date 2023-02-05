@@ -1542,7 +1542,7 @@ local function PreviewImg(opts)
     end
 
     vim.cmd("normal yi)")
-    local fname = vim.fn.getreg('"0'):gsub("^img/","")
+    local fname = vim.fn.getreg('"0'):gsub("^img/", "")
 
     -- check if fname exists anywhere
     local imageDir = M.Cfg.image_subdir or M.Cfg.home
