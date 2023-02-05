@@ -1542,7 +1542,7 @@ local function PreviewImg(opts)
     end
 
     vim.cmd("normal yi)")
-    local fname = vim.fn.getreg('"0')
+    local fname = vim.fn.getreg('"0'):gsub("^img/","")
 
     -- check if fname exists anywhere
     local imageDir = M.Cfg.image_subdir or M.Cfg.home
@@ -3005,7 +3005,7 @@ local function Setup(cfg)
     if has_pcre == 0 then
         M.Cfg.rg_pcre = true
     end
-    M.Cfg.media_previewer = cfg.media_previewer
+    M.Cfg.media_previewer = M.Cfg.media_previewer
 end
 
 local function _setup(cfg)
