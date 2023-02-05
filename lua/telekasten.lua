@@ -1457,9 +1457,9 @@ local function InsertLink(opts)
                 filepath = selection.filename or selection.value,
                 opts,
             })
-            vim.api.nvim_put({ "[[" .. pinfo.title .. "]]" }, "", true, true)
+            vim.api.nvim_put({ "[[" .. pinfo.title .. "]]" }, "", false, true)
             if opts.i then
-                vim.api.nvim_feedkeys("A", "m", false)
+                vim.api.nvim_feedkeys("a", "m", false)
             end
         end)
         map("i", "<c-y>", picker_actions.yank_link(opts))

@@ -653,7 +653,7 @@ telekasten.insert_link({opts})~
   Valid keys for {opts}
 
   i:~
-    If `true`, it will enter input mode by pressing the <A> key. This is useful
+    If `true`, it will enter input mode by pressing the <a> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
     |telekasten.mappings|.
 
