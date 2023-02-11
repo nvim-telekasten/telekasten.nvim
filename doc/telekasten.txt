@@ -39,7 +39,7 @@ CONTENTS
     4. Suggested mappings ............ |telekasten.mappings|
     5. FAQ ........................... |telekasten.faq|
         5.1 Windows .................. |telekasten.windows|
-    5. Credits ....................... |telekasten.credits|
+    6. Credits ....................... |telekasten.credits|
 
 ================================================================================
 Section 0: Note file naming                             *telekasten.note_naming*
@@ -63,7 +63,7 @@ telekasten.setup({opts})
     Setup function to be run by user. Configures the defaults, markdown
     directories, templates, and optional calendar integration of telekasten.
 
-    Usage (defaults):
+    Usage:
     >
     require("telekasten").setup({
 
@@ -188,6 +188,7 @@ telekasten.setup({opts})
 
         It is recommended that if your path is not the default to write it
         like a Unix path with '/' instead of '\', or to escape the '\' as '\\'.
+        See more at |telekasten.windows|.
         ----------------------
 
                                    *telekasten.settings.take_over_my_home*
@@ -233,6 +234,14 @@ telekasten.setup({opts})
 
         Default: '~/zettelkasten/templates'
 
+                                        *telekasten.settings.image_subdir*
+    image_subdir: ~
+        Path to the directory where pasted images should go to. Accepts
+        absolute path or sub-directory name.
+        Set to `nil` if images should not go into a sub-directory.
+
+        Default: `nil`
+
                                            *telekasten.settings.extension*
     extension: ~
         Filename extension of your markdown note files.
@@ -276,14 +285,6 @@ telekasten.setup({opts})
         become '20230103-my_new_note_title.md'
 
         If set to `nil`, no substitution will occur.
-
-        Default: `nil`
-
-                                        *telekasten.settings.image_subdir*
-    image_subdir: ~
-        Path to the directory where pasted images should go to. Accepts
-        absolute path or sub-directory name.Set to `nil` if images should not
-        go into a sub-directory.
 
         Default: `nil`
 
@@ -336,7 +337,7 @@ telekasten.setup({opts})
         template.
 
         Default: `nil`
-        Example: `'~/zettelkasten/templates/daily.md'`
+        Example: `'~/zettelkasten/templates/basenote.md'`
 
                                   *telekasten.settings.template_new_daily*
     template_new_daily: ~
@@ -352,7 +353,7 @@ telekasten.setup({opts})
         a template.
 
         Default: `nil`
-        Example: `'~/zettelkasten/templates/daily.md'`
+        Example: `'~/zettelkasten/templates/weekly.md'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax:~
@@ -378,11 +379,6 @@ telekasten.setup({opts})
                                     *telekasten.settings.subdirs_in_links*
     subdirs_in_links:~
         Include subdirs (if applicable) in generated (yanked, inserted) links.
-
-        Valid options are:
-        - `'tag'`
-        - `':tag:'`
-        - `'yaml-bare'`
 
         Default: `true`
 
@@ -493,7 +489,7 @@ telekasten.setup({opts})
 --------------------------------------------------------------------------------
 Section 2: Highlights                                    *telekasten.highlights*
 
-Telekasten.nvim allows you to color your `[[links]]` by providing two syntax
+Telekasten.nvim allows you to color your `[[links]]` by providing a few syntax
 groups:
 
 - `tkLink` : the link title inside the brackets
@@ -508,9 +504,8 @@ groups:
 `tkHighlight`, has nothing to do with links but I added it anyway, since I like
 highlighting text when taking notes.
 
-Plugin supports wiki-link aliases: `[[value|alias]]`. These links will be
+Telekasten supports wiki-link aliases: `[[value|alias]]`. These links will be
 concealed to `[[alias]]` if `conceallevel=2`.
-
 
 I also like the navigation buttons of the calendar to appear less prevalent, so
 I redefine the `CalNavi` class as well.
@@ -787,9 +782,6 @@ Note links~
                                     shows the link as `A cool title` if
                                     `conceallevel=2`
 
-`[[A cool title|xxxxxxxx]]`  ........ links note 'A cool title' with using
-                                    name.
-
 `[[#Heading 27]]`  .................. links to the heading 'Heading 27' within
                                     all notes
 
@@ -828,7 +820,8 @@ Telekasten supports the following tag notations:
 2. `:tag:`
 3. bare tags in a tag collection in the yaml metadata:
 >
-  --- title: My awesome note
+  ---
+  title: My awesome note
   date: 2021-12-06
   tags: [ example, note-taking, foo, bar ]
   ---
@@ -944,7 +937,7 @@ The following substitutions will be made during new note creation:
 | `{{thursday}}`    | Thursday, iso               | 2021-11-18                  |
 | `{{friday}}`      | Friday, iso                 | 2021-11-19                  |
 | `{{saturday}}`    | Saturday, iso               | 2021-11-20                  |
-| `{{sunday}}`      |  Sunday, iso (see note)| 2021-11-21                         |
+| `{{sunday}}`      | Sunday, iso (see note)      | 2021-11-21                  |
 +-----------------+-----------------------+-----------------------------+
 Note: Sunday is adjusted to match the user's `calendar_monday` preference.
 
@@ -1077,6 +1070,31 @@ However, here are some suggestions:
   hi tkTagSep ctermfg=gray guifg=gray
   hi tkTag ctermfg=175 guifg=#d3869B
 <
+
+================================================================================
+Section 5: FAQ                                                  *telekasten.faq*
+
+--------------------------------------------------------------------------------
+Section 5.1 Windows                                         *telekasten.windows*
+
+While this plugin works on Windows, it was not specifically designed to
+support Windows at first. Even on macOS, some of the features like image
+preview will not work out-of-the-box.
+
+Due to the awful way Windows writes paths, some functions of Telekasten may
+not work as well as under unix-based systems. To prevent too much hassle, we
+rely heavily on Telescope.nvim and especially Pleanry.nvim for everything
+related to path manipulation. Normally that should already fix most issues.
+
+Still, to avoid the most common Windows issue:
+- Best option: don't use Windows if possible
+- Second best option: try WSL2 on Windows and pretend you're on Linux
+- if you must use Windows, it is preferable to use
+  - C:/Users/myname/zettelkasten instead of ~/zettelkasten
+  - NEVER use C:\Users\myname style paths
+  - Using vim.fn.expand("~/zettelkasten") should work now but mileage will
+    vary with anything outside of finding and opening files
+
 
 ================================================================================
 Section 5: Credits                                          *telekasten.credits*
