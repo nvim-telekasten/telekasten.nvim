@@ -1,8 +1,8 @@
 ================================================================================
                                                                *telekasten.nvim*
 
-Telekasten.nvim is a plugin that lets you work with a folder of Markdown files
-and use it as a 'Zettelkasten' or a wiki plus journal.
+Telekasten.nvim is a plugin that lets you work with on or multiple folders of
+Markdown files and use them as a 'Zettelkasten' or a wiki plus journal.
 
 Find notes by name, daily and weekly notes by date, search within all notes,
 place and follow links to your notes or create new ones, with templates.
@@ -16,10 +16,6 @@ daily note (or cancel out and keep browsing your calendar). The daily note
 will be created if it doesn't exist. Days with daily notes get marked in the
 calendar.
 
-For Windows users, many of the functions that require navigating file folders
-do not work. This is due to how Telescope handles paths and the odd way that
-Windows structures its paths. It is advised you don't use Windows.
-
 To find out more:
 https://github.com/renerocksai/telekasten.nvim
 
@@ -32,7 +28,7 @@ CONTENTS
     1. Setup ......................... |telekasten.setup|
         1.1 Requirements ..............|telekasten.requirements|
         1.2 Configuration .............|telekasten.configuration|
-    2. Colors ........................ |telekasten.colors|
+    2. Highlights .................... |telekasten.highlights|
     3. Usage ......................... |telekasten.usage|
         3.1 Link Notation ............ |telekasten.link_notation|
         3.2 Tag Notation ............. |telekasten.tag_notation|
@@ -41,6 +37,8 @@ CONTENTS
         3.5 Picker mappings .......... |telekasten.picker_mappings|
         3.6 Mutliple home directories. |telekasten.switch_vaults|
     4. Suggested mappings ............ |telekasten.mappings|
+    5. FAQ ........................... |telekasten.faq|
+        5.1 Windows .................. |telekasten.windows|
     5. Credits ....................... |telekasten.credits|
 
 ================================================================================
@@ -62,61 +60,82 @@ Telekasten and some of its key features.
 
                                                       *telekasten.configuration*
 telekasten.setup({opts})
-    Setup function to be run by user.  Configures the defaults, markdown
+    Setup function to be run by user. Configures the defaults, markdown
     directories, templates, and optional calendar integration of telekasten.
 
-    Usage:
+    Usage (defaults):
     >
     require("telekasten").setup({
-      home = '/path/to/directory',          -- path to main markdown folder
-      daily = '/path/to/directory',         -- path to daily notes
-      weekly = '/path/to/directory',        -- path to weekly notes
 
-      -- image subdir for pasting
-      -- subdir name
-      -- or nil if pasted images shouldn't go into a special subdir
+      -- Main paths
+      home = '/path/to/directory',        -- path to main notes folder
+      daily = '/path/to/directory',       -- path to daily notes
+      weekly = '/path/to/directory',      -- path to weekly notes
+      templates = '/path/to/directory',   -- path to templates
+
+      -- Specific note templates
+        -- set to `nil` or do not specify if you do not want a template
+      template_new_note = '/path/to/file',    -- template for new notes
+      template_new_daily = '/path/to/file',   -- template for new daily notes
+      template_new_weekly = '/path/to/file',  -- template for new weekly notes
+
+      -- Image subdir for pasting
+        -- subdir name
+        -- or nil if pasted images shouldn't go into a special subdir
       image_subdir = "img",
 
-      -- markdown file extension
+      -- File extension for note files
       extension    = ".md",
 
       -- Generate note filenames. One of:
-      -- "title" (default) - Use title if supplied, uuid otherwise
-      -- "uuid" - Use uuid
-      -- "uuid-title" - Prefix title by uuid
-      -- "title-uuid" - Suffix title with uuid
+        -- "title" (default) - Use title if supplied, uuid otherwise
+        -- "uuid" - Use uuid
+        -- "uuid-title" - Prefix title by uuid
+        -- "title-uuid" - Suffix title with uuid
       new_note_filename = "title",
       -- file uuid type ("rand" or input for os.date such as "%Y%m%d%H%M")
       uuid_type = "%Y%m%d%H%M",
       -- UUID separator
       uuid_sep = "-",
 
-
-      templates = '/path/to/directory',     -- path to templates
-      extension = '.file extension',        -- file extension of note files
-
-      -- flags for creating non-existing notes
+      -- Flags for creating non-existing notes
       follow_creates_nonexisting = true,    -- create non-existing on follow
       dailies_create_nonexisting = true,    -- create non-existing dailies
       weeklies_create_nonexisting = true,   -- create non-existing weeklies
 
-      -- image link style",
-      -- wiki:     ![[image name]]
-      -- markdown: ![](image_subdir/xxxxx.png)
+      -- Image link style",
+        -- wiki:     ![[image name]]
+        -- markdown: ![](image_subdir/xxxxx.png)
       image_link_style = "wiki",
 
-      -- default sort option: 'filename', 'modified'
+      -- Default sort option: 'filename', 'modified'
       sort = "filename",
 
-      -- specific note templates
-      -- set to `nil` or do not specify if you do not want a template
-      template_new_note = '/path/to/file',    -- template for new notes
-      template_new_daily = '/path/to/file',   -- template for new daily notes
-      template_new_weekly = '/path/to/file',  -- template for new weekly notes
+      -- Make syntax available to markdown buffers and telescope previewers
+      install_syntax = true,
 
-      -- calendar integration
+      -- Tag notation: '#tag', ':tag:', 'yaml-bare'
+      tag_notation = "#tag",
+
+      -- When linking to a note in subdir/, create a [[subdir/title]] link
+      -- instead of a [[title only]] link
+      subdirs_in_links = true,
+
+      -- Command palette theme: dropdown (window) or ivy (bottom panel)
+      command_palette_theme = "ivy",
+
+      -- Tag list theme:
+        -- get_cursor: small tag list at cursor; ivy and dropdown like above
+      show_tags_theme = "ivy",
+
+      -- Previewer for media files (images mostly)
+        -- "telescope-media-files" if you have telescope-media-files.nvim installed
+        -- "catimg-previewer" if you have catimg installed
+        -- "viu-previewer" if you have viu installed
+      media_previewer = "telescope-media-files",
+
+      -- Calendar integration
       plug_into_calendar = true,         -- use calendar integration
-
       calendar_opts = {
         weeknm = 4,                      -- calendar week display mode:
                                          --   1 .. 'WK01'
@@ -136,34 +155,13 @@ telekasten.setup({opts})
                                          --   'left-fit'
       },
 
-      -- make syntax available to markdown buffers and telescope previewers
-      install_syntax = true,
-
-      -- tag notation: '#tag', ':tag:', 'yaml-bare'
-      tag_notation = "#tag",
-
-      -- command palette theme: dropdown (window) or ivy (bottom panel)
-      command_palette_theme = "ivy",
-
-      -- tag list theme:
-      -- get_cursor: small tag list at cursor; ivy and dropdown like above
-      show_tags_theme = "ivy",
-
-      -- when linking to a note in subdir/, create a [[subdir/title]] link
-      -- instead of a [[title only]] link
-      subdirs_in_links = true,
-
       vaults = {
         personal = {
           -- configuration for personal vault. E.g.:
           -- home = "/home/user/vaults/personal",
         }
       },
-      -- how to preview media files
-      -- "telescope-media-files" if you have telescope-media-files.nvim installed
-      -- "catimg-previewer" if you have catimg installed
-      -- "viu-previewer" if you have viu installed
-      media_previewer = "telescope-media-files",
+
     }
 <
 
@@ -493,7 +491,7 @@ telekasten.setup({opts})
         Default: 'left-fit'
 
 --------------------------------------------------------------------------------
-Section 2: Colors                                            *telekasten.colors*
+Section 2: Highlights                                    *telekasten.highlights*
 
 Telekasten.nvim allows you to color your `[[links]]` by providing two syntax
 groups:
