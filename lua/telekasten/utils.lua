@@ -13,7 +13,7 @@ function M.prompt_title(ext, defaultFile, callback)
         prompt = "Title: ",
         cancelreturn = canceledStr,
         completion = "file",
-        default = defaultFile
+        default = defaultFile,
     }, function(title)
         if not title then
             title = ""

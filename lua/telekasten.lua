@@ -272,7 +272,9 @@ local function check_dir_and_ask(dir, purpose)
                 .. " Shall I create it? ",
         }, function(answer)
             if answer == "Yes" then
-                if Path:new(dir):mkdir({ parents=true, exists_ok = false }) then
+                if
+                    Path:new(dir):mkdir({ parents = true, exists_ok = false })
+                then
                     vim.cmd('echomsg " "')
                     vim.cmd('echomsg "' .. dir .. ' created"')
                     ret = true
@@ -2257,7 +2259,6 @@ local function FollowLink(opts)
     end
 
     if search_mode == "files" then
-
         -- check if subdir exists
         local filepath = title:match("(.*/)") or ""
         filepath = M.Cfg.home .. "/" .. filepath
