@@ -6,12 +6,14 @@ local function strip_extension(str, ext)
     return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
 end
 
-function M.prompt_title(ext, callback)
+function M.prompt_title(ext, defaultFile, callback)
     local canceledStr = "__INPUT_CANCELLED__"
 
     vim.ui.input({
         prompt = "Title: ",
         cancelreturn = canceledStr,
+        completion = "file",
+        default = defaultFile
     }, function(title)
         if not title then
             title = ""

@@ -1695,7 +1695,7 @@ end
 local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
-    tkutils.prompt_title(M.Cfg.extension, function(newname)
+    tkutils.prompt_title(M.Cfg.extension, oldfile.title, function(newname)
         local newpath = newname:match("(.*/)") or ""
         newpath = M.Cfg.home .. "/" .. newpath
 
@@ -2089,7 +2089,7 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    tkutils.prompt_title(M.Cfg.extension, function(title)
+    tkutils.prompt_title(M.Cfg.extension, nil, function(title)
         on_create_with_template(opts, title)
     end)
 end
@@ -2162,7 +2162,7 @@ local function CreateNote(opts)
         return CreateNoteSelectTemplate(opts)
     end
 
-    tkutils.prompt_title(M.Cfg.extension, function(title)
+    tkutils.prompt_title(M.Cfg.extension, nil, function(title)
         on_create(opts, title)
     end)
 end
