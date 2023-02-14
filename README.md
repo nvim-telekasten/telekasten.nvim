@@ -175,7 +175,7 @@ _Image pasting is supported by default on MacOS, it is not necessary to install
 any other tool._
 
 
-#### Other useful plugins
+#### Other useful resources/plugins
 
 While they do not interact directly with Telekasten, the following plugins
 greatly improve the note-taking experience.
@@ -189,6 +189,8 @@ greatly improve the note-taking experience.
   markdown previewer
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc):
   generate a table of contents for your markdown documents
+- [synctodo](https://github.com/cnshsliu/synctodo): bash script to sync todos
+  among Telekasten, Mac and iPhone reminders.
 
 
 ## Usage
