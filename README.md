@@ -97,7 +97,7 @@ telekasten.requirements`).
 ```lua
   use {
     'renerocksai/telekasten.nvim',
-    requires = {'nvim-telescope/telescope.nvim}
+    requires = {'nvim-telescope/telescope.nvim'}
   }
 ```
 
@@ -109,7 +109,7 @@ telekasten.requirements`).
 ```lua
   {
     'renerocksai/telekasten.nvim',
-    dependencies = {'nvim-telescope/telescope.nvim}
+    dependencies = {'nvim-telescope/telescope.nvim'}
   },
 ```
 
@@ -144,9 +144,9 @@ your notes directory. If you do not specify anything, the plugin will ask you to
 create the defaults directories before first use.
 
 ```lua
-require('telekasten').setup(
+require('telekasten').setup({
   home = '~/zettelkasten', -- Put the name of your notes directory here
-)
+})
 ```
 **NOTE:** For Windows users, please indicate the path as
 `C:/Users/username/zettelkasten/`. See `:h telekasten.windows` for more details
@@ -347,8 +347,8 @@ The following links are supported:
 
 
 # Media links
-Use these for images, PDF files, videos. If telescope-media-files is installed, these can
-be previewed.
+Use these for images, PDF files, videos. If telescope-media-files is installed,
+these can be previewed.
 - ![optional title](path/to/file) ... links to the file `path/to/file`
 ```
 
