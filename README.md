@@ -353,7 +353,7 @@ these can be previewed.
 ```
 
 See the documentation for more details regarding the different types of links
-(`:h telekaten.link_notation`).
+(`:h telekasten.link_notation`).
 
 
 ### Tag notation
@@ -366,7 +366,7 @@ Telekasten supports the following tag notations:
 
 
 See the documentation for more details regarding the tag syntax (`:h
-telekaten.tag_notation`).
+telekasten.tag_notation`).
 
 ### Templates
 
