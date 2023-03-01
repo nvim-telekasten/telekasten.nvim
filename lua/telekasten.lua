@@ -37,38 +37,30 @@ local function defaultConfig(home)
 
     local cfg = {
         home = home,
-
         -- if true, telekasten will be enabled when opening a note within the configured home
         take_over_my_home = true,
-
         -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
         --                               and thus the telekasten syntax will not be loaded either
         auto_set_filetype = true,
-
         -- auto-set telekasten syntax: if false, the telekasten syntax will not be set
         -- this syntax setting is independent from auto-set filetype
         auto_set_syntax = true,
-
         -- dir names for special notes (absolute path or subdir name)
         dailies = home .. "/" .. "daily",
         weeklies = home .. "/" .. "weekly",
         templates = home .. "/" .. "templates",
-
         -- image (sub)dir for pasting
         -- dir name (absolute path or subdir name)
         -- or nil if pasted images shouldn't go into a special subdir
         image_subdir = nil,
-
         -- markdown file extension
         extension = ".md",
-
         -- Generate note filenames. One of:
         -- "title" (default) - Use title if supplied, uuid otherwise
         -- "uuid" - Use uuid
         -- "uuid-title" - Prefix title by uuid
         -- "title-uuid" - Suffix title with uuid
         new_note_filename = "title",
-
         --[[ file UUID type
            - "rand"
            - string input for os.date()
@@ -77,18 +69,14 @@ local function defaultConfig(home)
         uuid_type = "%Y%m%d%H%M",
         -- UUID separator
         uuid_sep = "-",
-
         -- if not nil, replaces any spaces in the title when it is used in filename generation
         filename_space_subst = nil,
-
         -- following a link to a non-existing note will create it
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
         weeklies_create_nonexisting = true,
-
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
-
         -- templates for new notes
         -- template_new_note = home .. "/" .. "templates/new_note.md",
         -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
@@ -98,14 +86,11 @@ local function defaultConfig(home)
         -- wiki:     ![[image name]]
         -- markdown: ![](image_subdir/xxxxx.png)
         image_link_style = "markdown",
-
         -- default sort option: 'filename', 'modified'
         sort = "filename",
-
         -- when linking to a note in subdir/, create a [[subdir/title]] link
         -- instead of a [[title only]] link
         subdirs_in_links = true,
-
         -- integrate with calendar-vim
         plug_into_calendar = true,
         calendar_opts = {
@@ -118,17 +103,13 @@ local function defaultConfig(home)
         },
         close_after_yanking = false,
         insert_after_inserting = true,
-
         -- tag notation: '#tag', ':tag:', 'yaml-bare'
         tag_notation = "#tag",
-
         -- command palette theme: dropdown (window) or ivy (bottom panel)
         command_palette_theme = "ivy",
-
         -- tag list theme:
         -- get_cursor: small tag list at cursor; ivy and dropdown like above
         show_tags_theme = "ivy",
-
         -- template_handling
         -- What to do when creating a new note via `new_note()` or `follow_link()`
         -- to a non-existing note
@@ -136,7 +117,6 @@ local function defaultConfig(home)
         -- - smart: if day or week is detected in title, use daily / weekly templates (default)
         -- - always_ask: always ask before creating a note
         template_handling = "smart",
-
         -- path handling:
         --   this applies to:
         --     - new_note()
@@ -159,16 +139,13 @@ local function defaultConfig(home)
         --                        present or else in home
         --                        except for notes/with/subdirs/in/title.
         new_note_location = "smart",
-
         -- should all links be updated when a file is renamed
         rename_update_links = true,
-
         -- how to preview media files
         -- "telescope-media-files" if you have telescope-media-files.nvim installed
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
-
         -- A customizable fallback handler for urls.
         follow_url_fallback = nil,
     }
@@ -265,11 +242,11 @@ local function check_dir_and_ask(dir, purpose)
     if dir ~= nil and Path:new(dir):exists() == false then
         vim.ui.select({ "No (default)", "Yes" }, {
             prompt = "Telekasten.nvim: "
-                .. purpose
-                .. " folder "
-                .. dir
-                .. " does not exist!"
-                .. " Shall I create it? ",
+            .. purpose
+            .. " folder "
+            .. dir
+            .. " does not exist!"
+            .. " Shall I create it? ",
         }, function(answer)
             if answer == "Yes" then
                 if
@@ -372,11 +349,11 @@ local function save_all_mod_buffers()
         if
             vim.fn.getbufvar(i, "&mod") == 1
             and (
-                (
-                    M.Cfg.auto_set_filetype == true
-                    and vim.fn.getbufvar(i, "&filetype") == "telekasten"
-                )
-                or M.Cfg.auto_set_filetype == false
+            (
+            M.Cfg.auto_set_filetype == true
+            and vim.fn.getbufvar(i, "&filetype") == "telekasten"
+            )
+            or M.Cfg.auto_set_filetype == false
             )
         then
             vim.cmd(i .. "bufdo w")
@@ -452,7 +429,7 @@ local function imgFromClipboard()
         get_paste_command = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -1017,24 +994,24 @@ local media_preview = defaulter(function(opts)
     end
     return previewers.new_termopen_previewer({
         get_command = opts.get_command
-            or function(entry)
-                local tmp_table = vim.split(entry.value, "\t")
-                local preview = opts.get_preview_window()
-                opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
-                    or vim.loop.cwd()
-                if vim.tbl_isempty(tmp_table) then
-                    return { "echo", "" }
-                end
-                print(tmp_table[1])
-                return {
-                    preview_cmd,
-                    tmp_table[1],
-                    preview.col,
-                    preview.line + 1,
-                    preview.width,
-                    preview.height,
-                }
-            end,
+        or function(entry)
+            local tmp_table = vim.split(entry.value, "\t")
+            local preview = opts.get_preview_window()
+            opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
+                or vim.loop.cwd()
+            if vim.tbl_isempty(tmp_table) then
+                return { "echo", "" }
+            end
+            print(tmp_table[1])
+            return {
+                preview_cmd,
+                tmp_table[1],
+                preview.col,
+                preview.line + 1,
+                preview.width,
+                preview.height,
+            }
+        end,
     })
 end, {})
 
@@ -1188,7 +1165,6 @@ local function find_files_sorted(opts)
             entry_maker = entry_maker,
         }),
         sorter = conf.generic_sorter(opts),
-
         previewer = previewer,
     })
 
@@ -1353,8 +1329,8 @@ local function FindDailyNotes(opts)
     if
         (fexists ~= true)
         and (
-            (opts.dailies_create_nonexisting == true)
-            or M.Cfg.dailies_create_nonexisting == true
+        (opts.dailies_create_nonexisting == true)
+        or M.Cfg.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(today, _, fname, M.note_type_templates.daily)
@@ -1403,8 +1379,8 @@ local function FindWeeklyNotes(opts)
     if
         (fexists ~= true)
         and (
-            (opts.weeklies_create_nonexisting == true)
-            or M.Cfg.weeklies_create_nonexisting == true
+        (opts.weeklies_create_nonexisting == true)
+        or M.Cfg.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(title, _, fname, M.note_type_templates.weekly)
@@ -1566,7 +1542,6 @@ local function PreviewImg(opts)
                 ".webm",
             },
             preview_type = "media",
-
             attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
@@ -1617,7 +1592,6 @@ local function BrowseImg(opts)
             ".webm",
         },
         preview_type = "media",
-
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -1743,7 +1717,7 @@ local function RenameNote()
             if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
                 vim.ui.select({ "Yes (default)", "No" }, {
                     prompt = "Telekasten.nvim: "
-                        .. "Save all modified buffers before updating links?",
+                    .. "Save all modified buffers before updating links?",
                 }, function(answer)
                     if answer ~= "No" then
                         save_all_mod_buffers()
@@ -1779,8 +1753,8 @@ local function GotoDate(opts)
     if
         (fexists ~= true)
         and (
-            (opts.dailies_create_nonexisting == true)
-            or M.Cfg.dailies_create_nonexisting == true
+        (opts.dailies_create_nonexisting == true)
+        or M.Cfg.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -1873,6 +1847,8 @@ local function FindNotes(opts)
         map("n", "<c-i>", picker_actions.paste_link(opts))
         map("i", "<c-cr>", picker_actions.paste_link(opts))
         map("n", "<c-cr>", picker_actions.paste_link(opts))
+        map("i", "<c-n>", picker_actions.create_new(opts))
+        map("n", "<c-n>", picker_actions.create_new(opts))
         return true
     end
 
@@ -1922,7 +1898,6 @@ local function InsertImgLink(opts)
             ".webm",
         },
         preview_type = "media",
-
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -2269,8 +2244,8 @@ local function FollowLink(opts)
         if
             (pinfo.fexists ~= true)
             and (
-                (opts.follow_creates_nonexisting == true)
-                or M.Cfg.follow_creates_nonexisting == true
+            (opts.follow_creates_nonexisting == true)
+            or M.Cfg.follow_creates_nonexisting == true
             )
         then
             if opts.template_handling == "always_ask" then
@@ -2413,26 +2388,26 @@ local function FollowLink(opts)
         }
 
         local find = (function()
-            if Path.path.sep == "\\" then
-                return function(t)
-                    local start, _, filn, lnum, col, text =
-                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
+                if Path.path.sep == "\\" then
+                    return function(t)
+                        local start, _, filn, lnum, col, text =
+                            string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
 
-                    -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
-                    if start == 3 then
-                        filn = string.sub(t.value, 1, 3) .. filn
+                        -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
+                        if start == 3 then
+                            filn = string.sub(t.value, 1, 3) .. filn
+                        end
+
+                        return filn, lnum, col, text
                     end
-
-                    return filn, lnum, col, text
+                else
+                    return function(t)
+                        local _, _, filn, lnum, col, text =
+                            string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
+                        return filn, lnum, col, text
+                    end
                 end
-            else
-                return function(t)
-                    local _, _, filn, lnum, col, text =
-                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
-                    return filn, lnum, col, text
-                end
-            end
-        end)()
+            end)()
 
         local parse = function(t)
             -- print("t: ", vim.inspect(t))
@@ -2474,19 +2449,15 @@ local function FollowLink(opts)
                         return Path:new({ t.cwd, t.filename }):absolute(), false
                     end
                 end,
-
                 filename = function(t)
                     return parse(t)[1], true
                 end,
-
                 lnum = function(t)
                     return parse(t)[2], true
                 end,
-
                 col = function(t)
                     return parse(t)[3], true
                 end,
-
                 text = function(t)
                     return parse(t)[4], true
                 end,
@@ -2501,7 +2472,6 @@ local function FollowLink(opts)
 
             mt_vimgrep_entry = {
                 cwd = vim.fn.expand(opts.cwd or vim.loop.cwd()),
-
                 __index = function(t, k)
                     local raw = rawget(mt_vimgrep_entry, k)
                     if raw then
@@ -2637,8 +2607,8 @@ local function GotoThisWeek(opts)
     if
         (fexists ~= true)
         and (
-            (opts.weeklies_create_nonexisting == true)
-            or M.Cfg.weeklies_create_nonexisting == true
+        (opts.weeklies_create_nonexisting == true)
+        or M.Cfg.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(title, _, fname, M.note_type_templates.weekly)
@@ -2925,10 +2895,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                        .. k
-                        .. "`   ->   `"
-                        .. tostring(v)
-                        .. "`"
+                    .. k
+                    .. "`   ->   `"
+                    .. tostring(v)
+                    .. "`"
                 )
             end
         end
@@ -2982,10 +2952,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                    .. M.Cfg.home
-                    .. "/*"
-                    .. M.Cfg.extension
-                    .. " set ft=telekasten"
+                .. M.Cfg.home
+                .. "/*"
+                .. M.Cfg.extension
+                .. " set ft=telekasten"
             )
         end
     end
@@ -3073,41 +3043,41 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes", "find_notes", M.find_notes },
-            { "find daily notes", "find_daily_notes", M.find_daily_notes },
-            { "search in notes", "search_notes", M.search_notes },
-            { "insert link", "insert_link", M.insert_link },
-            { "follow link", "follow_link", M.follow_link },
-            { "goto today", "goto_today", M.goto_today },
-            { "new note", "new_note", M.new_note },
-            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
+            { "find notes",        "find_notes",        M.find_notes },
+            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
+            { "search in notes",   "search_notes",      M.search_notes },
+            { "insert link",       "insert_link",       M.insert_link },
+            { "follow link",       "follow_link",       M.follow_link },
+            { "goto today",        "goto_today",        M.goto_today },
+            { "new note",          "new_note",          M.new_note },
+            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink", M.yank_notelink },
-            { "rename note", "rename_note", M.rename_note },
+            { "yank link to note", "yank_notelink",     M.yank_notelink },
+            { "rename note",       "rename_note",       M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar", "show_calendar", M.show_calendar },
+            { "show calendar",     "show_calendar",  M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo", "toggle_todo", M.toggle_todo },
-            { "show backlinks", "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends", M.find_friends },
+            { "toggle todo",       "toggle_todo",    M.toggle_todo },
+            { "show backlinks",    "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends",   M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img", M.preview_img },
-            { "browse media", "browse_media", M.browse_media },
-            { "panel", "panel", M.panel },
-            { "show tags", "show_tags", M.show_tags },
-            { "switch vault", "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img",  M.preview_img },
+            { "browse media",               "browse_media", M.browse_media },
+            { "panel",                      "panel",        M.panel },
+            { "show tags",                  "show_tags",    M.show_tags },
+            { "switch vault",               "switch_vault", M.switch_vault },
         }
     end,
 }
@@ -3166,6 +3136,16 @@ TelekastenCmd.command = function(subcommand)
             })
         end
         show(theme)
+    end
+end
+function picker_actions.create_new(opts)
+    opts = opts or {}
+    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+    return function(prompt_bufnr)
+        local prompt = action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt;
+        actions.close(prompt_bufnr)
+        on_create(opts, prompt)
+        -- local selection = action_state.get_selected_entry()
     end
 end
 
