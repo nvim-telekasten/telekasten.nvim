@@ -174,7 +174,7 @@ telekasten.setup({opts})
         Path to your main markdown / zettelkasten folder. This is where all
         your notes will be stored.
 
-        Default: '~/zettelkasten'
+        Default: 'vim.fn.expand("~/zettelkasten")'
 
         ----------------------
         Note to Windows users:
@@ -218,21 +218,21 @@ telekasten.setup({opts})
         Path to your daily notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
-        Default: '~/zettelkasten/daily'
+        Default: 'vim.fn.expand("~/zettelkasten/daily")'
 
                                               *telekasten.settings.weeklies*
     weeklies: ~
         Path to your weekly notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
-        Default: '~/zettelkasten/weekly'
+        Default: 'vim.fn.expand("~/zettelkasten/weekly")'
 
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
         Accepts absolute path or sub-directory name.
 
-        Default: '~/zettelkasten/templates'
+        Default: 'vim.fn.expand("~/zettelkasten/templates")'
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~
@@ -337,7 +337,7 @@ telekasten.setup({opts})
         template.
 
         Default: `nil`
-        Example: `'~/zettelkasten/templates/basenote.md'`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/basenote.md")'`
 
                                   *telekasten.settings.template_new_daily*
     template_new_daily: ~
@@ -345,7 +345,7 @@ telekasten.setup({opts})
         a template.
 
         Default: `nil`
-        Example: `'~/zettelkasten/templates/daily.md'`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/daily.md")'`
 
                                  *telekasten.settings.template_new_weekly*
     template_new_weekly: ~
@@ -353,7 +353,7 @@ telekasten.setup({opts})
         a template.
 
         Default: `nil`
-        Example: `'~/zettelkasten/templates/weekly.md'`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/weekly.md")'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax:~

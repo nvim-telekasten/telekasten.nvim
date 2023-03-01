@@ -145,7 +145,7 @@ create the defaults directories before first use.
 
 ```lua
 require('telekasten').setup({
-  home = '~/zettelkasten', -- Put the name of your notes directory here
+  home = vim.fn.expand("~/zettelkasten"), -- Put the name of your notes directory here
 })
 ```
 **NOTE:** For Windows users, please indicate the path as
