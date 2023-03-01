@@ -242,11 +242,11 @@ local function check_dir_and_ask(dir, purpose)
     if dir ~= nil and Path:new(dir):exists() == false then
         vim.ui.select({ "No (default)", "Yes" }, {
             prompt = "Telekasten.nvim: "
-            .. purpose
-            .. " folder "
-            .. dir
-            .. " does not exist!"
-            .. " Shall I create it? ",
+                .. purpose
+                .. " folder "
+                .. dir
+                .. " does not exist!"
+                .. " Shall I create it? ",
         }, function(answer)
             if answer == "Yes" then
                 if
@@ -349,11 +349,11 @@ local function save_all_mod_buffers()
         if
             vim.fn.getbufvar(i, "&mod") == 1
             and (
-            (
-            M.Cfg.auto_set_filetype == true
-            and vim.fn.getbufvar(i, "&filetype") == "telekasten"
-            )
-            or M.Cfg.auto_set_filetype == false
+                (
+                    M.Cfg.auto_set_filetype == true
+                    and vim.fn.getbufvar(i, "&filetype") == "telekasten"
+                )
+                or M.Cfg.auto_set_filetype == false
             )
         then
             vim.cmd(i .. "bufdo w")
@@ -429,7 +429,7 @@ local function imgFromClipboard()
         get_paste_command = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -994,24 +994,24 @@ local media_preview = defaulter(function(opts)
     end
     return previewers.new_termopen_previewer({
         get_command = opts.get_command
-        or function(entry)
-            local tmp_table = vim.split(entry.value, "\t")
-            local preview = opts.get_preview_window()
-            opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
-                or vim.loop.cwd()
-            if vim.tbl_isempty(tmp_table) then
-                return { "echo", "" }
-            end
-            print(tmp_table[1])
-            return {
-                preview_cmd,
-                tmp_table[1],
-                preview.col,
-                preview.line + 1,
-                preview.width,
-                preview.height,
-            }
-        end,
+            or function(entry)
+                local tmp_table = vim.split(entry.value, "\t")
+                local preview = opts.get_preview_window()
+                opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
+                    or vim.loop.cwd()
+                if vim.tbl_isempty(tmp_table) then
+                    return { "echo", "" }
+                end
+                print(tmp_table[1])
+                return {
+                    preview_cmd,
+                    tmp_table[1],
+                    preview.col,
+                    preview.line + 1,
+                    preview.width,
+                    preview.height,
+                }
+            end,
     })
 end, {})
 
@@ -1329,8 +1329,8 @@ local function FindDailyNotes(opts)
     if
         (fexists ~= true)
         and (
-        (opts.dailies_create_nonexisting == true)
-        or M.Cfg.dailies_create_nonexisting == true
+            (opts.dailies_create_nonexisting == true)
+            or M.Cfg.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(today, _, fname, M.note_type_templates.daily)
@@ -1379,8 +1379,8 @@ local function FindWeeklyNotes(opts)
     if
         (fexists ~= true)
         and (
-        (opts.weeklies_create_nonexisting == true)
-        or M.Cfg.weeklies_create_nonexisting == true
+            (opts.weeklies_create_nonexisting == true)
+            or M.Cfg.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(title, _, fname, M.note_type_templates.weekly)
@@ -1717,7 +1717,7 @@ local function RenameNote()
             if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
                 vim.ui.select({ "Yes (default)", "No" }, {
                     prompt = "Telekasten.nvim: "
-                    .. "Save all modified buffers before updating links?",
+                        .. "Save all modified buffers before updating links?",
                 }, function(answer)
                     if answer ~= "No" then
                         save_all_mod_buffers()
@@ -1753,8 +1753,8 @@ local function GotoDate(opts)
     if
         (fexists ~= true)
         and (
-        (opts.dailies_create_nonexisting == true)
-        or M.Cfg.dailies_create_nonexisting == true
+            (opts.dailies_create_nonexisting == true)
+            or M.Cfg.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -2244,8 +2244,8 @@ local function FollowLink(opts)
         if
             (pinfo.fexists ~= true)
             and (
-            (opts.follow_creates_nonexisting == true)
-            or M.Cfg.follow_creates_nonexisting == true
+                (opts.follow_creates_nonexisting == true)
+                or M.Cfg.follow_creates_nonexisting == true
             )
         then
             if opts.template_handling == "always_ask" then
@@ -2388,26 +2388,26 @@ local function FollowLink(opts)
         }
 
         local find = (function()
-                if Path.path.sep == "\\" then
-                    return function(t)
-                        local start, _, filn, lnum, col, text =
-                            string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
+            if Path.path.sep == "\\" then
+                return function(t)
+                    local start, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
 
-                        -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
-                        if start == 3 then
-                            filn = string.sub(t.value, 1, 3) .. filn
-                        end
+                    -- Handle Windows drive letter (e.g. "C:") at the beginning (if present)
+                    if start == 3 then
+                        filn = string.sub(t.value, 1, 3) .. filn
+                    end
 
-                        return filn, lnum, col, text
-                    end
-                else
-                    return function(t)
-                        local _, _, filn, lnum, col, text =
-                            string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
-                        return filn, lnum, col, text
-                    end
+                    return filn, lnum, col, text
                 end
-            end)()
+            else
+                return function(t)
+                    local _, _, filn, lnum, col, text =
+                        string.find(t, [[([^:]+):(%d+):(%d+):(.*)]])
+                    return filn, lnum, col, text
+                end
+            end
+        end)()
 
         local parse = function(t)
             -- print("t: ", vim.inspect(t))
@@ -2607,8 +2607,8 @@ local function GotoThisWeek(opts)
     if
         (fexists ~= true)
         and (
-        (opts.weeklies_create_nonexisting == true)
-        or M.Cfg.weeklies_create_nonexisting == true
+            (opts.weeklies_create_nonexisting == true)
+            or M.Cfg.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(title, _, fname, M.note_type_templates.weekly)
@@ -2895,10 +2895,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                    .. k
-                    .. "`   ->   `"
-                    .. tostring(v)
-                    .. "`"
+                        .. k
+                        .. "`   ->   `"
+                        .. tostring(v)
+                        .. "`"
                 )
             end
         end
@@ -2952,10 +2952,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                .. M.Cfg.home
-                .. "/*"
-                .. M.Cfg.extension
-                .. " set ft=telekasten"
+                    .. M.Cfg.home
+                    .. "/*"
+                    .. M.Cfg.extension
+                    .. " set ft=telekasten"
             )
         end
     end
@@ -3043,41 +3043,41 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes",        "find_notes",        M.find_notes },
-            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
-            { "search in notes",   "search_notes",      M.search_notes },
-            { "insert link",       "insert_link",       M.insert_link },
-            { "follow link",       "follow_link",       M.follow_link },
-            { "goto today",        "goto_today",        M.goto_today },
-            { "new note",          "new_note",          M.new_note },
-            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
+            { "find notes", "find_notes", M.find_notes },
+            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            { "search in notes", "search_notes", M.search_notes },
+            { "insert link", "insert_link", M.insert_link },
+            { "follow link", "follow_link", M.follow_link },
+            { "goto today", "goto_today", M.goto_today },
+            { "new note", "new_note", M.new_note },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink",     M.yank_notelink },
-            { "rename note",       "rename_note",       M.rename_note },
+            { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar",     "show_calendar",  M.show_calendar },
+            { "show calendar", "show_calendar", M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo",       "toggle_todo",    M.toggle_todo },
-            { "show backlinks",    "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends",   M.find_friends },
+            { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "show backlinks", "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends", M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img",  M.preview_img },
-            { "browse media",               "browse_media", M.browse_media },
-            { "panel",                      "panel",        M.panel },
-            { "show tags",                  "show_tags",    M.show_tags },
-            { "switch vault",               "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img", M.preview_img },
+            { "browse media", "browse_media", M.browse_media },
+            { "panel", "panel", M.panel },
+            { "show tags", "show_tags", M.show_tags },
+            { "switch vault", "switch_vault", M.switch_vault },
         }
     end,
 }
@@ -3142,7 +3142,8 @@ function picker_actions.create_new(opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
     return function(prompt_bufnr)
-        local prompt = action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt;
+        local prompt =
+            action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
         actions.close(prompt_bufnr)
         on_create(opts, prompt)
         -- local selection = action_state.get_selected_entry()
