@@ -37,38 +37,30 @@ local function defaultConfig(home)
 
     local cfg = {
         home = home,
-
         -- if true, telekasten will be enabled when opening a note within the configured home
         take_over_my_home = true,
-
         -- auto-set telekasten filetype: if false, the telekasten filetype will not be used
         --                               and thus the telekasten syntax will not be loaded either
         auto_set_filetype = true,
-
         -- auto-set telekasten syntax: if false, the telekasten syntax will not be set
         -- this syntax setting is independent from auto-set filetype
         auto_set_syntax = true,
-
         -- dir names for special notes (absolute path or subdir name)
         dailies = home .. "/" .. "daily",
         weeklies = home .. "/" .. "weekly",
         templates = home .. "/" .. "templates",
-
         -- image (sub)dir for pasting
         -- dir name (absolute path or subdir name)
         -- or nil if pasted images shouldn't go into a special subdir
         image_subdir = nil,
-
         -- markdown file extension
         extension = ".md",
-
         -- Generate note filenames. One of:
         -- "title" (default) - Use title if supplied, uuid otherwise
         -- "uuid" - Use uuid
         -- "uuid-title" - Prefix title by uuid
         -- "title-uuid" - Suffix title with uuid
         new_note_filename = "title",
-
         --[[ file UUID type
            - "rand"
            - string input for os.date()
@@ -77,18 +69,14 @@ local function defaultConfig(home)
         uuid_type = "%Y%m%d%H%M",
         -- UUID separator
         uuid_sep = "-",
-
         -- if not nil, replaces any spaces in the title when it is used in filename generation
         filename_space_subst = nil,
-
         -- following a link to a non-existing note will create it
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
         weeklies_create_nonexisting = true,
-
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
-
         -- templates for new notes
         -- template_new_note = home .. "/" .. "templates/new_note.md",
         -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
@@ -98,14 +86,11 @@ local function defaultConfig(home)
         -- wiki:     ![[image name]]
         -- markdown: ![](image_subdir/xxxxx.png)
         image_link_style = "markdown",
-
         -- default sort option: 'filename', 'modified'
         sort = "filename",
-
         -- when linking to a note in subdir/, create a [[subdir/title]] link
         -- instead of a [[title only]] link
         subdirs_in_links = true,
-
         -- integrate with calendar-vim
         plug_into_calendar = true,
         calendar_opts = {
@@ -118,17 +103,13 @@ local function defaultConfig(home)
         },
         close_after_yanking = false,
         insert_after_inserting = true,
-
         -- tag notation: '#tag', ':tag:', 'yaml-bare'
         tag_notation = "#tag",
-
         -- command palette theme: dropdown (window) or ivy (bottom panel)
         command_palette_theme = "ivy",
-
         -- tag list theme:
         -- get_cursor: small tag list at cursor; ivy and dropdown like above
         show_tags_theme = "ivy",
-
         -- template_handling
         -- What to do when creating a new note via `new_note()` or `follow_link()`
         -- to a non-existing note
@@ -136,7 +117,6 @@ local function defaultConfig(home)
         -- - smart: if day or week is detected in title, use daily / weekly templates (default)
         -- - always_ask: always ask before creating a note
         template_handling = "smart",
-
         -- path handling:
         --   this applies to:
         --     - new_note()
@@ -159,16 +139,13 @@ local function defaultConfig(home)
         --                        present or else in home
         --                        except for notes/with/subdirs/in/title.
         new_note_location = "smart",
-
         -- should all links be updated when a file is renamed
         rename_update_links = true,
-
         -- how to preview media files
         -- "telescope-media-files" if you have telescope-media-files.nvim installed
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
-
         -- A customizable fallback handler for urls.
         follow_url_fallback = nil,
     }
@@ -1188,7 +1165,6 @@ local function find_files_sorted(opts)
             entry_maker = entry_maker,
         }),
         sorter = conf.generic_sorter(opts),
-
         previewer = previewer,
     })
 
@@ -1566,7 +1542,6 @@ local function PreviewImg(opts)
                 ".webm",
             },
             preview_type = "media",
-
             attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
@@ -1617,7 +1592,6 @@ local function BrowseImg(opts)
             ".webm",
         },
         preview_type = "media",
-
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -1873,6 +1847,8 @@ local function FindNotes(opts)
         map("n", "<c-i>", picker_actions.paste_link(opts))
         map("i", "<c-cr>", picker_actions.paste_link(opts))
         map("n", "<c-cr>", picker_actions.paste_link(opts))
+        map("i", "<c-n>", picker_actions.create_new(opts))
+        map("n", "<c-n>", picker_actions.create_new(opts))
         return true
     end
 
@@ -1922,7 +1898,6 @@ local function InsertImgLink(opts)
             ".webm",
         },
         preview_type = "media",
-
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -2474,19 +2449,15 @@ local function FollowLink(opts)
                         return Path:new({ t.cwd, t.filename }):absolute(), false
                     end
                 end,
-
                 filename = function(t)
                     return parse(t)[1], true
                 end,
-
                 lnum = function(t)
                     return parse(t)[2], true
                 end,
-
                 col = function(t)
                     return parse(t)[3], true
                 end,
-
                 text = function(t)
                     return parse(t)[4], true
                 end,
@@ -2501,7 +2472,6 @@ local function FollowLink(opts)
 
             mt_vimgrep_entry = {
                 cwd = vim.fn.expand(opts.cwd or vim.loop.cwd()),
-
                 __index = function(t, k)
                     local raw = rawget(mt_vimgrep_entry, k)
                     if raw then
@@ -3166,6 +3136,17 @@ TelekastenCmd.command = function(subcommand)
             })
         end
         show(theme)
+    end
+end
+function picker_actions.create_new(opts)
+    opts = opts or {}
+    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+    return function(prompt_bufnr)
+        local prompt =
+            action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+        actions.close(prompt_bufnr)
+        on_create(opts, prompt)
+        -- local selection = action_state.get_selected_entry()
     end
 end
 
