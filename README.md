@@ -206,11 +206,12 @@ Each sub-command is implemented by a specific lua function. While high-level
 Telekasten commands can not accept arguments, you can also call directly the lua
 function with additional arguments. This is especially useful to craft some
 custom mappings.
+
 ```vim
 :lua require('telekasten').search_notes()
 ```
-<!-- FIXME -->
-This will be documented in a wiki entry later on.
+
+See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#advanced-key-mappings) for more details regarding advanced usage.
 </details>
 
 ### Commands
@@ -314,7 +315,7 @@ Each Telekasten command is bound to a specific lua function. As lua functions
 can accept arguments, it is possible to craft special mappings to tailor the
 execution of a function to your specific need.
 
-**The documentation related to advanced mappings will be provided shortly.**
+See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#advanced-key-mappings) for more details regarding advanced key mappings.
 
 
 ## Features
