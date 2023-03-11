@@ -21,6 +21,7 @@ local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
 local vaultPicker = require("vaultpicker")
 local tkutils = require("telekasten.utils")
+local bookutils = require("books.bookutils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -2554,7 +2555,7 @@ local function FollowLink(opts)
         )
 
         -- builtin.live_grep({
-        local picker = pickers.new({
+        local picker = pickers.new(opts, {
             cwd = cwd,
             prompt_title = "Notes referencing `" .. title .. "`",
             default_text = search_pattern,
@@ -3011,6 +3012,16 @@ local function chdir(cfg)
     -- M.Cfg = vim.tbl_deep_extend("force", defaultConfig(new_home), cfg)
 end
 
+local function TkBookShow(opts)
+    opts = opts or {}
+    opts.cwd = M.Cfg.home
+    opts.tag_notation = M.Cfg.tag_notation
+    local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
+    opts.templateDir = templateDir
+    opts.rg_pcre = M.Cfg.rg_pcre
+    bookutils.TkBookShow(Pinfo, M.Cfg, opts)
+end
+
 M.find_notes = FindNotes
 M.find_daily_notes = FindDailyNotes
 M.search_notes = SearchNotes
@@ -3038,6 +3049,7 @@ M.taglinks = taglinks
 M.show_tags = FindAllTags
 M.switch_vault = ChangeVault
 M.chdir = chdir
+M.show_book = TkBookShow
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -3075,6 +3087,7 @@ local TelekastenCmd = {
             },
             { "preview image under cursor", "preview_img", M.preview_img },
             { "browse media", "browse_media", M.browse_media },
+            { "show book", "show_book", M.show_book },
             { "panel", "panel", M.panel },
             { "show tags", "show_tags", M.show_tags },
             { "switch vault", "switch_vault", M.switch_vault },

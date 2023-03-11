@@ -37,7 +37,7 @@ local function command_find_all_tags(opts)
         "-o",
         re,
         "--",
-        opts.cwd,
+        opts.this_file or opts.cwd,
     }
 
     -- PCRE engine allows to remove hex color codes from #hastags
@@ -51,7 +51,7 @@ local function command_find_all_tags(opts)
             "-o",
             re,
             "--",
-            opts.cwd,
+            opts.this_file or opts.cwd,
         }
     end
 
