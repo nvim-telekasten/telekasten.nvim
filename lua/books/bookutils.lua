@@ -126,6 +126,7 @@ M.generate_book_map = function(mytitle)
             backlinks[note_fn] = true
         end
     end
+
     return backlinks
 end
 
@@ -483,9 +484,9 @@ local showHelp = function()
         "In book window:                            | In search window",
         "  ?   bring up this help                   |   ?    bring up this help",
         "  f   focus on viewing note                |   s    search by tag",
-        "  gh  go to center note                    |   is   incremental search by tag",
+        "  gh  go to center note                    |   fs   rescan and search",
         "  gt  go to tags                           |   /    search by content",
-        "  gl  go to links                          |   i/   incremental search by content",
+        "  gl  go to links                          |   f/   rescan and search by content",
         "  gd  got to todo                          |   <CR> open note in search result",
         "  p   cycle among backlinks                |",
         "  i   cycle among child links              |",
@@ -503,9 +504,17 @@ local showHelp = function()
     vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", false)
 end
 
+M.init = function()
+    M.state = {
+        tag_scanned = false,
+        file_tags_map = {},
+    }
+end
+
 M.TkBookShow = function(Pinfo, Cfg, opts)
     local bufname = "TelekastenBook"
     M.Cfg = Cfg
+    M.init()
 
     if M.state.book_bufnr then
         M.log("Buffer" .. M.state.book_bufnr .. "exist")
@@ -934,7 +943,13 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
 
         local doTagSearch = function(value)
             M.state.user_input = value
-            if M.state.incre_search == "noincre" then
+            M.log(
+                (M.state.rescan and "Rescan" or "No Rescan")
+                    .. " "
+                    .. (M.state.tag_scanned and "Scanned" or "not scanned")
+            )
+            if (not M.state.tag_scanned) or M.state.rescan then
+                M.state.file_tags_map = {}
                 M.generate_book_map(M.state.center_note.title)
                 for fn, _ in pairs(M.state.note_list) do
                     opts.this_file = fn
@@ -947,6 +962,10 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
                     end
                     M.state.file_tags_map[fn] = ftags
                 end
+                M.state.tag_scanned = true
+                M.log("map build")
+            else
+                M.log("passed build map")
             end
             M.state.search_result = {}
             get_tag_matched_files()
@@ -1012,9 +1031,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             return { "Done" }
         end
 
-        local promptSearchInput = function(incre)
-            incre = incre or "noincre"
-            M.state.incre_search = incre
+        local promptSearchInput = function()
             if M.state.lastSearchPrompt == nil then
                 M.state.lastSearchPrompt = ""
             end
@@ -1041,21 +1058,19 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
                     print("Input closed!")
                 end,
                 on_submit = function(value)
-                    if M.state.incre_search == "noincre" then
-                        M.state.file_tags_map = {}
-                        M.state.lastSearchPrompt = value
-                        doTagSearch(value)
-                    end
+                    M.state.lastSearchPrompt = value
+                    M.log("call doTagSearch:" .. value)
+                    doTagSearch(value)
                 end,
-                on_change = function(value)
-                    if M.state.incre_search == "incre" then
-                        M.state.file_tags_map = {}
-                        M.state.lastSearchPrompt = value
-                        vim.api.nvim_set_current_win(M.state.search_win)
-                        doTagSearch(value)
-                        vim.api.nvim_set_current_win(M.state.input_win)
-                    end
-                end,
+                -- on_change = function(value)
+                --     if M.state.incre_search == "incre" then
+                --         M.state.file_tags_map = {}
+                --         M.state.lastSearchPrompt = value
+                --         vim.api.nvim_set_current_win(M.state.search_win)
+                --         doTagSearch(value)
+                --         vim.api.nvim_set_current_win(M.state.input_win)
+                --     end
+                -- end,
             })
             searchInput:map("n", "<Esc>", function()
                 searchInput:unmount()
@@ -1078,11 +1093,13 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         -- })
 
         -- TODO:map in this window, to refresh book_win to focus on the left side main window note
-        Keymap.set(M.state.search_bufnr, "n", "s", function()
+        Keymap.set(M.state.search_bufnr, "n", "fs", function()
+            M.state.rescan = true
             promptSearchInput()
         end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "is", function()
-            promptSearchInput("incre")
+        Keymap.set(M.state.search_bufnr, "n", "s", function()
+            M.state.rescan = false
+            promptSearchInput()
         end, map_options)
         Keymap.set(M.state.search_bufnr, "n", "?", function()
             showHelp()
