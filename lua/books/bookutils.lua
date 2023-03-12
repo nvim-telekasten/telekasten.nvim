@@ -10,7 +10,6 @@ local NuiTree = require("nui.tree")
 local NuiLine = require("nui.line")
 local NuiSplit = require("nui.split")
 local Keymap = require("nui.utils.keymap")
-local Input = require("nui.input")
 local scan = require("plenary.scandir")
 local Job = require("plenary.job")
 local Json = require("books/json")
@@ -186,35 +185,11 @@ local saveSearch = function()
 end
 
 local loadSavedSearch = function()
-    local ret = { tag = {}, text = {} }
     local f = assert(io.open(M.Cfg.home .. "/saved_search.json", "rb"))
     local content = f:read("*all")
     f:close()
-    ret = Json.parse(content)
-    M.log("loadSavedSearch: " .. vim.inspect(ret))
+    local ret = Json.parse(content)
     return ret
-    -- return {
-    --     tag = {
-    --         {
-    --             key = "All CEOs except Elon",
-    --             value = "CEO -Elon",
-    --         },
-    --         {
-    --             key = "CEO in Ai fields",
-    --             value = "ai CEO",
-    --         },
-    --     },
-    --     text = {
-    --         {
-    --             key = "co-founder",
-    --             value = "co-founder",
-    --         },
-    --         {
-    --             key = "co-founder -Bill",
-    --             value = "co-founder -Bill",
-    --         },
-    --     },
-    -- }
 end
 
 local writeOneSavedSearch = function(key, value)
@@ -278,31 +253,27 @@ end
 
 M.searchOnePattern = function(pattern)
     local cmd, args = command_find_file(M.Cfg, pattern)
-    M.log(cmd .. " " .. vim.inspect(args))
     local ret = {}
-    local _ = Job
-        :new({
-            command = cmd,
-            args = args,
-            enable_recording = true,
-            on_exit = function(j, return_val)
-                if return_val == 0 then
-                    M.log("result: " .. vim.inspect(j:result()))
-                    for _, line in pairs(j:result()) do
-                        if ret[line] == nil then
-                            ret[#ret + 1] = line
-                        end
+    local _ = Job:new({
+        command = cmd,
+        args = args,
+        enable_recording = true,
+        on_exit = function(j, return_val)
+            if return_val == 0 then
+                for _, line in pairs(j:result()) do
+                    if ret[line] == nil then
+                        ret[#ret + 1] = line
                     end
-                else
-                    print("rg return value: " .. tostring(return_val))
-                    print("stderr: ", vim.inspect(j:stderr_result()))
                 end
-            end,
-            on_stderr = function(err, data, _)
-                print("error: " .. tostring(err) .. "data: " .. data)
-            end,
-        })
-        :sync()
+            else
+                print("rg return value: " .. tostring(return_val))
+                print("stderr: ", vim.inspect(j:stderr_result()))
+            end
+        end,
+        on_stderr = function(err, data, _)
+            print("error: " .. tostring(err) .. "data: " .. data)
+        end,
+    }):sync()
     -- print("final results: " .. vim.inspect(ret))
     return ret
 end
@@ -483,7 +454,6 @@ M.revisit = function(Pinfo)
         end
         local hashes, headerText = string.match(line, "^%s*(#+)%s(.-)$")
         if hashes ~= nil then
-            M.log(line .. " => " .. hashes .. " " .. headerText)
             headers[#headers + 1] = {
                 ln = _,
                 header = headerText,
@@ -881,8 +851,6 @@ local get_text_matched_files = function()
     local ret = {}
     local cache = {}
     local tmp = {}
-    M.log("si " .. vim.inspect(si))
-    M.log("B " .. vim.inspect(B) .. " C " .. vim.inspect(C))
     for _, pattern in ipairs(B) do
         local files = M.searchOnePattern(pattern)
         for _, file in ipairs(files) do
@@ -893,7 +861,6 @@ local get_text_matched_files = function()
             end
         end
     end
-    M.log("B result: " .. vim.inspect(tmp))
 
     if logic == "and" then
         for file, count in pairs(tmp) do
@@ -902,11 +869,10 @@ local get_text_matched_files = function()
             end
         end
     else
-        for file, count in pairs(tmp) do
+        for file, _ in pairs(tmp) do
             cache[#cache + 1] = file
         end
     end
-    M.log("B logic result " .. vim.inspect(cache))
 
     tmp = {}
     for _, pattern in ipairs(C) do
@@ -919,13 +885,11 @@ local get_text_matched_files = function()
             end
         end
     end
-    M.log("C result: " .. vim.inspect(tmp))
     for _, file in ipairs(cache) do
         if tmp[file] == nil then
             ret[#ret + 1] = file
         end
     end
-    M.log("-C result(final): " .. vim.inspect(ret))
 
     M.state.search_result = ret
     return ret
@@ -933,7 +897,6 @@ end
 
 local executeSearch = function(value)
     M.state.user_input = value
-    M.log("executeSearch " .. value)
     if (not M.state.tag_scanned) or M.state.rescan then
         M.state.file_tags_map = {}
         M.generate_book_map(M.state.center_note.title)
@@ -1017,7 +980,7 @@ local executeSearch = function(value)
     return { "Done" }
 end
 
-local promptSearchInput = function(search_key)
+local promptSearchInput = function()
     M.state.last_search_prompt = M.state.last_search_prompt or {}
     if M.state.last_search_prompt[M.state.search_what] == nil then
         M.state.last_search_prompt[M.state.search_what] = ""
@@ -1027,9 +990,6 @@ local promptSearchInput = function(search_key)
 
     local previewer = previewers.new_buffer_previewer({
         title = "Saved Conditions Preview",
-        get_command = function(entry)
-            return { "echo", "No selection made" }
-        end,
         get_buffer_by_name = function()
             return {
                 value = user_input,
@@ -1087,7 +1047,7 @@ local promptSearchInput = function(search_key)
         M.state.last_search_prompt[M.state.search_what] = search
         executeSearch(search)
     end
-    local searchByInputOnly = function(_)
+    local searchByInputOnly = function()
         return function(prompt_bufnr)
             local search =
                 action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
@@ -1095,7 +1055,7 @@ local promptSearchInput = function(search_key)
             searchFromPicker(search, true)
         end
     end
-    local saveThenSearchByInput = function(_)
+    local saveThenSearchByInput = function()
         return function(prompt_bufnr)
             local search =
                 action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
@@ -1114,7 +1074,6 @@ local promptSearchInput = function(search_key)
                 .. ", input query contions above pls.",
             value = "",
         }
-        M.log(vim.inspect(M.state.saved_search[M.state.search_what]))
         for _, entry in ipairs(M.state.saved_search[M.state.search_what]) do
             result_table[#result_table + 1] = {
                 key = entry.key,
@@ -1122,7 +1081,7 @@ local promptSearchInput = function(search_key)
             }
         end
 
-        local newPicker = pickers
+        pickers
             .new(themOpts, {
                 default_text = M.state.last_search_prompt[M.state.search_what],
                 prompt_title = "Search notes by "
@@ -1161,36 +1120,25 @@ local promptSearchInput = function(search_key)
                             action_state.get_selected_entry()
                         )
                     end)
-                    map("i", "<c-cr>", searchByInputOnly(opts))
-                    map("n", "<c-cr>", searchByInputOnly(opts))
-                    map("i", "<c-s>", saveThenSearchByInput(opts))
-                    map("n", "<c-s>", saveThenSearchByInput(opts))
+                    map("i", "<c-cr>", searchByInputOnly())
+                    map("n", "<c-cr>", searchByInputOnly())
+                    map("i", "<c-s>", saveThenSearchByInput())
+                    map("n", "<c-s>", saveThenSearchByInput())
                     return true
                 end,
             })
             :find()
     end
-    if search_key then
-        for _, entry in pairs(M.state.saved_search) do
-            if entry.key == search_key then
-                local selection = entry.value
-                -- selection() load entry.value
-                return
-            end
-        end
-        print("No such saved search key: `" .. search_key .. "`")
-    else
-        local theme
+    local theme
 
-        if M.Cfg.command_palette_theme == "ivy" then
-            theme = themes.get_ivy()
-        else
-            theme = themes.get_dropdown({
-                layout_config = { prompt_position = "top" },
-            })
-        end
-        show(theme)
+    if M.Cfg.command_palette_theme == "ivy" then
+        theme = themes.get_ivy()
+    else
+        theme = themes.get_dropdown({
+            layout_config = { prompt_position = "top" },
+        })
     end
+    show(theme)
 end
 
 M.TkBookShow = function(Pinfo, Cfg, opts)
@@ -1198,7 +1146,6 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     M.Cfg = Cfg
     M.Pinfo = Pinfo
     M.init()
-    M.log("Init configuration : " .. vim.inspect(M.state))
 
     if
         M.state.book_bufnr

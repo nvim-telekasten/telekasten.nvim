@@ -175,16 +175,18 @@ end
 
 json.null = {} -- This is a one-off table to represent the null value.
 
-function json.parse(str, pos, end_delim)
-    pos = pos or 1
-    if pos > #str then
+function json.parse(str, o_pos, end_delim)
+    o_pos = o_pos or 1
+    if o_pos > #str then
         error("Reached unexpected end of input.")
     end
-    local pos = pos + #str:match("^%s*", pos) -- Skip whitespace.
+    local pos = o_pos + #str:match("^%s*", o_pos) -- Skip whitespace.
     local first = str:sub(pos, pos)
     if first == "{" then -- Parse an object.
         local obj, key, delim_found = {}, true, true
-        pos = pos + 1
+        if key then
+            pos = pos + 1
+        end
         while true do
             key, pos = json.parse(str, pos, "}")
             if key == nil then
@@ -199,7 +201,9 @@ function json.parse(str, pos, end_delim)
         end
     elseif first == "[" then -- Parse an array.
         local arr, val, delim_found = {}, true, true
-        pos = pos + 1
+        if val then
+            pos = pos + 1
+        end
         while true do
             val, pos = json.parse(str, pos, "]")
             if val == nil then
