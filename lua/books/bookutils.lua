@@ -231,6 +231,7 @@ local writeOneSavedSearch = function(key, value)
 end
 
 local do_find_all_tags = function(opts)
+    opts = opts or M.state.opts
     local cmd, args = command_find_all_tags(opts)
     --print(cmd .. " " .. vim.inspect(args))
     local ret = {}
@@ -461,8 +462,10 @@ M.revisit = function(Pinfo)
     --
     -- get all notes link from this note
     -- and, get all todo items in this note
+    -- also, get all headers in this note
     local linksInNote = {}
     local todoInNote = {}
+    local headers = {}
     local tmp = vim.api.nvim_buf_get_lines(M.state.main_bufnr, 0, -1, false)
     for _, line in pairs(tmp) do
         for w in string.gmatch(line, "%[%[(.-)%]%]") do
@@ -478,11 +481,19 @@ M.revisit = function(Pinfo)
         if todoMatch ~= nil then
             todoInNote[#todoInNote + 1] = { ln = _, todo = todoMatch }
         end
+        local hashes, headerText = string.match(line, "^%s*(#+)%s(.-)$")
+        if hashes ~= nil then
+            M.log(line .. " => " .. hashes .. " " .. headerText)
+            headers[#headers + 1] = {
+                ln = _,
+                header = headerText,
+                level = string.len(hashes),
+            }
+        end
     end
 
-    local opts = M.state.opts
-    opts.this_file = M.state.center_note.filepath
-    local tag_map = do_find_all_tags(opts)
+    M.state.opts.this_file = M.state.center_note.filepath
+    local tag_map = do_find_all_tags()
     local taglist = {}
 
     local max_tag_len = 0
@@ -497,13 +508,13 @@ M.revisit = function(Pinfo)
     table.insert(
         nodes,
         NuiTree.Node({
-            text = (opts.book_use_emoji and "🧠" or "#")
+            text = (M.state.opts.book_use_emoji and "🧠" or "#")
                 .. " "
                 .. M.state.center_note.title,
         })
     )
     -- table.insert(nodes, NuiTree.Node({ text = "  " }))
-    local tags = {}
+    local tagNodes = {}
     for _, entry in pairs(taglist) do
         -- local display = string.format(
         --     "%" .. max_tag_len .. "s ... (%3d matches)",
@@ -513,7 +524,7 @@ M.revisit = function(Pinfo)
         local display = entry.tag .. " (" .. #entry.details .. ")"
 
         table.insert(
-            tags,
+            tagNodes,
             NuiTree.Node({
                 text = display,
                 type = "tag",
@@ -526,14 +537,15 @@ M.revisit = function(Pinfo)
         nodes,
         NuiTree.Node({
             id = "--tags",
-            text = (opts.book_use_emoji and "🏷️" or "#") .. " Tags",
-        }, tags)
+            text = (M.state.opts.book_use_emoji and "🏷️" or "#")
+                .. " Tags",
+        }, tagNodes)
     )
-    local links = {}
+    local linkNodes = {}
     for _, entry in pairs(backlink_title) do
         local display = "[[" .. entry.title .. "]]"
         table.insert(
-            links,
+            linkNodes,
             NuiTree.Node({
                 text = display,
                 filepath = entry.filepath,
@@ -544,13 +556,13 @@ M.revisit = function(Pinfo)
         )
     end
     table.insert(
-        links,
+        linkNodes,
         NuiTree.Node({
-            text = (opts.book_use_emoji and "⭐️" or ">>")
+            text = (M.state.opts.book_use_emoji and "⭐️" or ">>")
                 .. " "
                 .. M.state.center_note.title
                 .. " "
-                .. (opts.book_use_emoji and "⭐️" or "<<"),
+                .. (M.state.opts.book_use_emoji and "⭐️" or "<<"),
             id = "--thisnote",
             filepath = M.state.center_note.filepath,
             fexists = true,
@@ -561,7 +573,7 @@ M.revisit = function(Pinfo)
     for _, entry in pairs(linksInNote) do
         local display = "[[" .. entry.link .. "]]"
         table.insert(
-            links,
+            linkNodes,
             NuiTree.Node({
                 text = display,
                 filepath = entry.filepath,
@@ -575,17 +587,17 @@ M.revisit = function(Pinfo)
         nodes,
         NuiTree.Node({
             id = "--links",
-            text = (opts.book_use_emoji and "🔗" or "#") .. " Links",
-        }, links)
+            text = (M.state.opts.book_use_emoji and "🔗" or "#") .. " Links",
+        }, linkNodes)
     )
 
-    local todos = {}
+    local todoNodes = {}
     for _, entry in pairs(todoInNote) do
         local display = "[ ]" .. entry.todo
         -- local display = entry.todo
         --TODO: add line number to node data
         table.insert(
-            todos,
+            todoNodes,
             NuiTree.Node({
                 text = display,
                 ser = _,
@@ -598,8 +610,31 @@ M.revisit = function(Pinfo)
         nodes,
         NuiTree.Node({
             id = "--todos",
-            text = (opts.book_use_emoji and "❎" or "#") .. " Todos",
-        }, todos)
+            text = (M.state.opts.book_use_emoji and "❎" or "#") .. " Todos",
+        }, todoNodes)
+    )
+
+    local headerNodes = {}
+    for _, entry in ipairs(headers) do
+        local display = entry.header .. " H" .. entry.level
+        table.insert(
+            headerNodes,
+            NuiTree.Node({
+                text = display,
+                ser = _,
+                l = entry.ln,
+                type = "header",
+                level = entry.level,
+            })
+        )
+    end
+    table.insert(
+        nodes,
+        NuiTree.Node({
+            id = "--headers",
+            text = (M.state.opts.book_use_emoji and "🅷" or "#")
+                .. " Headers",
+        }, headerNodes)
     )
 
     local tree = NuiTree({
@@ -624,6 +659,9 @@ M.revisit = function(Pinfo)
                 )
             else
                 line:append("  ")
+                if node.type == "header" then
+                    line:append(string.rep(" ", node.level - 1))
+                end
             end
 
             line:append(node.text)
@@ -633,9 +671,10 @@ M.revisit = function(Pinfo)
     })
 
     M.state.section_tag_line = 2
-    M.state.section_link_line = M.state.section_tag_line + #tags + 1
+    M.state.section_link_line = M.state.section_tag_line + #tagNodes + 1
     M.state.center_note_line = M.state.section_link_line + #backlink_title + 1
     M.state.section_todo_line = M.state.center_note_line + #linksInNote + 1
+    M.state.section_header_line = M.state.section_todo_line + #todoNodes + 1
 
     if #backlink_title > 0 then
         M.state.parent_lines = {
@@ -761,18 +800,21 @@ local showHelp = function()
         "In book window:                            | In search window",
         "  ?   bring up this help                   |   ?    bring up this help",
         "  f   focus on viewing note                |   t    search by tag",
-        "  gh  go to center note                    |   ft   rescan and search",
+        "  gc  go to center note                    |   ft   rescan and search",
         "  gt  go to tags                           |   g    search by content",
         "  gl  go to links                          |   fg   rescan and search by content",
-        "  gd  got to todo                          |   <CR> open note in search result",
+        "  gd  got to todos                         |   <CR> open note in search result",
+        "  gh  got to headers                       |   q    close search window",
         "  p   cycle among backlinks                |",
-        "  i   cycle among child links              |",
-        "  s   show search window               |",
-        "  q   close tkbook                         |   q    close search window",
+        "  i   cycle among child links              | In search prompt window",
+        "  s   show search window                   |   <CR> use a saved search",
+        "  q   close tkbook                         |   <C-CR> save and search with input",
         "  <CR> on tag:       highlight tags        |",
         "  <CR> on link:      show linked note      |",
-        "  Ctrl-<CR> on tag:  jump to tag           |",
-        "  Ctrl-<CR> on link: jump into linked note |",
+        "  <CR> on header:    show linked header    |",
+        "  <C-CR> on tag:     jump to tag           |",
+        "  <C-CR> on link:    jump into linked note |",
+        "  <C-CR> on header:  jump to header        |",
         "",
         "",
         "q, <esc>, ? to close this help",
@@ -898,7 +940,7 @@ local executeSearch = function(value)
         for fn, _ in pairs(M.state.note_list) do
             M.state.opts.this_file = fn
             M.state.file_tags_map[fn] = {}
-            local tag_map = do_find_all_tags(M.state.opts)
+            local tag_map = do_find_all_tags()
             local ftags = {}
             for k, _ in pairs(tag_map) do
                 ftags[#ftags + 1] = string.sub(k, 2)
@@ -1314,6 +1356,26 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
                 { tonumber(node.l), 7 }
             )
             M.state.enable_auto_move_curosr_to_note_line = true
+        elseif node.type == "header" then
+            M.state.enable_auto_move_curosr_to_note_line = false
+            if
+                vim.api.nvim_buf_get_name(
+                    vim.api.nvim_win_get_buf(M.state.main_win)
+                ) ~= M.state.center_note.filepath
+            then
+                M.open_file(
+                    M.state.main_win,
+                    M.state.book_win,
+                    M.state.center_note.filepath,
+                    "edit"
+                )
+            end
+            vim.api.nvim_set_current_win(M.state.main_win)
+            vim.api.nvim_win_set_cursor(
+                M.state.main_win,
+                { tonumber(node.l), 1 }
+            )
+            M.state.enable_auto_move_curosr_to_note_line = true
         end
         if not stayInBookWin then
             vim.api.nvim_set_current_win(M.state.main_win)
@@ -1369,7 +1431,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         pressEnterOnBookItem(false)
     end, map_options)
 
-    Keymap.set(M.state.book_bufnr, "n", "gh", function()
+    Keymap.set(M.state.book_bufnr, "n", "gc", function()
         M.TkBookGotoCenterNote()
     end, map_options)
 
@@ -1389,6 +1451,12 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         vim.api.nvim_win_set_cursor(
             M.state.book_win,
             { M.state.section_todo_line, 5 }
+        )
+    end, map_options)
+    Keymap.set(M.state.book_bufnr, "n", "gh", function()
+        vim.api.nvim_win_set_cursor(
+            M.state.book_win,
+            { M.state.section_header_line, 5 }
         )
     end, map_options)
 
