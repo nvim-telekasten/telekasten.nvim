@@ -1,15 +1,165 @@
 -- local async = require("plenary.async")
+local pickers = require("telescope.pickers")
+local conf = require("telescope.config").values
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local previewers = require("telescope.previewers")
+local themes = require("telescope.themes")
+local finders = require("telescope.finders")
 local NuiTree = require("nui.tree")
 local NuiLine = require("nui.line")
 local NuiSplit = require("nui.split")
 local Keymap = require("nui.utils.keymap")
 local Input = require("nui.input")
-local tagutils = require("taglinks.tagutils")
 local scan = require("plenary.scandir")
+local Job = require("plenary.job")
+local Json = require("books/json")
 
 local M = {}
 M.state = {}
 M.book_tree = nil
+
+-- Copied from tagutils and modified to fit book function need.
+local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
+-- PCRE hashtag allows to remove the hex color codes from hastags
+local hashtag_re_pcre =
+    "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*)"
+local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
+local yaml_re =
+    "(^|\\s)tags:\\s*\\[\\s*([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s*)*)*\\s*]"
+
+local function command_find_all_tags(opts)
+    opts = opts or {}
+    opts.cwd = opts.cwd or "."
+    opts.templateDir = opts.templateDir or ""
+    opts.rg_pcre = opts.rg_pcre or false
+
+    -- do not list tags in the template directory
+    local globArg = ""
+    if opts.templateDir ~= "" then
+        globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
+    end
+
+    local re = hashtag_re
+
+    if opts.tag_notation == ":tag:" then
+        re = colon_re
+    end
+
+    if opts.tag_notation == "yaml-bare" then
+        re = yaml_re
+    end
+
+    local rg_args = {
+        "--vimgrep",
+        globArg,
+        "-o",
+        re,
+        "--",
+        opts.this_file or opts.cwd,
+    }
+
+    -- PCRE engine allows to remove hex color codes from #hastags
+    if opts.rg_pcre and (re == hashtag_re) then
+        re = hashtag_re_pcre
+
+        rg_args = {
+            "--vimgrep",
+            "--pcre2",
+            globArg,
+            "-o",
+            re,
+            "--",
+            opts.this_file or opts.cwd,
+        }
+    end
+
+    return "rg", rg_args
+end
+
+-- strips away leading ' or " , then trims whitespace
+local function trim(s)
+    if s:sub(1, 1) == '"' or s:sub(1, 1) == "'" then
+        s = s:sub(2)
+    end
+    return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
+end
+
+local function insert_tag(tbl, tag, entry)
+    entry.t = tag
+    if tbl[tag] == nil then
+        tbl[tag] = { entry }
+    else
+        tbl[tag][#tbl[tag] + 1] = entry
+    end
+end
+
+local function split(line, sep, n)
+    local startpos = 0
+    local endpos
+    local ret = {}
+    for _ = 1, n - 1 do
+        endpos = line:find(sep, startpos + 1)
+        ret[#ret + 1] = line:sub(startpos + 1, endpos - 1)
+        startpos = endpos
+    end
+    -- now the remainder
+    ret[n] = line:sub(startpos + 1)
+    return ret
+end
+
+local function yaml_to_tags(line, entry, ret)
+    local _, startpos = line:find("tags%s*:%s*%[")
+    local global_end = line:find("%]")
+
+    line = line:sub(startpos + 1, global_end)
+
+    local i = 1
+    local j
+    local prev_i = 1
+    local tag
+    while true do
+        i, j = line:find("%s*(%S*)%s*,", i)
+        if i == nil then
+            tag = line:sub(prev_i)
+            tag = tag:gsub("%s*(%S*)%s*", "%1")
+        else
+            tag = line:sub(i, j)
+            tag = tag:gsub("%s*(%S*)%s*,", "%1")
+        end
+
+        local new_entry = {}
+
+        -- strip trailing ]
+        tag = tag:gsub("]", "")
+        new_entry.t = tag
+        new_entry.l = entry.l
+        new_entry.fn = entry.fn
+        new_entry.c = startpos + (i or prev_i)
+        insert_tag(ret, tag, new_entry)
+        if i == nil then
+            break
+        end
+        i = j + 1
+        prev_i = i
+    end
+end
+
+local function parse_entry(opts, line, ret)
+    local s = split(line, ":", 4)
+    local fn, l, c, t = s[1], s[2], s[3], s[4]
+
+    t = trim(t)
+    local entry = { fn = fn, l = l, c = c }
+
+    if opts.tag_notation == "yaml-bare" then
+        yaml_to_tags(t, entry, ret)
+    elseif opts.tag_notation == ":tag:" then
+        insert_tag(ret, t, entry)
+    else
+        insert_tag(ret, t, entry)
+    end
+end
 
 -- helper function to check if a table contains a specific value
 local function table_contains(table, val)
@@ -19,6 +169,141 @@ local function table_contains(table, val)
         end
     end
     return false
+end
+
+M.log = function(message)
+    local log_file_path = "/tmp/tkbooklog.log"
+    local log_file = assert(io.open(log_file_path, "a"))
+    log_file:write(message .. "\n")
+    log_file:close()
+end
+
+local saveSearch = function()
+    local json_file_path = M.Cfg.home .. "/saved_search.json"
+    local json_file = assert(io.open(json_file_path, "w"))
+    json_file:write(Json.stringify(M.state.saved_search))
+    json_file:close()
+end
+
+local loadSavedSearch = function()
+    local ret = { tag = {}, text = {} }
+    local f = assert(io.open(M.Cfg.home .. "/saved_search.json", "rb"))
+    local content = f:read("*all")
+    f:close()
+    ret = Json.parse(content)
+    M.log("loadSavedSearch: " .. vim.inspect(ret))
+    return ret
+    -- return {
+    --     tag = {
+    --         {
+    --             key = "All CEOs except Elon",
+    --             value = "CEO -Elon",
+    --         },
+    --         {
+    --             key = "CEO in Ai fields",
+    --             value = "ai CEO",
+    --         },
+    --     },
+    --     text = {
+    --         {
+    --             key = "co-founder",
+    --             value = "co-founder",
+    --         },
+    --         {
+    --             key = "co-founder -Bill",
+    --             value = "co-founder -Bill",
+    --         },
+    --     },
+    -- }
+end
+
+local writeOneSavedSearch = function(key, value)
+    local data = M.state.saved_search[M.state.search_what]
+    local newData = {}
+    newData[1] = { key = key, value = value }
+    for _, entry in ipairs(data) do
+        if entry.key ~= key then
+            newData[#newData + 1] = entry
+        end
+    end
+    M.state.saved_search[M.state.search_what] = newData
+    saveSearch()
+end
+
+local do_find_all_tags = function(opts)
+    local cmd, args = command_find_all_tags(opts)
+    --print(cmd .. " " .. vim.inspect(args))
+    local ret = {}
+    local _ = Job:new({
+        command = cmd,
+        args = args,
+        enable_recording = true,
+        on_exit = function(j, return_val)
+            if return_val == 0 then
+                for _, line in pairs(j:result()) do
+                    parse_entry(opts, line, ret)
+                end
+            else
+                print("rg return value: " .. tostring(return_val))
+                print("stderr: ", vim.inspect(j:stderr_result()))
+            end
+        end,
+        on_stderr = function(err, data, _)
+            print("error: " .. tostring(err) .. "data: " .. data)
+        end,
+    }):sync()
+    -- print("final results: " .. vim.inspect(ret))
+    return ret
+end
+
+-- The above code is copied from tagutils.
+
+local function command_find_file(opts, pattern)
+    local globArg = "--glob=!" .. "**/" .. opts.templates .. "/*.md"
+
+    local rg_args = {
+        globArg,
+        "-tmarkdown",
+        "--files-with-matches",
+        "--no-messages",
+        "-e",
+        pattern,
+        "--",
+        opts.home,
+    }
+
+    return "rg", rg_args
+end
+
+M.searchOnePattern = function(pattern)
+    local cmd, args = command_find_file(M.Cfg, pattern)
+    M.log(cmd .. " " .. vim.inspect(args))
+    local ret = {}
+    local _ = Job
+        :new({
+            command = cmd,
+            args = args,
+            enable_recording = true,
+            on_exit = function(j, return_val)
+                if return_val == 0 then
+                    M.log("result: " .. vim.inspect(j:result()))
+                    for _, line in pairs(j:result()) do
+                        if ret[line] == nil then
+                            ret[#ret + 1] = line
+                        end
+                    end
+                else
+                    print("rg return value: " .. tostring(return_val))
+                    print("stderr: ", vim.inspect(j:stderr_result()))
+                end
+            end,
+            on_stderr = function(err, data, _)
+                print("error: " .. tostring(err) .. "data: " .. data)
+            end,
+        })
+        :sync()
+    -- print("final results: " .. vim.inspect(ret))
+    return ret
 end
 
 M.filterTags = function(logic, A, B, C)
@@ -59,14 +344,6 @@ M.filterTags = function(logic, A, B, C)
             return false
         end
     end
-end
-
-M.log = function(message)
-    local log_file_path = "/Users/lucas/tmp/lualog.log"
-    local log_file = io.open(log_file_path, "a")
-    io.output(log_file)
-    io.write(message .. "\n")
-    io.close(log_file)
 end
 
 M.split_and_trim = function(str, delimiter)
@@ -205,7 +482,7 @@ M.revisit = function(Pinfo)
 
     local opts = M.state.opts
     opts.this_file = M.state.center_note.filepath
-    local tag_map = tagutils.do_find_all_tags(opts)
+    local tag_map = do_find_all_tags(opts)
     local taglist = {}
 
     local max_tag_len = 0
@@ -304,8 +581,8 @@ M.revisit = function(Pinfo)
 
     local todos = {}
     for _, entry in pairs(todoInNote) do
-        -- local display = "[ ]" .. entry.todo
-        local display = entry.todo
+        local display = "[ ]" .. entry.todo
+        -- local display = entry.todo
         --TODO: add line number to node data
         table.insert(
             todos,
@@ -483,10 +760,10 @@ local showHelp = function()
     vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, {
         "In book window:                            | In search window",
         "  ?   bring up this help                   |   ?    bring up this help",
-        "  f   focus on viewing note                |   s    search by tag",
-        "  gh  go to center note                    |   fs   rescan and search",
-        "  gt  go to tags                           |   /    search by content",
-        "  gl  go to links                          |   f/   rescan and search by content",
+        "  f   focus on viewing note                |   t    search by tag",
+        "  gh  go to center note                    |   ft   rescan and search",
+        "  gt  go to tags                           |   g    search by content",
+        "  gl  go to links                          |   fg   rescan and search by content",
         "  gd  got to todo                          |   <CR> open note in search result",
         "  p   cycle among backlinks                |",
         "  i   cycle among child links              |",
@@ -508,23 +785,384 @@ M.init = function()
     M.state = {
         tag_scanned = false,
         file_tags_map = {},
+        search_what = "tag",
+        last_search_prompt = {},
     }
+    M.state.saved_search = loadSavedSearch()
+end
+
+local parseSearchUserInput = function(user_input)
+    user_input = user_input or M.state.user_input
+    local ret = {}
+    local input_tags = M.split_and_trim(user_input, ", ")
+    ret.B = {} -- want
+    ret.C = {} -- dont' want
+    ret.logic = "and"
+    ret.search_name = ""
+    for _, tag in ipairs(input_tags) do
+        if tag == "and" or tag == "or" then
+            if tag == "or" then
+                ret.logic = "or"
+            end
+        elseif string.sub(tag, 1, 1) == ":" then
+            ret.search_name = string.sub(tag, 2)
+        else
+            if string.sub(tag, 1, 1) == "-" then
+                table.insert(ret.C, tag:sub(2))
+            else
+                table.insert(ret.B, tag)
+            end
+        end
+    end
+    return ret
+end
+
+local get_tag_matched_files = function()
+    -- example usage
+    local tmp = parseSearchUserInput()
+    for fn, ftags in pairs(M.state.file_tags_map) do
+        if #ftags > 0 then
+            local checkResult = M.filterTags(tmp.logic, ftags, tmp.B, tmp.C)
+            if checkResult then
+                M.state.search_result[#M.state.search_result + 1] = fn
+            end
+        end
+    end
+end
+
+local get_text_matched_files = function()
+    -- example usage
+    local si = parseSearchUserInput()
+    local logic = si.logic
+    local B = si.B
+    local C = si.C
+    local ret = {}
+    local cache = {}
+    local tmp = {}
+    M.log("si " .. vim.inspect(si))
+    M.log("B " .. vim.inspect(B) .. " C " .. vim.inspect(C))
+    for _, pattern in ipairs(B) do
+        local files = M.searchOnePattern(pattern)
+        for _, file in ipairs(files) do
+            if tmp[file] == nil then
+                tmp[file] = 1
+            else
+                tmp[file] = tmp[file] + 1
+            end
+        end
+    end
+    M.log("B result: " .. vim.inspect(tmp))
+
+    if logic == "and" then
+        for file, count in pairs(tmp) do
+            if count == #B then
+                cache[#cache + 1] = file
+            end
+        end
+    else
+        for file, count in pairs(tmp) do
+            cache[#cache + 1] = file
+        end
+    end
+    M.log("B logic result " .. vim.inspect(cache))
+
+    tmp = {}
+    for _, pattern in ipairs(C) do
+        local files = M.searchOnePattern(pattern)
+        for _, file in ipairs(files) do
+            if tmp[file] == nil then
+                tmp[file] = 1
+            else
+                tmp[file] = tmp[file] + 1
+            end
+        end
+    end
+    M.log("C result: " .. vim.inspect(tmp))
+    for _, file in ipairs(cache) do
+        if tmp[file] == nil then
+            ret[#ret + 1] = file
+        end
+    end
+    M.log("-C result(final): " .. vim.inspect(ret))
+
+    M.state.search_result = ret
+    return ret
+end
+
+local executeSearch = function(value)
+    M.state.user_input = value
+    M.log("executeSearch " .. value)
+    if (not M.state.tag_scanned) or M.state.rescan then
+        M.state.file_tags_map = {}
+        M.generate_book_map(M.state.center_note.title)
+        for fn, _ in pairs(M.state.note_list) do
+            M.state.opts.this_file = fn
+            M.state.file_tags_map[fn] = {}
+            local tag_map = do_find_all_tags(M.state.opts)
+            local ftags = {}
+            for k, _ in pairs(tag_map) do
+                ftags[#ftags + 1] = string.sub(k, 2)
+            end
+            M.state.file_tags_map[fn] = ftags
+        end
+        M.state.tag_scanned = true
+    end
+    M.state.search_result = {}
+    if M.state.search_what == "tag" then
+        get_tag_matched_files()
+    else
+        get_text_matched_files()
+    end
+
+    local buildSearchResultTree = function()
+        local result_nodes = {}
+        table.insert(
+            result_nodes,
+            NuiTree.Node({
+                text = M.state.last_search_prompt[M.state.search_what],
+                ser = 0,
+                type = "title",
+                filepath = nil,
+            })
+        )
+        for _, entry in ipairs(M.state.search_result) do
+            local note = M.Pinfo:new({ filepath = entry, M.Cfg })
+            table.insert(
+                result_nodes,
+                NuiTree.Node({
+                    text = note.title,
+                    ser = _,
+                    type = "note",
+                    filepath = note.filepath,
+                })
+            )
+        end
+        M.state.search_tree = NuiTree({
+            winid = M.state.search_win,
+            bufnr = M.state.search_bufnr,
+            nodes = result_nodes,
+            get_node_id = function(node)
+                if node.id then
+                    return node.id
+                end
+                return "-" .. math.random()
+            end,
+            prepare_node = function(node)
+                local line = NuiLine()
+
+                line:append(string.rep("  ", node:get_depth() - 1))
+
+                if node:has_children() then
+                    line:append(
+                        node:is_expanded() and " " or " ",
+                        "SpecialChar"
+                    )
+                elseif node.type == "note" then
+                    line:append("  ")
+                else
+                    line:append("")
+                end
+
+                line:append(node.text)
+
+                return line
+            end,
+        })
+        M.state.search_tree:render()
+    end
+    buildSearchResultTree()
+
+    return { "Done" }
+end
+
+local promptSearchInput = function(search_key)
+    M.state.last_search_prompt = M.state.last_search_prompt or {}
+    if M.state.last_search_prompt[M.state.search_what] == nil then
+        M.state.last_search_prompt[M.state.search_what] = ""
+    end
+    local prompt_message = "Enter your input: "
+    local user_input = ""
+
+    local previewer = previewers.new_buffer_previewer({
+        title = "Saved Conditions Preview",
+        get_command = function(entry)
+            return { "echo", "No selection made" }
+        end,
+        get_buffer_by_name = function()
+            return {
+                value = user_input,
+                prompt_message = prompt_message,
+            }
+        end,
+        define_preview = function(self, entry, _)
+            -- local lines = vim.split(entry.value, "\n")
+            local info = parseSearchUserInput(entry.ordinal)
+            local lines = {
+                "Search: " .. entry.ordinal,
+                "",
+                "Name: " .. info.search_name,
+                "With: " .. "(" .. info.logic .. ")" .. " " .. vim.inspect(
+                    info.B
+                ),
+                "Exlude: " .. vim.inspect(info.C),
+                "",
+                "Press CR to search with this saved conditions",
+                "Press Control-CR to search with your input anyway",
+                "Press Control-S to save and search",
+            }
+            if entry.ordinal == "" then
+                lines = {
+                    "Input query condition words separated by blank or ','",
+                    "to make an OR query, have a 'or' in your input, ",
+                    "or else, an AND query will be made (deault)",
+                    "To give your search a short name, use :short_name in your query string",
+                    "",
+                    "Keep typing, matched saved-search will be displayed",
+                    "Select one of them, and",
+                    "Press CR to search with the selected saved conditions",
+                    "Press Control-CR to search with your input anyway",
+                    "Press Control-S to save and search",
+                }
+            end
+            vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+            vim.api.nvim_buf_set_option(self.state.bufnr, "modifiable", false)
+        end,
+    })
+
+    local searchFromPicker = function(search, arg)
+        if type(arg) == "boolean" then
+            if arg then -- save search
+                local info = parseSearchUserInput(search)
+                local sskey = (
+                    info.search_name ~= "" and info.search_name
+                    or search
+                )
+                writeOneSavedSearch(sskey, search)
+            end
+        elseif arg and arg.ordinal then
+            search = arg.ordinal
+        end
+        M.state.last_search_prompt[M.state.search_what] = search
+        executeSearch(search)
+    end
+    local searchByInputOnly = function(_)
+        return function(prompt_bufnr)
+            local search =
+                action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+            actions.close(prompt_bufnr)
+            searchFromPicker(search, true)
+        end
+    end
+    local saveThenSearchByInput = function(_)
+        return function(prompt_bufnr)
+            local search =
+                action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+            actions.close(prompt_bufnr)
+            searchFromPicker(search, true)
+        end
+    end
+
+    local show = function(themOpts)
+        themOpts = themOpts or {}
+
+        local result_table = {}
+        result_table[1] = {
+            key = "Search by "
+                .. (M.state.search_what == "tag" and "Tag" or "Text")
+                .. ", input query contions above pls.",
+            value = "",
+        }
+        M.log(vim.inspect(M.state.saved_search[M.state.search_what]))
+        for _, entry in ipairs(M.state.saved_search[M.state.search_what]) do
+            result_table[#result_table + 1] = {
+                key = entry.key,
+                value = entry.value,
+            }
+        end
+
+        local newPicker = pickers
+            .new(themOpts, {
+                default_text = M.state.last_search_prompt[M.state.search_what],
+                prompt_title = "Search notes by "
+                    .. (M.state.search_what == "tag" and "Tags" or "Content"),
+                -- finder = finders.new_table(M.state.saved_search),
+                finder = finders.new_table({
+                    results = result_table,
+                    entry_maker = function(entry)
+                        return {
+                            value = entry,
+                            display = entry.key,
+                            ordinal = entry.value,
+                        }
+                    end,
+                }),
+                sorter = conf.generic_sorter(themOpts),
+                previewer = previewer,
+                attach_mappings = function(prompt_bufnr, map)
+                    actions.select_default:replace(function()
+                        -- user_input = vim.api.nvim_buf_get_lines(
+                        --     prompt_bufnr,
+                        --     0,
+                        --     -1,
+                        --     false
+                        -- )[1]
+
+                        -- The last method to
+                        -- get user_input has a emoji as the first character.
+                        -- Then we should get user input from _discard_state instead.
+                        user_input = action_state.get_current_picker(
+                            prompt_bufnr
+                        ).sorter._discard_state.prompt
+                        actions.close(prompt_bufnr)
+                        searchFromPicker(
+                            user_input,
+                            action_state.get_selected_entry()
+                        )
+                    end)
+                    map("i", "<c-cr>", searchByInputOnly(opts))
+                    map("n", "<c-cr>", searchByInputOnly(opts))
+                    map("i", "<c-s>", saveThenSearchByInput(opts))
+                    map("n", "<c-s>", saveThenSearchByInput(opts))
+                    return true
+                end,
+            })
+            :find()
+    end
+    if search_key then
+        for _, entry in pairs(M.state.saved_search) do
+            if entry.key == search_key then
+                local selection = entry.value
+                -- selection() load entry.value
+                return
+            end
+        end
+        print("No such saved search key: `" .. search_key .. "`")
+    else
+        local theme
+
+        if M.Cfg.command_palette_theme == "ivy" then
+            theme = themes.get_ivy()
+        else
+            theme = themes.get_dropdown({
+                layout_config = { prompt_position = "top" },
+            })
+        end
+        show(theme)
+    end
 end
 
 M.TkBookShow = function(Pinfo, Cfg, opts)
     local bufname = "TelekastenBook"
     M.Cfg = Cfg
+    M.Pinfo = Pinfo
     M.init()
+    M.log("Init configuration : " .. vim.inspect(M.state))
 
-    if M.state.book_bufnr then
-        M.log("Buffer" .. M.state.book_bufnr .. "exist")
-    end
     if
         M.state.book_bufnr
         and M.state.book_bufnr ~= -1
         and vim.fn.bufexists(M.state.book_bufnr)
     then
-        M.log("Buffer" .. M.state.book_bufnr .. "exist")
         -- The buffer already exists, so delete it and its window
         local winid = vim.fn.bufwinid(M.state.book_bufnr)
         if winid ~= -1 and vim.api.nvim_win_is_valid(winid) then
@@ -547,14 +1185,14 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             end
         end,
     })
-    M.state = {
-        main_win = vim.api.nvim_get_current_win(),
-        main_bufnr = vim.api.nvim_get_current_buf(),
-        center_note = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }),
-        center_note_line = -1,
-        opts = opts,
-        enable_auto_move_curosr_to_note_line = true,
-    }
+
+    M.state.main_win = vim.api.nvim_get_current_win()
+    M.state.main_bufnr = vim.api.nvim_get_current_buf()
+    M.state.center_note = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
+    M.state.center_note_line = -1
+    M.state.opts = opts
+    M.state.enable_auto_move_curosr_to_note_line = true
+
     M.state.book_split = NuiSplit({
         ns_id = vim.api.nvim_create_namespace("TelekastenBook.nvim"),
         size = 40,
@@ -577,7 +1215,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     vim.api.nvim_buf_set_name(M.state.book_bufnr, bufname)
     M.state.book_win = vim.api.nvim_get_current_win()
 
-    M.book_tree = M.revisit(Pinfo, M.state)
+    M.book_tree = M.revisit(Pinfo)
 
     M.book_tree:render()
     local expand_all = function()
@@ -610,7 +1248,6 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         buffer = M.state.book_bufnr,
         callback = function()
             vim.api.nvim_del_augroup_by_name("tkbook")
-            M.log("!!!!! book_split.unmount !!!!! ")
             M.state.book_split:unmount()
         end,
     })
@@ -642,15 +1279,12 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
                     vim.api.nvim_win_get_buf(M.state.main_win)
                 ) ~= node.details[1].fn
             then
-                -- M.log("Not same, open it")
                 M.open_file(
                     M.state.main_win,
                     M.state.book_win,
                     node.details[1].fn,
                     "edit"
                 )
-                -- else
-                -- M.log("Same file")
             end
             vim.api.nvim_set_current_win(M.state.main_win)
             vim.cmd("/" .. node.details[1].t)
@@ -661,13 +1295,11 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             M.state.enable_auto_move_curosr_to_note_line = true
         elseif node.type == "todo" then
             M.state.enable_auto_move_curosr_to_note_line = false
-            M.log(vim.inspect(node))
             if
                 vim.api.nvim_buf_get_name(
                     vim.api.nvim_win_get_buf(M.state.main_win)
                 ) ~= M.state.center_note.filepath
             then
-                -- M.log("Not same, open it")
                 M.open_file(
                     M.state.main_win,
                     M.state.book_win,
@@ -718,6 +1350,18 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     end
 
     Keymap.set(M.state.book_bufnr, "n", "<CR>", function()
+        local node = M.book_tree:get_node()
+        if node:has_children() then
+            if node:is_expanded() then
+                if node:collapse() then
+                    M.book_tree:render()
+                end
+            else
+                if node:expand() then
+                    M.book_tree:render()
+                end
+            end
+        end
         pressEnterOnBookItem(true)
     end, map_options)
 
@@ -797,9 +1441,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         local node = M.book_tree:get_node()
 
         if node:has_children() == false then
-            M.log("current node does not has children, get it's parent")
             node = M.book_tree:get_node(node:get_parent_id())
-            M.log("Got " .. node.text)
         end
 
         if node:is_expanded() then
@@ -851,7 +1493,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         else
             M.state.search_split = NuiSplit({
                 ns_id = "TelekastenBook.nvim",
-                size = { width = "100%", height = "50%" },
+                size = { width = "100%", height = "30%" },
                 position = "bottom",
                 relative = "win",
                 buf_options = {
@@ -867,238 +1509,34 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             })
             M.state.search_split:mount()
             M.state.search_bufnr = M.state.search_split.bufnr
-            vim.api.nvim_buf_set_name(M.state.book_bufnr, "book_search")
             M.state.search_win = vim.api.nvim_get_current_win()
-            vim.api.nvim_buf_set_lines(
-                M.state.search_bufnr,
-                0,
-                -1,
-                true,
-                { "Press s to search" }
-            )
-        end
-
-        -- TODO: search saved search and display from line 3, most used in the front
-        local loadSavedSearch = function()
-            return { "abcd" }
-        end
-        loadSavedSearch()
-
-        local parseSearchUserInput = function()
-            local ret = {}
-            local input_tags = M.split_and_trim(M.state.user_input, ", ")
-            ret.B = {} -- want
-            ret.C = {} -- dont' want
-            ret.logic = "and"
-            ret.search_name = ""
-            for _, tag in ipairs(input_tags) do
-                if tag == "and" or tag == "or" then
-                    if tag == "or" then
-                        ret.logic = "or"
-                    end
-                elseif string.sub(tag, 1, 1) == ":" then
-                    ret.search_name = string.sub(tag, 2)
-                else
-                    if string.sub(tag, 1, 1) == "-" then
-                        table.insert(ret.C, tag:sub(2))
-                    else
-                        table.insert(ret.B, tag)
-                    end
-                end
-            end
-            -- M.log(
-            --     "input_tags "
-            --         .. vim.inspect(input_tags)
-            --         .. " B:"
-            --         .. vim.inspect(ret.B)
-            --         .. " C:"
-            --         .. vim.inspect(ret.C)
-            -- )
-            return ret
-        end
-
-        local get_tag_matched_files = function()
-            -- example usage
-            local tmp = parseSearchUserInput()
-            for fn, ftags in pairs(M.state.file_tags_map) do
-                if #ftags > 0 then
-                    local checkResult =
-                        M.filterTags(tmp.logic, ftags, tmp.B, tmp.C)
-                    -- M.log(
-                    --     "filter "
-                    --         .. vim.inspect(ftags)
-                    --         .. " with B:"
-                    --         .. vim.inspect(tmp.B)
-                    --         .. " with C:"
-                    --         .. vim.inspect(tmp.C)
-                    --         .. " result:"
-                    --         .. (checkResult and "YES" or "NO")
-                    -- )
-                    if checkResult then
-                        M.state.search_result[#M.state.search_result + 1] = fn
-                    end
-                end
-            end
-        end
-
-        local doTagSearch = function(value)
-            M.state.user_input = value
-            M.log(
-                (M.state.rescan and "Rescan" or "No Rescan")
-                    .. " "
-                    .. (M.state.tag_scanned and "Scanned" or "not scanned")
-            )
-            if (not M.state.tag_scanned) or M.state.rescan then
-                M.state.file_tags_map = {}
-                M.generate_book_map(M.state.center_note.title)
-                for fn, _ in pairs(M.state.note_list) do
-                    opts.this_file = fn
-                    M.state.file_tags_map[fn] = {}
-                    local tag_map = tagutils.do_find_all_tags(opts)
-                    -- M.log(fn .. " has " .. vim.inspect(tag_map) .. " tags")
-                    local ftags = {}
-                    for k, _ in pairs(tag_map) do
-                        ftags[#ftags + 1] = string.sub(k, 2)
-                    end
-                    M.state.file_tags_map[fn] = ftags
-                end
-                M.state.tag_scanned = true
-                M.log("map build")
-            else
-                M.log("passed build map")
-            end
-            M.state.search_result = {}
-            get_tag_matched_files()
-
-            local buildSearchResultTree = function()
-                local result_nodes = {}
-                -- table.insert(
-                --     result_nodes,
-                --     NuiTree.Node({
-                --         text = "Press 's' to search, <CR> to open",
-                --         ser = 0,
-                --         type = "title",
-                --         filepath = nil,
-                --     })
-                -- )
-                for _, entry in ipairs(M.state.search_result) do
-                    local note = Pinfo:new({ filepath = entry, M.Cfg })
-                    table.insert(
-                        result_nodes,
-                        NuiTree.Node({
-                            text = note.title,
-                            ser = _,
-                            type = "note",
-                            filepath = note.filepath,
-                        })
-                    )
-                end
-                M.state.search_tree = NuiTree({
-                    winid = M.state.search_win,
-                    bufnr = M.state.search_bufnr,
-                    nodes = result_nodes,
-                    get_node_id = function(node)
-                        if node.id then
-                            return node.id
-                        end
-                        return "-" .. math.random()
-                    end,
-                    prepare_node = function(node)
-                        local line = NuiLine()
-
-                        line:append(string.rep("  ", node:get_depth() - 1))
-
-                        if node:has_children() then
-                            line:append(
-                                node:is_expanded() and " " or " ",
-                                "SpecialChar"
-                            )
-                        elseif node.type == "note" then
-                            line:append("  ")
-                        else
-                            line:append("")
-                        end
-
-                        line:append(node.text)
-
-                        return line
-                    end,
-                })
-                M.state.search_tree:render()
-            end
-            buildSearchResultTree()
-
-            return { "Done" }
-        end
-
-        local promptSearchInput = function()
-            if M.state.lastSearchPrompt == nil then
-                M.state.lastSearchPrompt = ""
-            end
-            local searchInput = Input({
-                relative = "editor",
-                position = "50%",
-                enter = true,
-                focusable = true,
-                size = { width = 80, height = 3 },
-                border = {
-                    style = "rounded",
-                    text = {
-                        top = "[Input]",
-                        top_align = "left",
-                    },
-                },
-                win_options = {
-                    winhighlight = "Normal:Normal",
-                },
-            }, {
-                prompt = " ",
-                default_value = M.state.lastSearchPrompt,
-                on_close = function()
-                    print("Input closed!")
-                end,
-                on_submit = function(value)
-                    M.state.lastSearchPrompt = value
-                    M.log("call doTagSearch:" .. value)
-                    doTagSearch(value)
-                end,
-                -- on_change = function(value)
-                --     if M.state.incre_search == "incre" then
-                --         M.state.file_tags_map = {}
-                --         M.state.lastSearchPrompt = value
-                --         vim.api.nvim_set_current_win(M.state.search_win)
-                --         doTagSearch(value)
-                --         vim.api.nvim_set_current_win(M.state.input_win)
-                --     end
-                -- end,
+            vim.api.nvim_buf_set_lines(M.state.search_bufnr, 0, -1, true, {
+                "Press:",
+                " t:\tto search by tag",
+                "ft:\t same as t but rescan",
+                " g:\tto search by content",
+                "fg:\tsame as g but rescan",
             })
-            searchInput:map("n", "<Esc>", function()
-                searchInput:unmount()
-            end, { noremap = true })
-            searchInput:mount()
-            M.state.input_bufnr = searchInput.bufnr
-            M.state.input_win = vim.api.nvim_get_current_win()
         end
 
-        -- vim.api.nvim_create_autocmd("CursorMoved", {
-        --     buffer = M.state.result_bufnr,
-        --     callback = function()
-        --         local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-        --         if row > 1 then
-        --             vim.api.nvim_buf_set_option(0, "modifiable", false)
-        --         else
-        --             vim.api.nvim_buf_set_option(0, "modifiable", true)
-        --         end
-        --     end,
-        -- })
-
-        -- TODO:map in this window, to refresh book_win to focus on the left side main window note
-        Keymap.set(M.state.search_bufnr, "n", "fs", function()
-            M.state.rescan = true
+        Keymap.set(M.state.search_bufnr, "n", "t", function()
+            M.state.rescan = false
+            M.state.search_what = "tag"
             promptSearchInput()
         end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "s", function()
+        Keymap.set(M.state.search_bufnr, "n", "ft", function()
+            M.state.rescan = true
+            M.state.search_what = "tag"
+            promptSearchInput()
+        end, map_options)
+        Keymap.set(M.state.search_bufnr, "n", "g", function()
             M.state.rescan = false
+            M.state.search_what = "text"
+            promptSearchInput()
+        end, map_options)
+        Keymap.set(M.state.search_bufnr, "n", "fg", function()
+            M.state.rescan = true
+            M.state.search_what = "text"
             promptSearchInput()
         end, map_options)
         Keymap.set(M.state.search_bufnr, "n", "?", function()

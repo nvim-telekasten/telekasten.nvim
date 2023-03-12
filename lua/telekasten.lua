@@ -3151,6 +3151,7 @@ TelekastenCmd.command = function(subcommand)
         show(theme)
     end
 end
+
 function picker_actions.create_new(opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
