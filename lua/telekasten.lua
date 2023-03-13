@@ -3157,7 +3157,7 @@ function picker_actions.create_new(opts)
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
     return function(prompt_bufnr)
         local prompt =
-            action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+            action_state.get_current_picker(prompt_bufnr):_get_prompt()
         actions.close(prompt_bufnr)
         on_create(opts, prompt)
         -- local selection = action_state.get_selected_entry()
