@@ -36,6 +36,7 @@ CONTENTS
         3.4 Calendar ................. |telekasten.calendar|
         3.5 Picker mappings .......... |telekasten.picker_mappings|
         3.6 Mutliple home directories. |telekasten.switch_vaults|
+        3.7 Books view................ |telekasten.show_book|
     4. Suggested mappings ............ |telekasten.mappings|
     5. FAQ ........................... |telekasten.faq|
         5.1 Windows .................. |telekasten.windows|
@@ -1016,6 +1017,42 @@ You can have multiple home directories setup in telekasten. The configuration
 for each vault is stored as a map in telekasten. You can use `switch_vaults
 to launch a picker to choose the vaults.
 
+
+--------------------------------------------------------------------------------
+Section 3.7 Book view                                 *telekasten.show_book*
+
+You can outline tags, parent links, children links, todos, headers,
+search incrementally by tag or any text in a standalone buffer. The search
+prompt also provide a picker to choose saved searches. Press ? in book window
+to show its internal help:
+
+          f   outline current note strucutre
+          gc  go to center note                    gt  go to tags
+          gl  go to links                          gd  got to todos
+          gh  got to headers                       gs  got to search
+          <CR> on tag:       highlight tags        <C-CR> on tag:       jump to tags
+          <CR> on link:      show linked note      <C-CR> on link:      jump to linked note
+          <CR> on header:    show linked header    <C-CR> on header:    jump to header
+          <CR> on todo:      show linked header    <C-CR> on todo:      jump to todo
+          <CR> on search:    show result note      <C-CR> on search:    jump to result note
+          ?   bring up this help                   q   close tkbook
+
+
+How to search:
+  st  search by tags                       rt  rescan and search
+  sx  search by content                    rx  rescan and search
+
+  then search picker window will popup, input search conditons like:
+      [:save_by_name] word1 word2 [or] [-word3]
+  the order of these elements does not matter, as many words as you like
+    . whithout 'or': match word1 AND word2, but not word3
+    . whith 'or':    match word1 OR word2, but not word3
+    . save_by_name is used as save-as short name for your search condition
+  while you are typing search condition, any matched previously saved search will be displayed below,
+  move cursor onto one of them, the saved conditon will be displayed in th above preview window
+    . press <CR> to pick it and search by its saved conditions  
+    . press <C-CR> to search by any conditons you input, and save the conditons
+  If you change a note, remember to use rt/rx to rescan.
 
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*
