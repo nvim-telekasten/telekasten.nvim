@@ -1440,6 +1440,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     end, map_options)
 
     Keymap.set(M.state.book_bufnr, "n", "gc", function()
+        rescan_section_lines()
         M.TkBookGotoCenterNote()
     end, map_options)
 
