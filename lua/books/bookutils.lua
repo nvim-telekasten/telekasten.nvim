@@ -16,7 +16,6 @@ local Json = require("books/json")
 
 local M = {}
 M.state = {}
-M.book_tree = nil
 
 -- Copied from tagutils and modified to fit book function need.
 local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
@@ -240,9 +239,9 @@ local do_find_all_tags = function(opts)
                 for _, line in pairs(j:result()) do
                     parse_entry(opts, line, ret)
                 end
-            else
-                print("rg return value: " .. tostring(return_val))
-                print("stderr: ", vim.inspect(j:stderr_result()))
+                -- else
+                --     print("rg return value: " .. tostring(return_val))
+                -- print("stderr: ", vim.inspect(j:stderr_result()))
             end
         end,
         on_stderr = function(err, data, _)
@@ -286,9 +285,9 @@ M.searchOnePattern = function(pattern)
                         ret[#ret + 1] = line
                     end
                 end
-            else
-                print("rg return value: " .. tostring(return_val))
-                print("stderr: ", vim.inspect(j:stderr_result()))
+                -- else
+                --     print("rg return value: " .. tostring(return_val) .. cmd)
+                -- print("stderr: ", vim.inspect(j:stderr_result()))
             end
         end,
         on_stderr = function(err, data, _)
@@ -527,7 +526,7 @@ M.revisit = function(Pinfo)
     table.insert(
         nodes,
         NuiTree.Node({
-            id = "--tags",
+            id = "__tags",
             text = (M.state.opts.book_use_emoji and "🏷️" or "#")
                 .. " Tags",
         }, tagNodes)
@@ -554,7 +553,7 @@ M.revisit = function(Pinfo)
                 .. M.state.center_note.title
                 .. " "
                 .. (M.state.opts.book_use_emoji and "⭐️" or "<<"),
-            id = "--thisnote",
+            id = "__centernote",
             filepath = M.state.center_note.filepath,
             fexists = true,
             type = "centernote",
@@ -577,7 +576,7 @@ M.revisit = function(Pinfo)
     table.insert(
         nodes,
         NuiTree.Node({
-            id = "--links",
+            id = "__links",
             text = (M.state.opts.book_use_emoji and "🔗" or "#") .. " Links",
         }, linkNodes)
     )
@@ -600,7 +599,7 @@ M.revisit = function(Pinfo)
     table.insert(
         nodes,
         NuiTree.Node({
-            id = "--todos",
+            id = "__todos",
             text = (M.state.opts.book_use_emoji and "❎" or "#") .. " Todos",
         }, todoNodes)
     )
@@ -622,10 +621,23 @@ M.revisit = function(Pinfo)
     table.insert(
         nodes,
         NuiTree.Node({
-            id = "--headers",
+            id = "__headers",
             text = (M.state.opts.book_use_emoji and "🅷" or "#")
                 .. " Headers",
         }, headerNodes)
+    )
+    table.insert(
+        nodes,
+        NuiTree.Node({
+            id = "__search",
+            text = (M.state.opts.book_use_emoji and "🔎" or "#") .. " Search",
+        }, {
+            NuiTree.Node({
+                text = "?: see help",
+                ser = 1,
+                type = "search_help",
+            }),
+        })
     )
 
     local tree = NuiTree({
@@ -666,6 +678,7 @@ M.revisit = function(Pinfo)
     M.state.center_note_line = M.state.section_link_line + #backlink_title + 1
     M.state.section_todo_line = M.state.center_note_line + #linksInNote + 1
     M.state.section_header_line = M.state.section_todo_line + #todoNodes + 1
+    M.state.section_search_line = M.state.section_header_line + #headerNodes + 1
 
     if #backlink_title > 0 then
         M.state.parent_lines = {
@@ -699,8 +712,8 @@ M.movebetween = function(what, line_number, a, b)
 end
 
 M.TkBookMoveCursorTo = function(file)
-    if M.book_tree and M.state and M.state.section_link_line then
-        for _, node in pairs(M.book_tree.nodes.by_id) do
+    if M.state.book_tree and M.state and M.state.section_link_line then
+        for _, node in pairs(M.state.book_tree.nodes.by_id) do
             if
                 (
                     node.type == "link"
@@ -788,25 +801,37 @@ local showHelp = function()
 
     -- set content
     vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, {
-        "In book window:                            | In search window",
-        "  ?   bring up this help                   |   ?    bring up this help",
-        "  f   focus on viewing note                |   t    search by tag",
-        "  gc  go to center note                    |   ft   rescan and search",
-        "  gt  go to tags                           |   g    search by content",
-        "  gl  go to links                          |   fg   rescan and search by content",
-        "  gd  got to todos                         |   <CR> open note in search result",
-        "  gh  got to headers                       |   q    close search window",
-        "  p   cycle among backlinks                |",
-        "  i   cycle among child links              | In search prompt window",
-        "  s   show search window                   |   <CR> use a saved search",
-        "  q   close tkbook                         |   <C-CR> save and search with input",
-        "  <CR> on tag:       highlight tags        |",
-        "  <CR> on link:      show linked note      |",
-        "  <CR> on header:    show linked header    |",
-        "  <C-CR> on tag:     jump to tag           |",
-        "  <C-CR> on link:    jump into linked note |",
-        "  <C-CR> on header:  jump to header        |",
+        "Telekasten show_book (tkbook):                 ",
+        "  . Outline note structure includes tags/links/todos/headers.",
+        "  . Incremental search by tags or content.",
+        "  . Save search, and saved search picker.",
         "",
+        "  f   outline current note strucutre",
+        "  gc  go to center note                    gt  go to tags",
+        "  gl  go to links                          gd  got to todos",
+        "  gh  got to headers                       gs  got to search",
+        "  <CR> on tag:       highlight tags        <C-CR> on tag:       jump to tags",
+        "  <CR> on link:      show linked note      <C-CR> on link:      jump to linked note",
+        "  <CR> on header:    show linked header    <C-CR> on header:    jump to header",
+        "  <CR> on todo:      show linked header    <C-CR> on todo:      jump to todo",
+        "  <CR> on search:    show result note      <C-CR> on search:    jump to result note",
+        "  ?   bring up this help                   q   close tkbook",
+        "",
+        "",
+        "How to search",
+        "  st  search by tags                       rt  rescan and search",
+        "  sx  search by content                    rx  rescan and search",
+        "  then search picker window will popup, input search conditons like:",
+        "      [:save_by_name] word1 word2 [or] [-word3]",
+        "  the order of these elements does not matter, as many words as you like",
+        "    . whithout 'or': match word1 AND word2, but not word3",
+        "    . whith 'or':    match word1 OR word2, but not word3",
+        "    . save_by_name is used as save-as short name for your search condition",
+        "  while you are typing search condition, any matched previously saved search will be displayed below,",
+        "  move cursor onto one of them, the saved conditon will be displayed in th above preview window",
+        "    . press <CR> to pick it and search by its saved conditions  ",
+        "    . press <C-CR> to search by any conditons you input, and save the conditons",
+        "  If you change a note, remember to use rt/rx to rescan.",
         "",
         "q, <esc>, ? to close this help",
         "tkbook by @liukehong(https://www.github.com/cnshsliu)",
@@ -820,6 +845,7 @@ M.init = function()
         file_tags_map = {},
         search_what = "tag",
         last_search_prompt = {},
+        book_tree = nil,
     }
     M.state.saved_search = loadSavedSearch()
 end
@@ -916,6 +942,15 @@ local get_text_matched_files = function()
     return ret
 end
 
+local expand_section = function(section, toRender)
+    local node, _ = M.state.book_tree:get_node(section)
+    if node:expand() then
+        if toRender then
+            M.state.book_tree:render()
+        end
+    end
+end
+
 local executeSearch = function(value)
     M.state.user_input = value
     if (not M.state.tag_scanned) or M.state.rescan then
@@ -932,6 +967,7 @@ local executeSearch = function(value)
             M.state.file_tags_map[fn] = ftags
         end
         M.state.tag_scanned = true
+        print("Scanning books ... done")
     end
     M.state.search_result = {}
     if M.state.search_what == "tag" then
@@ -945,63 +981,69 @@ local executeSearch = function(value)
         table.insert(
             result_nodes,
             NuiTree.Node({
-                text = M.state.last_search_prompt[M.state.search_what],
+                text = "/" .. M.state.last_search_prompt[M.state.search_what],
+                prompt = M.state.last_search_prompt[M.state.search_what],
                 ser = 0,
-                type = "title",
+                type = "search_last_prompt",
                 filepath = nil,
             })
         )
-        for _, entry in ipairs(M.state.search_result) do
-            local note = M.Pinfo:new({ filepath = entry, M.Cfg })
+
+        if #M.state.search_result == 0 then
             table.insert(
                 result_nodes,
                 NuiTree.Node({
-                    text = note.title,
-                    ser = _,
-                    type = "note",
-                    filepath = note.filepath,
+                    text = "0 matched",
+                    ser = 1,
+                    type = "search_result_nothing",
                 })
             )
+        else
+            for _, entry in ipairs(M.state.search_result) do
+                local note = M.Pinfo:new({ filepath = entry, M.Cfg })
+                table.insert(
+                    result_nodes,
+                    NuiTree.Node({
+                        text = "[[" .. note.title .. "]]",
+                        ser = _,
+                        type = "search_result_note",
+                        filepath = note.filepath,
+                        fexists = true,
+                    })
+                )
+            end
         end
-        M.state.search_tree = NuiTree({
-            winid = M.state.search_win,
-            bufnr = M.state.search_bufnr,
-            nodes = result_nodes,
-            get_node_id = function(node)
-                if node.id then
-                    return node.id
-                end
-                return "-" .. math.random()
-            end,
-            prepare_node = function(node)
-                local line = NuiLine()
-
-                line:append(string.rep("  ", node:get_depth() - 1))
-
-                if node:has_children() then
-                    line:append(
-                        node:is_expanded() and " " or " ",
-                        "SpecialChar"
-                    )
-                elseif node.type == "note" then
-                    line:append("  ")
-                else
-                    line:append("")
-                end
-
-                line:append(node.text)
-
-                return line
-            end,
-        })
-        M.state.search_tree:render()
+        -- should I put search result into book view?
+        M.state.book_tree:set_nodes(result_nodes, "__search")
+        expand_section("__search", false)
+        M.state.book_tree:render()
     end
     buildSearchResultTree()
 
     return { "Done" }
 end
 
+local get_section_linenr = function(section)
+    local _, linenr = M.state.book_tree:get_node(section)
+    return linenr
+end
+
+local rescan_section_lines = function()
+    M.state.section_tag_line = get_section_linenr("__tags")
+    M.state.section_link_line = get_section_linenr("__links")
+    M.state.section_todo_line = get_section_linenr("__todos")
+    M.state.section_header_line = get_section_linenr("__headers")
+    M.state.section_search_line = get_section_linenr("__search")
+    M.state.center_note_line = get_section_linenr("__centernote")
+end
+
 local promptSearchInput = function()
+    -- move to search section
+    rescan_section_lines()
+    local tot_ln = vim.api.nvim_buf_line_count(M.state.book_bufnr)
+    local move_cursor_to = M.state.section_search_line
+        + (tot_ln > M.state.section_search_line and 1 or 0)
+    pcall(vim.api.nvim_win_set_cursor, M.state.book_win, { move_cursor_to, 5 })
     M.state.last_search_prompt = M.state.last_search_prompt or {}
     if M.state.last_search_prompt[M.state.search_what] == nil then
         M.state.last_search_prompt[M.state.search_what] = ""
@@ -1018,13 +1060,12 @@ local promptSearchInput = function()
             }
         end,
         define_preview = function(self, entry, _)
-            -- local lines = vim.split(entry.value, "\n")
             local info = parseSearchUserInput(entry.ordinal)
             local lines = {
                 "Search: " .. entry.ordinal,
                 "",
-                "Name: " .. info.search_name,
-                "With: " .. "(" .. info.logic .. ")" .. " " .. vim.inspect(
+                "Name: " .. entry.value.key,
+                (info.logic == "and" and "AND" or "OR") .. " " .. vim.inspect(
                     info.B
                 ),
                 "Exlude: " .. vim.inspect(info.C),
@@ -1036,15 +1077,15 @@ local promptSearchInput = function()
             if entry.ordinal == "" then
                 lines = {
                     "Input query condition words separated by blank or ','",
-                    "to make an OR query, have a 'or' in your input, ",
-                    "or else, an AND query will be made (deault)",
-                    "To give your search a short name, use :short_name in your query string",
+                    "  . to make an OR query, have a 'or' in your input, ",
+                    "  . or else, an AND query will be made (deault)",
+                    "  . to give your search a short name, use :short_name in your query string",
+                    "  . -word to exclude it",
                     "",
-                    "Keep typing, matched saved-search will be displayed",
-                    "Select one of them, and",
-                    "Press CR to search with the selected saved conditions",
-                    "Press Control-CR to search with your input anyway",
-                    "Press Control-S to save and search",
+                    "Keep typing, matched saved-search will be displayed, select one of them, then",
+                    "  . Press CR to search with the selected saved conditions",
+                    "  . Press Control-CR to search with your input anyway",
+                    "  . Press Control-S to save and search",
                 }
             end
             vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
@@ -1071,7 +1112,8 @@ local promptSearchInput = function()
     local searchByInputOnly = function()
         return function(prompt_bufnr)
             local search =
-                action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+                action_state.get_current_picker(prompt_bufnr):_get_prompt()
+            -- action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
             actions.close(prompt_bufnr)
             searchFromPicker(search, true)
         end
@@ -1079,7 +1121,9 @@ local promptSearchInput = function()
     local saveThenSearchByInput = function()
         return function(prompt_bufnr)
             local search =
-                action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
+                action_state.get_current_picker(prompt_bufnr):_get_prompt()
+            -- vim.api.nvim_buf_get_lines(prompt_bufnr, 0, 1, false)[1]:sub(#self.prompt_prefix + 1)
+            -- action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
             actions.close(prompt_bufnr)
             searchFromPicker(search, true)
         end
@@ -1122,19 +1166,9 @@ local promptSearchInput = function()
                 previewer = previewer,
                 attach_mappings = function(prompt_bufnr, map)
                     actions.select_default:replace(function()
-                        -- user_input = vim.api.nvim_buf_get_lines(
-                        --     prompt_bufnr,
-                        --     0,
-                        --     -1,
-                        --     false
-                        -- )[1]
-
-                        -- The last method to
-                        -- get user_input has a emoji as the first character.
-                        -- Then we should get user input from _discard_state instead.
-                        user_input = action_state.get_current_picker(
-                            prompt_bufnr
-                        ).sorter._discard_state.prompt
+                        user_input = action_state
+                            .get_current_picker(prompt_bufnr)
+                            :_get_prompt()
                         actions.close(prompt_bufnr)
                         searchFromPicker(
                             user_input,
@@ -1187,7 +1221,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         group = tk_book_group,
         callback = function(args)
             if
-                M.book_tree ~= nil
+                M.state.book_tree ~= nil
                 and M.state.enable_auto_move_curosr_to_note_line
             then
                 -- This is only accurate when all nodes are expaned at this moment
@@ -1225,18 +1259,18 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     vim.api.nvim_buf_set_name(M.state.book_bufnr, bufname)
     M.state.book_win = vim.api.nvim_get_current_win()
 
-    M.book_tree = M.revisit(Pinfo)
+    M.state.book_tree = M.revisit(Pinfo)
 
-    M.book_tree:render()
+    M.state.book_tree:render()
     local expand_all = function()
         local updated = false
 
-        for _, node in pairs(M.book_tree.nodes.by_id) do
+        for _, node in pairs(M.state.book_tree.nodes.by_id) do
             updated = node:expand() or updated
         end
 
         if updated then
-            M.book_tree:render()
+            M.state.book_tree:render()
         end
     end
     expand_all()
@@ -1262,13 +1296,14 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         end,
     })
 
-    local pressEnterOnBookItem = function(stayInBookWin)
-        local node = M.book_tree:get_node()
+    local pressEnterOnBookItem = function(withControlKey)
+        local node = M.state.book_tree:get_node()
         if
             (
                 node.type == "link"
                 or node.type == "centernote"
                 or node.type == "backlink"
+                or node.type == "search_result_note"
             ) and node.filepath
         then
             if node.fexists then
@@ -1282,6 +1317,10 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             else
                 print("File does not exist:" .. " " .. node.filepath)
             end
+        -- elseif node.type == "search_last_prompt" then
+        --     M.log("on search_last_prompt,  bring up promptSearchInput()")
+        --     M.state.rescan = false
+        --     promptSearchInput()
         elseif node.type == "tag" then
             M.state.enable_auto_move_curosr_to_note_line = false
             if
@@ -1345,7 +1384,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             )
             M.state.enable_auto_move_curosr_to_note_line = true
         end
-        if not stayInBookWin then
+        if withControlKey then
             vim.api.nvim_set_current_win(M.state.main_win)
         else
             vim.api.nvim_set_current_win(M.state.book_win)
@@ -1366,9 +1405,9 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             M.state.center_note =
                 Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
             vim.api.nvim_set_current_win(M.state.book_win)
-            M.book_tree.nodes = {}
-            M.book_tree = M.revisit(Pinfo)
-            M.book_tree:render()
+            M.state.book_tree.nodes = {}
+            M.state.book_tree = M.revisit(Pinfo)
+            M.state.book_tree:render()
             expand_all()
             vim.api.nvim_win_set_cursor(0, { M.state.center_note_line, 6 })
         end
@@ -1380,23 +1419,24 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     end
 
     Keymap.set(M.state.book_bufnr, "n", "<CR>", function()
-        local node = M.book_tree:get_node()
+        local node = M.state.book_tree:get_node()
         if node:has_children() then
             if node:is_expanded() then
                 if node:collapse() then
-                    M.book_tree:render()
+                    M.state.book_tree:render()
                 end
             else
                 if node:expand() then
-                    M.book_tree:render()
+                    M.state.book_tree:render()
                 end
             end
+        else
+            pressEnterOnBookItem(false)
         end
-        pressEnterOnBookItem(true)
     end, map_options)
 
     Keymap.set(M.state.book_bufnr, "n", "<C-CR>", function()
-        pressEnterOnBookItem(false)
+        pressEnterOnBookItem(true)
     end, map_options)
 
     Keymap.set(M.state.book_bufnr, "n", "gc", function()
@@ -1404,27 +1444,38 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     end, map_options)
 
     Keymap.set(M.state.book_bufnr, "n", "gt", function()
+        rescan_section_lines()
         vim.api.nvim_win_set_cursor(
             M.state.book_win,
             { M.state.section_tag_line, 5 }
         )
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "gl", function()
+        rescan_section_lines()
         vim.api.nvim_win_set_cursor(
             M.state.book_win,
             { M.state.section_link_line, 5 }
         )
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "gd", function()
+        rescan_section_lines()
         vim.api.nvim_win_set_cursor(
             M.state.book_win,
             { M.state.section_todo_line, 5 }
         )
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "gh", function()
+        rescan_section_lines()
         vim.api.nvim_win_set_cursor(
             M.state.book_win,
             { M.state.section_header_line, 5 }
+        )
+    end, map_options)
+    Keymap.set(M.state.book_bufnr, "n", "gs", function()
+        rescan_section_lines()
+        vim.api.nvim_win_set_cursor(
+            M.state.book_win,
+            { M.state.section_search_line, 5 }
         )
     end, map_options)
 
@@ -1434,55 +1485,24 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         M.state.center_note =
             Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
         vim.api.nvim_set_current_win(M.state.book_win)
-        M.book_tree.nodes = {}
-        M.book_tree = M.revisit(Pinfo)
-        M.book_tree:render()
+        M.state.book_tree.nodes = {}
+        M.state.book_tree = M.revisit(Pinfo)
+        M.state.book_tree:render()
         expand_all()
         vim.api.nvim_win_set_cursor(0, { M.state.center_note_line, 6 })
     end, map_options)
 
-    Keymap.set(M.state.book_bufnr, "n", "p", function()
-        if M.state.parent_lines == nil then
-            vim.api.nvim_win_set_cursor(0, { M.state.center_note_line, 6 })
-        else
-            vim.api.nvim_win_set_cursor(0, {
-                M.movebetween(
-                    "p",
-                    vim.api.nvim_win_get_cursor(0)[1],
-                    M.state.parent_lines[1],
-                    M.state.parent_lines[2]
-                ),
-                6,
-            })
-        end
-    end, map_options)
-    Keymap.set(M.state.book_bufnr, "n", "i", function()
-        if M.state.children_lines == nil then
-            vim.api.nvim_win_set_cursor(0, { M.state.center_note_line, 6 })
-        else
-            vim.api.nvim_win_set_cursor(0, {
-                M.movebetween(
-                    "c",
-                    vim.api.nvim_win_get_cursor(0)[1],
-                    M.state.children_lines[1],
-                    M.state.children_lines[2]
-                ),
-                6,
-            })
-        end
-    end, map_options)
-
     -- collapse current node
     Keymap.set(M.state.book_bufnr, "n", "c", function()
-        local node = M.book_tree:get_node()
+        local node = M.state.book_tree:get_node()
 
         if node:has_children() == false then
-            node = M.book_tree:get_node(node:get_parent_id())
+            node = M.state.book_tree:get_node(node:get_parent_id())
         end
 
         if node:is_expanded() then
             if node:collapse() then
-                M.book_tree:render()
+                M.state.book_tree:render()
             end
         end
     end, map_options)
@@ -1491,103 +1511,49 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     Keymap.set(M.state.book_bufnr, "n", "C", function()
         local updated = false
 
-        for _, node in pairs(M.book_tree.nodes.by_id) do
+        for _, node in pairs(M.state.book_tree.nodes.by_id) do
             updated = node:collapse() or updated
         end
 
         if updated then
-            M.book_tree:render()
+            M.state.book_tree:render()
         end
     end, map_options)
 
     -- expand current node
     Keymap.set(M.state.book_bufnr, "n", "e", function()
-        local node = M.book_tree:get_node()
+        local node = M.state.book_tree:get_node()
 
         if node:expand() then
-            M.book_tree:render()
+            M.state.book_tree:render()
         end
     end, map_options)
 
     -- expand all nodes
     Keymap.set(M.state.book_bufnr, "n", "E", expand_all, map_options)
 
+    Keymap.set(M.state.book_bufnr, "n", "st", function()
+        M.state.rescan = false
+        M.state.search_what = "tag"
+        promptSearchInput()
+    end, map_options)
+    Keymap.set(M.state.book_bufnr, "n", "rt", function()
+        M.state.rescan = true
+        M.state.search_what = "tag"
+        promptSearchInput()
+    end, map_options)
+    Keymap.set(M.state.book_bufnr, "n", "sx", function()
+        M.state.rescan = false
+        M.state.search_what = "text"
+        promptSearchInput()
+    end, map_options)
+    Keymap.set(M.state.book_bufnr, "n", "rx", function()
+        M.state.rescan = true
+        M.state.search_what = "text"
+        promptSearchInput()
+    end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "?", function()
         showHelp()
-    end, map_options)
-
-    Keymap.set(M.state.book_bufnr, "n", "s", function()
-        -- local event = require("nui.utils.autocmd").event
-
-        if
-            M.state.search_split
-            and M.state.search_bufnr
-            and M.state.search_win
-            and vim.api.nvim_win_is_valid(M.state.search_win)
-        then
-            vim.api.nvim_set_current_win(M.state.search_win)
-        else
-            M.state.search_split = NuiSplit({
-                ns_id = "TelekastenBook.nvim",
-                size = { width = "100%", height = "30%" },
-                position = "bottom",
-                relative = "win",
-                buf_options = {
-                    buftype = "nofile",
-                    modifiable = true,
-                    swapfile = false,
-                    filetype = "text",
-                },
-                win_options = {
-                    colorcolumn = "",
-                    signcolumn = "no",
-                },
-            })
-            M.state.search_split:mount()
-            M.state.search_bufnr = M.state.search_split.bufnr
-            M.state.search_win = vim.api.nvim_get_current_win()
-            vim.api.nvim_buf_set_lines(M.state.search_bufnr, 0, -1, true, {
-                "Press:",
-                " t:\tto search by tag",
-                "ft:\t same as t but rescan",
-                " g:\tto search by content",
-                "fg:\tsame as g but rescan",
-            })
-        end
-
-        Keymap.set(M.state.search_bufnr, "n", "t", function()
-            M.state.rescan = false
-            M.state.search_what = "tag"
-            promptSearchInput()
-        end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "ft", function()
-            M.state.rescan = true
-            M.state.search_what = "tag"
-            promptSearchInput()
-        end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "g", function()
-            M.state.rescan = false
-            M.state.search_what = "text"
-            promptSearchInput()
-        end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "fg", function()
-            M.state.rescan = true
-            M.state.search_what = "text"
-            promptSearchInput()
-        end, map_options)
-        Keymap.set(M.state.search_bufnr, "n", "?", function()
-            showHelp()
-        end, map_options)
-        M.state.search_split:map("n", "q", function()
-            M.state.search_split:unmount()
-            M.state.search_win = nil
-            M.state.search_bufnr = nil
-            M.state.search_split = nil
-        end, map_options)
-
-        Keymap.set(M.state.search_bufnr, "n", "<CR>", function()
-            pressEnterOnSearchResultItem(true)
-        end, map_options)
     end, map_options)
 end
 return M
