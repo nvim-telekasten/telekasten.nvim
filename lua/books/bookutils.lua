@@ -1391,33 +1391,6 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         end
     end
 
-    local pressEnterOnSearchResultItem = function(stayInSearchResultWin)
-        local node = M.state.search_tree:get_node()
-        if node.type == "note" and node.filepath then
-            M.open_file(
-                M.state.main_win,
-                M.state.search_win,
-                node.filepath,
-                "edit"
-            )
-            vim.api.nvim_set_current_win(M.state.main_win)
-            M.state.main_bufnr = vim.api.nvim_get_current_buf()
-            M.state.center_note =
-                Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
-            vim.api.nvim_set_current_win(M.state.book_win)
-            M.state.book_tree.nodes = {}
-            M.state.book_tree = M.revisit(Pinfo)
-            M.state.book_tree:render()
-            expand_all()
-            vim.api.nvim_win_set_cursor(0, { M.state.center_note_line, 6 })
-        end
-        if not stayInSearchResultWin then
-            vim.api.nvim_set_current_win(M.state.main_win)
-        else
-            vim.api.nvim_set_current_win(M.state.search_win)
-        end
-    end
-
     Keymap.set(M.state.book_bufnr, "n", "<CR>", function()
         local node = M.state.book_tree:get_node()
         if node:has_children() then
