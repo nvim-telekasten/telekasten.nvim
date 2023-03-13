@@ -184,12 +184,33 @@ local saveSearch = function()
     json_file:close()
 end
 
+local ensureConfigFile = function(fn)
+    local f = io.open(fn, "r")
+    if f ~= nil then
+        io.close(f)
+        return true
+    else
+        f = assert(io.open(fn, "w"))
+        f:write(Json.stringify({ tag = {}, text = {} }))
+        f:close()
+        return false
+    end
+end
+
 local loadSavedSearch = function()
-    local f = assert(io.open(M.Cfg.home .. "/saved_search.json", "rb"))
-    local content = f:read("*all")
-    f:close()
-    local ret = Json.parse(content)
-    return ret
+    local searchHistoryFile = M.Cfg.home .. "/saved_search.json"
+    ensureConfigFile(searchHistoryFile)
+    local f = io.open(searchHistoryFile, "rb")
+    if f == nil then
+        M.state.should_save_search = false
+        return { tag = {}, text = {} }
+    else
+        M.state.should_save_search = true
+        local content = f:read("*all")
+        f:close()
+        local ret = Json.parse(content)
+        return ret
+    end
 end
 
 local writeOneSavedSearch = function(key, value)
