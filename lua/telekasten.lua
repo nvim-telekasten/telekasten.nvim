@@ -3021,6 +3021,26 @@ local function TkBookShow(opts)
     opts.rg_pcre = M.Cfg.rg_pcre
     bookutils.TkBookShow(Pinfo, M.Cfg, opts)
 end
+local function TkBookSearchTag(opts)
+    opts = opts or {}
+    opts.cwd = M.Cfg.home
+    opts.tag_notation = M.Cfg.tag_notation
+    local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
+    opts.templateDir = templateDir
+    opts.rg_pcre = M.Cfg.rg_pcre
+    opts.what = "tag"
+    bookutils.TkBookSearch(Pinfo, M.Cfg, opts)
+end
+local function TkBookSearchText(opts)
+    opts = opts or {}
+    opts.cwd = M.Cfg.home
+    opts.tag_notation = M.Cfg.tag_notation
+    local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
+    opts.templateDir = templateDir
+    opts.rg_pcre = M.Cfg.rg_pcre
+    opts.what = "text"
+    bookutils.TkBookSearch(Pinfo, M.Cfg, opts)
+end
 
 M.find_notes = FindNotes
 M.find_daily_notes = FindDailyNotes
@@ -3050,6 +3070,8 @@ M.show_tags = FindAllTags
 M.switch_vault = ChangeVault
 M.chdir = chdir
 M.show_book = TkBookShow
+M.search_book_tag = TkBookSearchTag
+M.search_book_text = TkBookSearchText
 
 -- Telekasten command, completion
 local TelekastenCmd = {
@@ -3088,6 +3110,8 @@ local TelekastenCmd = {
             { "preview image under cursor", "preview_img", M.preview_img },
             { "browse media", "browse_media", M.browse_media },
             { "show book", "show_book", M.show_book },
+            { "search book tag", "search_book_tag", M.search_book_tag },
+            { "search book text", "search_book_text", M.search_book_text },
             { "panel", "panel", M.panel },
             { "show tags", "show_tags", M.show_tags },
             { "switch vault", "switch_vault", M.switch_vault },

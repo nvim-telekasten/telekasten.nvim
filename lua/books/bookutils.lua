@@ -14,9 +14,9 @@ local scan = require("plenary.scandir")
 local Job = require("plenary.job")
 local Json = require("books/json")
 
+local inited = false
 local M = {}
 M.state = {}
-
 -- Copied from tagutils and modified to fit book function need.
 local hashtag_re =
     "(^|\\s|'|\")#[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*"
@@ -198,22 +198,6 @@ local ensureConfigFile = function(fn)
     end
 end
 
-local loadSavedSearch = function()
-    local searchHistoryFile = M.Cfg.home .. "/saved_search.json"
-    ensureConfigFile(searchHistoryFile)
-    local f = io.open(searchHistoryFile, "rb")
-    if f == nil then
-        M.state.should_save_search = false
-        return { tag = {}, text = {} }
-    else
-        M.state.should_save_search = true
-        local content = f:read("*all")
-        f:close()
-        local ret = Json.parse(content)
-        return ret
-    end
-end
-
 local writeOneSavedSearch = function(key, value)
     local data = M.state.saved_search[M.state.search_what]
     local newData = {}
@@ -271,6 +255,33 @@ local function command_find_file(opts, pattern)
     }
 
     return "rg", rg_args
+end
+
+M.loadSavedSearch = function()
+    local searchHistoryFile = M.Cfg.home .. "/saved_search.json"
+    ensureConfigFile(searchHistoryFile)
+    local f = io.open(searchHistoryFile, "rb")
+    if f == nil then
+        M.state.should_save_search = false
+        return { tag = {}, text = {} }
+    else
+        M.state.should_save_search = true
+        local content = f:read("*all")
+        f:close()
+        local ret = Json.parse(content)
+        return ret
+    end
+end
+M.init = function()
+    inited = true
+    M.state = {
+        tag_scanned = false,
+        file_tags_map = {},
+        search_what = "tag",
+        last_search_prompt = {},
+        book_tree = nil,
+    }
+    M.state.saved_search = M.loadSavedSearch()
 end
 
 M.searchOnePattern = function(pattern)
@@ -841,17 +852,6 @@ local showHelp = function()
     vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", false)
 end
 
-M.init = function()
-    M.state = {
-        tag_scanned = false,
-        file_tags_map = {},
-        search_what = "tag",
-        last_search_prompt = {},
-        book_tree = nil,
-    }
-    M.state.saved_search = loadSavedSearch()
-end
-
 local parseSearchUserInput = function(user_input)
     user_input = user_input or M.state.user_input
     local ret = {}
@@ -1039,7 +1039,7 @@ local rescan_section_lines = function()
     M.state.center_note_line = get_section_linenr("__centernote")
 end
 
-local promptSearchInput = function()
+M.promptSearchInput = function()
     -- move to search section
     rescan_section_lines()
     local tot_ln = vim.api.nvim_buf_line_count(M.state.book_bufnr)
@@ -1198,11 +1198,36 @@ local promptSearchInput = function()
     show(theme)
 end
 
+M.TkBookQuit = function()
+    pcall(vim.api.nvim_del_augroup_by_name, "tkbook")
+    M.state.book_split:unmount()
+    M.state.book_win = nil
+    M.state.book_bufnr = nil
+    M.state.book_split = nil
+    M.state.loaded = false
+    inited = false
+end
+
+M.TkBookSearch = function(Pinfo, Cfg, opts)
+    if inited == false then
+        M.TkBookShow(Pinfo, Cfg, opts)
+    end
+    M.state.rescan = true
+    M.state.search_what = opts.what and opts.what or "tag"
+    M.promptSearchInput()
+end
+
 M.TkBookShow = function(Pinfo, Cfg, opts)
+    if M.state.loaded then
+        M.TkBookQuit()
+        return
+    end
+
     local bufname = "TelekastenBook"
     M.Cfg = Cfg
     M.Pinfo = Pinfo
     M.init()
+    M.state.loaded = true
 
     if
         M.state.book_bufnr
@@ -1280,16 +1305,9 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     local map_options = { noremap = true, nowait = true }
 
     Keymap.set(M.state.book_bufnr, "n", "q", function()
-        pcall(vim.api.nvim_del_augroup_by_name, "tkbook")
-        M.state.book_split:unmount()
-        M.state.book_win = nil
-        M.state.book_bufnr = nil
-        M.state.book_split = nil
-        if M.state.search_split ~= nil then
-            vim.api.nvim_set_current_win(M.state.search_win)
-            vim.cmd("bd")
-        end
+        M.TkBookQuit()
     end, { noremap = true })
+
     vim.api.nvim_create_autocmd("BufDelete", {
         buffer = M.state.book_bufnr,
         callback = function()
@@ -1511,22 +1529,22 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     Keymap.set(M.state.book_bufnr, "n", "st", function()
         M.state.rescan = false
         M.state.search_what = "tag"
-        promptSearchInput()
+        M.promptSearchInput()
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "rt", function()
         M.state.rescan = true
         M.state.search_what = "tag"
-        promptSearchInput()
+        M.promptSearchInput()
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "sx", function()
         M.state.rescan = false
         M.state.search_what = "text"
-        promptSearchInput()
+        M.promptSearchInput()
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "rx", function()
         M.state.rescan = true
         M.state.search_what = "text"
-        promptSearchInput()
+        M.promptSearchInput()
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "?", function()
         showHelp()

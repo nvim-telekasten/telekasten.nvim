@@ -1054,6 +1054,15 @@ How to search:
     . press <C-CR> to search by any conditons you input, and save the conditons
   If you change a note, remember to use rt/rx to rescan.
 
+
+  You can use *telekasten.search_book_tag* and *telekasten.search_book_text*
+  directly to bring up incremental search window.
+
+  You can call these 3 commands respectively:
+  :Telekasten show_book
+  :Telekasten search_book_tag
+  :Telekasten search_book_text
+
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*
 
