@@ -1056,12 +1056,24 @@ How to search:
 
 
   You can use *telekasten.search_book_tag* and *telekasten.search_book_text*
-  directly to bring up incremental search window.
+  directly to bring up incremental search window. these two methods will
+  pickup the current word under cursor as search prompt, if there is no word
+  under cursor, your last search prompt will be used.
 
   You can call these 3 commands respectively:
   :Telekasten show_book
   :Telekasten search_book_tag
   :Telekasten search_book_text
+
+  You can setup keymap in your init.lua of course, for example, if you use
+  which-key, you could have: 
+
+    which_key.mappings.z = {
+            name = "+Telekasten",
+            ["b"] = { "<cmd>lua require('telekasten').show_book()<CR>", "Show book" },
+            ["s"] = { "<cmd>lua require('telekasten').search_book_tag()<CR>", "Search by tag" },
+            ["/"] = { "<cmd>lua require('telekasten').search_book_text()<CR>", "Seach by content" },
+    }
 
 ================================================================================
 Section 4: Suggested Mappings                              *telekasten.mappings*

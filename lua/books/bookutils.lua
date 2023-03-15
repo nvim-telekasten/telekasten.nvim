@@ -847,7 +847,6 @@ local showHelp = function()
         "  If you change a note, remember to use rt/rx to rescan.",
         "",
         "q, <esc>, ? to close this help",
-        "tkbook by @liukehong(https://www.github.com/cnshsliu)",
     })
     vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", false)
 end
@@ -1039,7 +1038,7 @@ local rescan_section_lines = function()
     M.state.center_note_line = get_section_linenr("__centernote")
 end
 
-M.promptSearchInput = function()
+M.promptSearchInput = function(opts)
     -- move to search section
     rescan_section_lines()
     local tot_ln = vim.api.nvim_buf_line_count(M.state.book_bufnr)
@@ -1150,7 +1149,9 @@ M.promptSearchInput = function()
 
         pickers
             .new(themOpts, {
-                default_text = M.state.last_search_prompt[M.state.search_what],
+                default_text = (opts.prompt == nil or opts.prompt == "")
+                        and M.state.last_search_prompt[M.state.search_what]
+                    or opts.prompt,
                 prompt_title = "Search notes by "
                     .. (M.state.search_what == "tag" and "Tags" or "Content"),
                 -- finder = finders.new_table(M.state.saved_search),
@@ -1209,12 +1210,19 @@ M.TkBookQuit = function()
 end
 
 M.TkBookSearch = function(Pinfo, Cfg, opts)
+    opts.prompt = ""
+    if inited == false or M.state.book_win == nil then
+        opts.prompt = vim.fn.expand("<cword>")
+    elseif vim.api.nvim_get_current_win() ~= M.state.book_win then
+        opts.prompt = vim.fn.expand("<cword>")
+    end
+
     if inited == false then
         M.TkBookShow(Pinfo, Cfg, opts)
     end
     M.state.rescan = true
     M.state.search_what = opts.what and opts.what or "tag"
-    M.promptSearchInput()
+    M.promptSearchInput(opts)
 end
 
 M.TkBookShow = function(Pinfo, Cfg, opts)
@@ -1222,6 +1230,7 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
         M.TkBookQuit()
         return
     end
+    opts.prompt = vim.fn.expand("<cword>")
 
     local bufname = "TelekastenBook"
     M.Cfg = Cfg
@@ -1337,10 +1346,6 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
             else
                 print("File does not exist:" .. " " .. node.filepath)
             end
-        -- elseif node.type == "search_last_prompt" then
-        --     M.log("on search_last_prompt,  bring up promptSearchInput()")
-        --     M.state.rescan = false
-        --     promptSearchInput()
         elseif node.type == "tag" then
             M.state.enable_auto_move_curosr_to_note_line = false
             if
@@ -1529,22 +1534,22 @@ M.TkBookShow = function(Pinfo, Cfg, opts)
     Keymap.set(M.state.book_bufnr, "n", "st", function()
         M.state.rescan = false
         M.state.search_what = "tag"
-        M.promptSearchInput()
+        M.promptSearchInput(opts)
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "rt", function()
         M.state.rescan = true
         M.state.search_what = "tag"
-        M.promptSearchInput()
+        M.promptSearchInput(opts)
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "sx", function()
         M.state.rescan = false
         M.state.search_what = "text"
-        M.promptSearchInput()
+        M.promptSearchInput(opts)
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "rx", function()
         M.state.rescan = true
         M.state.search_what = "text"
-        M.promptSearchInput()
+        M.promptSearchInput(opts)
     end, map_options)
     Keymap.set(M.state.book_bufnr, "n", "?", function()
         showHelp()
