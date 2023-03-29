@@ -330,17 +330,18 @@ local function recursive_substitution(dir, old, new)
         sedcommand = "sed -i ''"
     end
 
+    -- 's|\(\[\[foo\)\([]#|\]\)|\[\[MYTEST\2|g'
     local replace_cmd = "rg -0 -l -t markdown '"
         .. old
         .. "' "
         .. dir
         .. " | xargs -0 "
         .. sedcommand
-        .. " 's|"
+        .. " 's|\\("
         .. old
-        .. "|"
+        .. "\\)\\([]#|]\\)|"
         .. new
-        .. "|g' >/dev/null 2>&1"
+        .. "\\2|g' >/dev/null 2>&1"
     os.execute(replace_cmd)
 end
 
