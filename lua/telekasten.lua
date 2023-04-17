@@ -1334,7 +1334,12 @@ local function FindDailyNotes(opts)
             or M.Cfg.dailies_create_nonexisting == true
         )
     then
-        create_note_from_template(today, _, fname, M.note_type_templates.daily)
+        create_note_from_template(
+            today,
+            nil,
+            fname,
+            M.note_type_templates.daily
+        )
         opts.erase = true
         opts.erase_file = fname
     end
@@ -1384,7 +1389,12 @@ local function FindWeeklyNotes(opts)
             or M.Cfg.weeklies_create_nonexisting == true
         )
     then
-        create_note_from_template(title, _, fname, M.note_type_templates.weekly)
+        create_note_from_template(
+            title,
+            nil,
+            fname,
+            M.note_type_templates.weekly
+        )
         opts.erase = true
         opts.erase_file = fname
     end
@@ -1760,7 +1770,7 @@ local function GotoDate(opts)
     then
         create_note_from_template(
             word,
-            _,
+            nil,
             fname,
             M.note_type_templates.daily,
             opts.dates
@@ -2612,7 +2622,12 @@ local function GotoThisWeek(opts)
             or M.Cfg.weeklies_create_nonexisting == true
         )
     then
-        create_note_from_template(title, _, fname, M.note_type_templates.weekly)
+        create_note_from_template(
+            title,
+            nil,
+            fname,
+            M.note_type_templates.weekly
+        )
         opts.erase = true
         opts.erase_file = fname
     end
