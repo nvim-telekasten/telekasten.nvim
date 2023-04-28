@@ -205,12 +205,6 @@ local function generate_note_filename(uuid, title)
     end
 end
 
-local function print_error(s)
-    vim.cmd("echohl ErrorMsg")
-    vim.cmd("echomsg " .. '"' .. s .. '"')
-    vim.cmd("echohl None")
-end
-
 local function check_dir_and_ask(dir, purpose)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
@@ -231,7 +225,7 @@ local function check_dir_and_ask(dir, purpose)
                     ret = true
                 else
                     -- unreachable: plenary.Path:mkdir() will error out
-                    print_error("Could not create directory " .. dir)
+                    tkutils.print_error("Could not create directory " .. dir)
                     ret = false
                 end
             end
@@ -245,7 +239,7 @@ end
 local function global_dir_check()
     local ret
     if M.Cfg.home == nil then
-        print_error("Telekasten.nvim: home is not configured!")
+        tkutils.print_error("Telekasten.nvim: home is not configured!")
         ret = false
     else
         ret = check_dir_and_ask(M.Cfg.home, "home")
@@ -1661,7 +1655,7 @@ end
 local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
-    tkutils.prompt_title(M.Cfg.extension, oldfile.title, function(newname)
+    fileutils.prompt_title(M.Cfg.extension, oldfile.title, function(newname)
         local newpath = newname:match("(.*/)") or ""
         newpath = M.Cfg.home .. "/" .. newpath
 
@@ -1677,7 +1671,7 @@ local function RenameNote()
         local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
         local fexists = fileutils.file_exists(fname)
         if fexists then
-            print_error("File alreay exists. Renaming abandonned")
+            tkutils.print_error("File alreay exists. Renaming abandonned")
             return
         end
 
@@ -2056,7 +2050,7 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    tkutils.prompt_title(M.Cfg.extension, nil, function(title)
+    fileutils.prompt_title(M.Cfg.extension, nil, function(title)
         on_create_with_template(opts, title)
     end)
 end
@@ -2129,7 +2123,7 @@ local function CreateNote(opts)
         return CreateNoteSelectTemplate(opts)
     end
 
-    tkutils.prompt_title(M.Cfg.extension, nil, function(title)
+    fileutils.prompt_title(M.Cfg.extension, nil, function(title)
         on_create(opts, title)
     end)
 end
