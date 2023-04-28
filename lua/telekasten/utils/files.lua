@@ -15,6 +15,12 @@ function M.file_exists(fname)
     end
 end
 
+-- Strips an extension from a file name, escaping "." properly, eg:
+-- strip_extension("path/Filename.md", ".md") -> "path/Filename"
+local function strip_extension(str, ext)
+    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
+end
+
 -- Prompts the user for a note title
 function M.prompt_title(ext, defaultFile, callback)
     local canceledStr = "__INPUT_CANCELLED__"
@@ -37,6 +43,27 @@ function M.prompt_title(ext, defaultFile, callback)
             callback(title)
         end
     end)
+end
+
+local function random_variable(length)
+    math.randomseed(os.clock() ^ 5)
+    local res = ""
+    for _ = 1, length do
+        res = res .. string.char(math.random(97, 122))
+    end
+    return res
+end
+
+function M.new_uuid(uuid_style)
+    local uuid
+    if uuid_style == "rand" then
+        uuid = random_variable(6)
+    elseif type(uuid_style) == "function" then
+        uuid = uuid_style()
+    else
+        uuid = os.date(uuid_style)
+    end
+    return uuid
 end
 
 return M

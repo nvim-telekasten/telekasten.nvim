@@ -18,10 +18,4 @@ function M.strip(s, chars_to_remove)
     return s:gsub("[" .. M.escape(chars_to_remove) .. "]", "")
 end
 
--- strip an extension from a file name, escaping "." properly, eg:
--- strip_extension("path/Filename.md", ".md") -> "path/Filename"
-local function strip_extension(str, ext)
-    return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
-end
-
 return M

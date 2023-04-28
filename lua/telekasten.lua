@@ -158,29 +158,6 @@ local function defaultConfig(home)
     }
 end
 
-local function random_variable(length)
-    math.randomseed(os.clock() ^ 5)
-    local res = ""
-    for _ = 1, length do
-        res = res .. string.char(math.random(97, 122))
-    end
-    return res
-end
-
-local function get_uuid(opts)
-    opts.uuid_type = opts.uuid_type or M.Cfg.uuid_type
-
-    local uuid
-    if opts.uuid_type == "rand" then
-        uuid = random_variable(6)
-    elseif type(opts.uuid_type) == "function" then
-        uuid = opts.uuid_type()
-    else
-        uuid = os.date(opts.uuid_type)
-    end
-    return uuid
-end
-
 local function generate_note_filename(uuid, title)
     if M.Cfg.filename_space_subst ~= nil then
         title = title:gsub(" ", M.Cfg.filename_space_subst)
@@ -1999,8 +1976,9 @@ local function on_create_with_template(opts, title)
         or M.Cfg.close_after_yanking
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
+    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
-    local uuid = get_uuid(opts)
+    local uuid = fileutils.new_uuid(uuid_type)
     local pinfo = Pinfo:new({
         title = generate_note_filename(uuid, title),
         opts,
@@ -2069,12 +2047,13 @@ local function on_create(opts, title)
         or M.Cfg.close_after_yanking
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
+    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
     if title == nil then
         return
     end
 
-    local uuid = get_uuid(opts)
+    local uuid = fileutils.new_uuid(uuid_type)
     local pinfo = Pinfo:new({
         title = generate_note_filename(uuid, title),
         opts,
@@ -2143,6 +2122,7 @@ local function FollowLink(opts)
 
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
+    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
     if not global_dir_check() then
         return
@@ -2237,7 +2217,7 @@ local function FollowLink(opts)
             end
 
             if #pinfo.filepath > 0 then
-                local uuid = get_uuid(opts)
+                local uuid = fileutils.new_uuid(uuid_type)
                 create_note_from_template(
                     title,
                     uuid,
