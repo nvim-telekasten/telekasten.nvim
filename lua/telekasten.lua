@@ -18,6 +18,7 @@ local taglinks = require("telekasten.utils.taglinks")
 local tagutils = require("telekasten.utils.tags")
 local linkutils = require("telekasten.utils.links")
 local dateutils = require("telekasten.utils.dates")
+local fileutils = require("telekasten.utils.files")
 local Path = require("plenary.path")
 local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
@@ -155,20 +156,6 @@ local function defaultConfig(home)
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
     }
-end
-
-local function file_exists(fname)
-    if fname == nil then
-        return false
-    end
-
-    local f = io.open(fname, "r")
-    if f ~= nil then
-        io.close(f)
-        return true
-    else
-        return false
-    end
 end
 
 local function random_variable(length)
@@ -474,7 +461,7 @@ local function imgFromClipboard()
         return
     end
 
-    if file_exists(png) then
+    if fileutils.file_exists(png) then
         if M.Cfg.image_link_style == "markdown" then
             vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", true, true)
         else
@@ -647,7 +634,7 @@ local function create_note_from_template(
 )
     -- first, read the template file
     local lines = {}
-    if file_exists(templatefn) then
+    if fileutils.file_exists(templatefn) then
         for line in io.lines(templatefn) do
             lines[#lines + 1] = line
         end
@@ -710,7 +697,7 @@ function Pinfo:resolve_path(p, opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
-    self.fexists = file_exists(p)
+    self.fexists = fileutils.file_exists(p)
     self.filepath = p
     self.root_dir = M.Cfg.home
     self.is_daily_or_weekly = false
@@ -808,7 +795,10 @@ function Pinfo:resolve_link(title, opts)
     self.template = nil
     self.calendar_info = nil
 
-    if opts.weeklies and file_exists(opts.weeklies .. "/" .. self.filename) then
+    if
+        opts.weeklies
+        and fileutils.file_exists(opts.weeklies .. "/" .. self.filename)
+    then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
@@ -818,7 +808,10 @@ function Pinfo:resolve_link(title, opts)
         self.is_daily_or_weekly = true
         self.is_weekly = true
     end
-    if opts.dailies and file_exists(opts.dailies .. "/" .. self.filename) then
+    if
+        opts.dailies
+        and fileutils.file_exists(opts.dailies .. "/" .. self.filename)
+    then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
@@ -828,7 +821,7 @@ function Pinfo:resolve_link(title, opts)
         self.is_daily_or_weekly = true
         self.is_daily = true
     end
-    if file_exists(opts.home .. "/" .. self.filename) then
+    if fileutils.file_exists(opts.home .. "/" .. self.filename) then
         self.filepath = opts.home .. "/" .. self.filename
         self.fexists = true
     end
@@ -840,7 +833,7 @@ function Pinfo:resolve_link(title, opts)
         for _, folder in pairs(subdirs) do
             tempfn = folder .. "/" .. self.filename
             -- [[testnote]]
-            if file_exists(tempfn) then
+            if fileutils.file_exists(tempfn) then
                 self.filepath = tempfn
                 self.fexists = true
                 -- print("Found: " ..self.filename)
@@ -1198,7 +1191,7 @@ function picker_actions.close(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         if opts.erase then
-            if file_exists(opts.erase_file) then
+            if fileutils.file_exists(opts.erase_file) then
                 vim.fn.delete(opts.erase_file)
             end
         end
@@ -1312,7 +1305,7 @@ local function FindDailyNotes(opts)
 
     local today = os.date(dateformats.date)
     local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -1367,7 +1360,7 @@ local function FindWeeklyNotes(opts)
 
     local title = os.date(dateformats.isoweek)
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -1521,7 +1514,7 @@ local function PreviewImg(opts)
 
     -- check if fname exists anywhere
     local imageDir = M.Cfg.image_subdir or M.Cfg.home
-    local fexists = file_exists(imageDir .. "/" .. fname)
+    local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
 
     if fexists == true then
         find_files_sorted({
@@ -1682,7 +1675,7 @@ local function RenameNote()
         end
 
         local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
-        local fexists = file_exists(fname)
+        local fexists = fileutils.file_exists(fname)
         if fexists then
             print_error("File alreay exists. Renaming abandonned")
             return
@@ -1746,7 +1739,7 @@ local function GotoDate(opts)
     local word = opts.date or os.date(dateformats.date)
 
     local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -2600,7 +2593,7 @@ local function GotoThisWeek(opts)
     local dinfo = calculate_dates()
     local title = dinfo.isoweek
     local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
-    local fexists = file_exists(fname)
+    local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
@@ -2650,7 +2643,7 @@ local function CalendarSignDay(day, month, year)
         .. "/"
         .. string.format("%04d-%02d-%02d", year, month, day)
         .. M.Cfg.extension
-    if file_exists(fn) then
+    if fileutils.file_exists(fn) then
         return 1
     end
     return 0
