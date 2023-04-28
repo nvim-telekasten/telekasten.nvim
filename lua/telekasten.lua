@@ -19,6 +19,7 @@ local tagutils = require("telekasten.utils.tags")
 local linkutils = require("telekasten.utils.links")
 local dateutils = require("telekasten.utils.dates")
 local fileutils = require("telekasten.utils.files")
+local templates = require("telekasten.templates")
 local Path = require("plenary.path")
 local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
@@ -426,33 +427,6 @@ end
 
 -- end of image stuff
 
-local function linesubst(line, title, dates, uuid)
-    if dates == nil then
-        dates =
-            dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
-    end
-    if uuid == nil then
-        uuid = ""
-    end
-
-    local shorttitle = string.match(title, "^.+/(.+)$")
-    if shorttitle == nil then
-        shorttitle = title
-    end
-
-    local substs = vim.tbl_extend("error", dates, {
-        shorttitle = shorttitle:gsub("^%l", string.upper),
-        uuid = uuid,
-        title = title:gsub("^%l", string.upper),
-    })
-
-    for k, v in pairs(substs) do
-        line = line:gsub("{{" .. k .. "}}", v)
-    end
-
-    return line
-end
-
 local function create_note_from_template(
     title,
     uuid,
@@ -471,7 +445,15 @@ local function create_note_from_template(
     -- now write the output file, substituting vars line by line
     local ofile = io.open(filepath, "a")
     for _, line in pairs(lines) do
-        ofile:write(linesubst(line, title, calendar_info, uuid) .. "\n")
+        ofile:write(
+            templates.subst_templated_values(
+                line,
+                title,
+                calendar_info,
+                uuid,
+                M.Cfg.calendar_opts.calendar_monday
+            ) .. "\n"
+        )
     end
 
     ofile:flush()

@@ -915,7 +915,7 @@ The following substitutions will be made during new note creation:
 | in template     | expands to            | example                     |
 +-----------------+-----------------------+-----------------------------+
 | `{{title}}`       | the title of the note       | My new note                 |
-| `{{shorttitle}}   | the short title of the note | dir/dir/My Note -> My Note  |
+| `{{shorttitle}}`  | the short title of the note | dir/dir/My Note -> My Note  |
 | `{{uuid}}`        | UUID of the note            | 202201271129                |
 | `{{date}}`        | date in iso format          | 2021-11-21                  |
 | `{{time24}}`      | time with 24 hour clock     | 19:12:23                    |
