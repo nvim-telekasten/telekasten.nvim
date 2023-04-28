@@ -15,6 +15,11 @@ function M.file_exists(fname)
     end
 end
 
+-- Returns the file extension
+function M.get_extension(fname)
+    return fname:match("^.+(%..+)$")
+end
+
 -- Strips an extension from a file name, escaping "." properly, eg:
 -- strip_extension("path/Filename.md", ".md") -> "path/Filename"
 local function strip_extension(str, ext)

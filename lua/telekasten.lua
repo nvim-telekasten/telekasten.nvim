@@ -892,14 +892,6 @@ function Pinfo:resolve_link(title, opts)
     return self
 end
 
--- local function endswith(s, ending)
---     return ending == "" or s:sub(-#ending) == ending
--- end
-
-local function file_extension(fname)
-    return fname:match("^.+(%..+)$")
-end
-
 local function filter_filetypes(flist, ftypes)
     local new_fl = {}
     ftypes = ftypes or { M.Cfg.extension }
@@ -910,7 +902,7 @@ local function filter_filetypes(flist, ftypes)
     end
 
     for _, fn in pairs(flist) do
-        if ftypeok[file_extension(fn)] then
+        if ftypeok[fileutils.get_extension(fn)] then
             table.insert(new_fl, fn)
         end
     end
