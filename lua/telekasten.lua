@@ -2359,7 +2359,7 @@ local function FollowLink(opts)
         )
 
         -- builtin.live_grep({
-        local picker = pickers.new({
+        local picker = pickers.new(opts, {
             cwd = cwd,
             prompt_title = "Notes referencing `" .. title .. "`",
             default_text = search_pattern,
