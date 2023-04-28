@@ -1,7 +1,7 @@
 local M = {}
 
 -- Prints a basic error message
-local function print_error(s)
+function M.print_error(s)
     vim.cmd("echohl ErrorMsg")
     vim.cmd("echomsg " .. '"' .. s .. '"')
     vim.cmd("echohl None")
@@ -16,6 +16,25 @@ end
 -- Returns string with listed chars removed (= safer gsub)
 function M.strip(s, chars_to_remove)
     return s:gsub("[" .. M.escape(chars_to_remove) .. "]", "")
+end
+
+-- Escapes for regex functions like grep or rg
+function M.grep_escape(s)
+    return s:gsub("[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
+        ["\\"] = "\\\\",
+        ["-"] = "\\-",
+        ["("] = "\\(",
+        [")"] = "\\)",
+        ["["] = "\\[",
+        ["]"] = "\\]",
+        ["{"] = "\\{",
+        ["}"] = "\\}",
+        ["?"] = "\\?",
+        ["+"] = "\\+",
+        ["*"] = "\\*",
+        ["^"] = "\\^",
+        ["$"] = "\\$",
+    })
 end
 
 return M

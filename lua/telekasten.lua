@@ -238,25 +238,6 @@ local function make_config_path_absolute(path)
     return ret
 end
 
--- sanitize strings
-local escape_chars = function(string)
-    return string.gsub(string, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%/]", {
-        ["\\"] = "\\\\",
-        ["-"] = "\\-",
-        ["("] = "\\(",
-        [")"] = "\\)",
-        ["["] = "\\[",
-        ["]"] = "\\]",
-        ["{"] = "\\{",
-        ["}"] = "\\}",
-        ["?"] = "\\?",
-        ["+"] = "\\+",
-        ["*"] = "\\*",
-        ["^"] = "\\^",
-        ["$"] = "\\$",
-    })
-end
-
 local function recursive_substitution(dir, old, new)
     if not global_dir_check() then
         return
@@ -267,8 +248,8 @@ local function recursive_substitution(dir, old, new)
         return
     end
 
-    old = escape_chars(old)
-    new = escape_chars(new)
+    old = tkutils.grep_escape(old)
+    new = tkutils.grep_escape(new)
 
     local sedcommand = "sed -i"
     if vim.fn.has("mac") == 1 then
