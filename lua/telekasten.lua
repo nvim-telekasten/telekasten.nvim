@@ -19,7 +19,7 @@ local tagutils = require("taglinks.tagutils")
 local linkutils = require("taglinks.linkutils")
 local dateutils = require("taglinks.dateutils")
 local Path = require("plenary.path")
-local vaultPicker = require("vaultpicker")
+local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
@@ -3018,7 +3018,7 @@ local function _setup(cfg)
 end
 
 local function ChangeVault(opts)
-    vaultPicker.vaults(M, opts)
+    tkpickers.vaults(M, opts)
 end
 
 local function chdir(cfg)
