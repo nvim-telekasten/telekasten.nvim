@@ -353,8 +353,7 @@ local function save_all_mod_buffers()
                 (
                     M.Cfg.auto_set_filetype == true
                     and vim.fn.getbufvar(i, "&filetype") == "telekasten"
-                )
-                or M.Cfg.auto_set_filetype == false
+                ) or M.Cfg.auto_set_filetype == false
             )
         then
             vim.cmd(i .. "bufdo w")
@@ -3177,8 +3176,5 @@ end
 
 M.panel = TelekastenCmd.command
 M.Command = TelekastenCmd
-
--- Load default setup
-Setup()
 
 return M
