@@ -218,21 +218,21 @@ telekasten.setup({opts})
         Path to your daily notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
-        Default: 'vim.fn.expand("~/zettelkasten/daily")'
+        Default: 'vim.fn.expand("~/zettelkasten")'
 
                                               *telekasten.settings.weeklies*
     weeklies: ~
         Path to your weekly notes, to separate them from 'normal' notes.
         Accepts absolute path or sub-directory name.
 
-        Default: 'vim.fn.expand("~/zettelkasten/weekly")'
+        Default: 'vim.fn.expand("~/zettelkasten")'
 
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
         Accepts absolute path or sub-directory name.
 
-        Default: 'vim.fn.expand("~/zettelkasten/templates")'
+        Default: 'vim.fn.expand("~/zettelkasten")'
 
                                         *telekasten.settings.image_subdir*
     image_subdir: ~

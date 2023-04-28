@@ -48,9 +48,9 @@ local function defaultConfig(home)
         -- this syntax setting is independent from auto-set filetype
         auto_set_syntax = true,
         -- dir names for special notes (absolute path or subdir name)
-        dailies = home .. "/" .. "daily",
-        weeklies = home .. "/" .. "weekly",
-        templates = home .. "/" .. "templates",
+        dailies = home,
+        weeklies = home,
+        templates = home,
         -- image (sub)dir for pasting
         -- dir name (absolute path or subdir name)
         -- or nil if pasted images shouldn't go into a special subdir
