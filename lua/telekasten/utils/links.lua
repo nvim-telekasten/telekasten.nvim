@@ -128,4 +128,15 @@ M.generate_backlink_map = function(opts)
     return ret
 end
 
+-- Remove alias in links to get only link part
+-- [[my_cool_link | My Alias]] -> "my_cool_link"
+--
+function M.remove_alias(link)
+    local split_index = string.find(link, "%s*|")
+    if split_index ~= nil and type(split_index) == "number" then
+        return string.sub(link, 0, split_index - 1)
+    end
+    return link
+end
+
 return M

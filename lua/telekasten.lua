@@ -157,19 +157,6 @@ local function defaultConfig(home)
     }
 end
 
---- escapes a string for use as exact pattern within gsub
-local function escape(s)
-    return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
-end
-
-local function remove_alias(link)
-    local split_index = string.find(link, "%s*|")
-    if split_index ~= nil and type(split_index) == "number" then
-        return string.sub(link, 0, split_index - 1)
-    end
-    return link
-end
-
 local function file_exists(fname)
     if fname == nil then
         return false
@@ -215,7 +202,7 @@ local function generate_note_filename(uuid, title)
     local pp = Path:new(title)
     local p_splits = pp:_split()
     local filename = p_splits[#p_splits]
-    local subdir = title:gsub(escape(filename), "")
+    local subdir = title:gsub(tkutils.escape(filename), "")
 
     local sep = M.Cfg.uuid_sep or "-"
     if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
@@ -755,8 +742,8 @@ function Pinfo:resolve_path(p, opts)
     end
 
     -- now work out subdir relative to root
-    self.sub_dir = p:gsub(escape(self.root_dir .. "/"), "")
-        :gsub(escape(self.filename), "")
+    self.sub_dir = p:gsub(tkutils.escape(self.root_dir .. "/"), "")
+        :gsub(tkutils.escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
 
@@ -917,8 +904,8 @@ function Pinfo:resolve_link(title, opts)
 
     -- now work out subdir relative to root
     self.sub_dir = self.filepath
-        :gsub(escape(self.root_dir .. "/"), "")
-        :gsub(escape(self.filename), "")
+        :gsub(tkutils.escape(self.root_dir .. "/"), "")
+        :gsub(tkutils.escape(self.filename), "")
         :gsub("/$", "")
         :gsub("^/", "")
 
@@ -1055,7 +1042,7 @@ local function find_files_sorted(opts)
     local function iconic_display(display_entry)
         local display_opts = {
             path_display = function(_, e)
-                return e:gsub(escape(opts.cwd .. "/"), "")
+                return e:gsub(tkutils.escape(opts.cwd .. "/"), "")
             end,
         }
 
@@ -1637,7 +1624,7 @@ local function FindFriends(opts)
 
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
-    title = remove_alias(title)
+    title = linkutils.remove_alias(title)
     title = title:gsub("^(%[)(.+)(%])$", "%2")
 
     builtin.live_grep({
@@ -2208,7 +2195,7 @@ local function FollowLink(opts)
             vim.cmd("normal yi]")
             title = vim.fn.getreg('"0')
             title = title:gsub("^(%[)(.+)(%])$", "%2")
-            title = remove_alias(title)
+            title = linkutils.remove_alias(title)
         else
             -- we are in an external [link]
             vim.cmd("normal yi)")
@@ -2309,7 +2296,7 @@ local function FollowLink(opts)
         local function iconic_display(display_entry)
             local display_opts = {
                 path_display = function(_, e)
-                    return e:gsub(escape(opts.cwd .. "/"), "")
+                    return e:gsub(tkutils.escape(opts.cwd .. "/"), "")
                 end,
             }
 
