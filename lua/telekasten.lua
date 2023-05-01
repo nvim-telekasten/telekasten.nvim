@@ -403,7 +403,7 @@ local function imgFromClipboard()
     local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
     local result = os.execute(get_paste_command(pngdir, pngname))
-    if result > 0 then
+    if not result then
         vim.api.nvim_err_writeln(
             string.format(
                 "Unable to write image %s (exit code: %d).  Is there an image on the clipboard? ",
