@@ -1,5 +1,6 @@
-local tkutils = require("telekasten.utils")
 local Path = require("plenary.path")
+local config = require("telekasten.config")
+local tkutils = require("telekasten.utils")
 
 local M = {}
 
@@ -105,19 +106,19 @@ function M.check_dir_and_ask(dir, purpose)
     return ret
 end
 
-function M.global_dir_check(dirs)
+function M.global_dir_check()
     local ret
-    if dirs.home == nil then
+    if config.options.home == nil then
         tkutils.print_error("Telekasten.nvim: home is not configured!")
         ret = false
     else
-        ret = M.check_dir_and_ask(dirs.home, "home")
+        ret = M.check_dir_and_ask(config.options.home, "home")
     end
 
-    ret = ret and M.check_dir_and_ask(dirs.dailies, "dailies")
-    ret = ret and M.check_dir_and_ask(dirs.weeklies, "weeklies")
-    ret = ret and M.check_dir_and_ask(dirs.templates, "templates")
-    ret = ret and M.check_dir_and_ask(dirs.image_subdir, "images")
+    ret = ret and M.check_dir_and_ask(config.options.dailies, "dailies")
+    ret = ret and M.check_dir_and_ask(config.options.weeklies, "weeklies")
+    ret = ret and M.check_dir_and_ask(config.options.templates, "templates")
+    ret = ret and M.check_dir_and_ask(config.options.image_subdir, "images")
 
     return ret
 end

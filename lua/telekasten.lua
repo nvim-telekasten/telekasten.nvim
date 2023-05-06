@@ -158,15 +158,6 @@ local function defaultConfig(home)
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
     }
-    -- TEMPORARY FIX To make facilitate work with global_dir_check
-    -- Remove it and fix it when config is external and callabled
-    M.dirs = {
-        home = M.Cfg.home,
-        dailies = M.Cfg.dailies,
-        weeklies = M.Cfg.weeklies,
-        templates = M.Cfg.templates,
-        image_subdir = M.Cfg.image_subdir,
-    }
 end
 
 local function generate_note_filename(uuid, title)
@@ -202,7 +193,7 @@ local function make_config_path_absolute(path)
 end
 
 local function recursive_substitution(dir, old, new)
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -298,7 +289,7 @@ local function make_relative_path(bufferpath, imagepath, sep)
 end
 
 local function imgFromClipboard()
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1070,7 +1061,7 @@ local function FindDailyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1125,7 +1116,7 @@ local function FindWeeklyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1181,7 +1172,7 @@ local function InsertLink(opts)
         or M.Cfg.close_after_yanking
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1276,7 +1267,7 @@ local function PreviewImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1335,7 +1326,7 @@ local function BrowseImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1382,7 +1373,7 @@ local function FindFriends(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1572,7 +1563,7 @@ end
 local function GotoToday(opts)
     opts = opts or {}
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1596,7 +1587,7 @@ local function FindNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1644,7 +1635,7 @@ end
 local function InsertImgLink(opts)
     opts = opts or {}
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1698,7 +1689,7 @@ local function SearchNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1734,7 +1725,7 @@ local function ShowBacklinks(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1827,7 +1818,7 @@ end
 local function CreateNoteSelectTemplate(opts)
     opts = opts or {}
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1897,7 +1888,7 @@ end
 local function CreateNote(opts)
     opts = opts or {}
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -1927,7 +1918,7 @@ local function FollowLink(opts)
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
     local uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -2363,7 +2354,7 @@ local function GotoThisWeek(opts)
         or M.Cfg.close_after_yanking
     opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
@@ -2563,7 +2554,7 @@ local function FindAllTags(opts)
     opts.templateDir = templateDir
     opts.rg_pcre = M.Cfg.rg_pcre
 
-    if not fileutils.global_dir_check(M.dirs) then
+    if not fileutils.global_dir_check() then
         return
     end
 
