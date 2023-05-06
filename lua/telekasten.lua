@@ -222,8 +222,7 @@ local function imgFromClipboard()
     -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-    local pngdir = config.options.image_subdir and config.options.image_subdir
-        or config.options.home
+    local pngdir = config.options.image_subdir or config.options.home
     local png = pngdir .. "/" .. pngname
     local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
