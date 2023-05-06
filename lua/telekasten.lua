@@ -23,6 +23,7 @@ local templates = require("telekasten.templates")
 local Path = require("plenary.path")
 local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
+local config = require("telekasten.config")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
@@ -2654,6 +2655,12 @@ end
 --
 local function Setup(cfg)
     cfg = cfg or {}
+
+    -- Setup base user configuration and apply it, use default automatically for
+    -- the rest
+    config.setup(cfg)
+    config.apply()
+
     defaultConfig(cfg.home)
     local debug = cfg.debug
     for k, v in pairs(cfg) do
