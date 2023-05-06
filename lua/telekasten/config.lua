@@ -101,6 +101,13 @@ function M.get()
     end
 end
 
+---Print the user config
+function M.debug()
+    print("User config in its current state:")
+    print("---------------------------------")
+    print(vim.inspect(config.options))
+end
+
 if _G.__TEST then
     function M.__reset()
         config = nil

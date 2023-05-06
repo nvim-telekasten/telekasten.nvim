@@ -2579,33 +2579,15 @@ local function Setup(cfg)
     -- the rest
     config.setup(cfg)
 
+    -- Temporary shortcut to remove
     M.note_type_templates = {
         normal = config.options.template_new_note,
         daily = config.options.template_new_daily,
         weekly = config.options.template_new_weekly,
     }
 
-    local debug = cfg.debug
-    for k, v in pairs(cfg) do
-        -- merge everything but calendar opts
-        -- they will be merged later
-        if k ~= "calendar_opts" then
-            if k == "home" then
-                v = v
-            end
-            config.options[k] = v
-            if debug then
-                print(
-                    "Setup() setting `"
-                        .. k
-                        .. "`   ->   `"
-                        .. tostring(v)
-                        .. "`"
-                )
-            end
-        end
-    end
     -- TODO: this is obsolete:
+    -- But still used somehow. Maybe we could use Plenary.scan_dir?
     if vim.fn.executable("rg") == 1 then
         config.options.find_command = { "rg", "--files", "--sortr", "created" }
     else
@@ -2664,12 +2646,6 @@ local function Setup(cfg)
                     .. " set ft=telekasten"
             )
         end
-    end
-
-    if debug then
-        print("Resulting config:")
-        print("-----------------")
-        print(vim.inspect(config.options))
     end
 
     -- Convert all directories in full path
