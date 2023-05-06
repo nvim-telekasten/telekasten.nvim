@@ -37,8 +37,8 @@ end
 -- Default setup. Ideally anyone should be able to start using Telekasten
 -- directly without fiddling too much with the options. The only one of real
 -- interest should be the path for the few relevant directories.
-local function get_defaults()
-    local _home = vim.fn.expand("~/zettelkasten") -- Default home directory
+local function get_defaults(home)
+    local _home = home or vim.fn.expand("~/zettelkasten") -- Default home directory
     local opts = {
         home = _home,
         take_over_my_home = true,
@@ -82,7 +82,7 @@ end
 
 --- Merge user config with defaults
 function M.apply()
-    local defaults = get_defaults()
+    local defaults = get_defaults(config.options.home)
     config:merge(defaults)
     return config
 end
@@ -91,6 +91,7 @@ end
 ---ensuring defaults are set.
 function M.setup(c)
     config = Config:new(c or {})
+    M.apply()
 end
 
 ---Get the user's configuration or a key from it

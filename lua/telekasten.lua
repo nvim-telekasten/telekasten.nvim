@@ -2659,7 +2659,6 @@ local function Setup(cfg)
     -- Setup base user configuration and apply it, use default automatically for
     -- the rest
     config.setup(cfg)
-    config.apply()
 
     defaultConfig(cfg.home)
     local debug = cfg.debug
