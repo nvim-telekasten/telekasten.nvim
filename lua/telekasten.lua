@@ -364,16 +364,16 @@ local function imgFromClipboard()
     local png = pngdir .. "/" .. pngname
     local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
-    local result = os.execute(get_paste_command(pngdir, pngname))
-    if result > 0 then
+    local output = vim.fn.system(get_paste_command(pngdir, pngname))
+    if output ~= "" then
+        -- Remove empty file created by previous command if failed
+        vim.fn.system("rm " .. pngdir .. "/" .. pngname)
         vim.api.nvim_err_writeln(
             string.format(
-                "Unable to write image %s (exit code: %d).  Is there an image on the clipboard? ",
-                png,
-                result
+                "Unable to write image %s.\nIs there an image on the clipboard?\nSee also issue 131",
+                png
             )
         )
-        return
     end
 
     if fileutils.file_exists(png) then
