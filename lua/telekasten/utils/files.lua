@@ -1,3 +1,6 @@
+local tkutils = require("telekasten.utils")
+local Path = require("plenary.path")
+
 local M = {}
 
 -- Checks if file exists
@@ -69,6 +72,54 @@ function M.new_uuid(uuid_style)
         uuid = os.date(uuid_style)
     end
     return uuid
+end
+
+function M.check_dir_and_ask(dir, purpose)
+    local ret = false
+    if dir ~= nil and Path:new(dir):exists() == false then
+        vim.ui.select({ "No (default)", "Yes" }, {
+            prompt = "Telekasten.nvim: "
+                .. purpose
+                .. " folder "
+                .. dir
+                .. " does not exist!"
+                .. " Shall I create it? ",
+        }, function(answer)
+            if answer == "Yes" then
+                if
+                    Path:new(dir):mkdir({ parents = true, exists_ok = false })
+                then
+                    vim.cmd('echomsg " "')
+                    vim.cmd('echomsg "' .. dir .. ' created"')
+                    ret = true
+                else
+                    -- unreachable: plenary.Path:mkdir() will error out
+                    tkutils.print_error("Could not create directory " .. dir)
+                    ret = false
+                end
+            end
+        end)
+    else
+        ret = true
+    end
+    return ret
+end
+
+function M.global_dir_check(dirs)
+    local ret
+    if dirs.home == nil then
+        tkutils.print_error("Telekasten.nvim: home is not configured!")
+        ret = false
+    else
+        ret = M.check_dir_and_ask(dirs.home, "home")
+    end
+
+    ret = ret and M.check_dir_and_ask(dirs.dailies, "dailies")
+    ret = ret and M.check_dir_and_ask(dirs.weeklies, "weeklies")
+    ret = ret and M.check_dir_and_ask(dirs.templates, "templates")
+    ret = ret and M.check_dir_and_ask(dirs.image_subdir, "images")
+
+    return ret
 end
 
 return M

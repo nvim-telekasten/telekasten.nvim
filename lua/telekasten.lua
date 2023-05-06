@@ -157,6 +157,15 @@ local function defaultConfig(home)
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
     }
+    -- TEMPORARY FIX To make facilitate work with global_dir_check
+    -- Remove it and fix it when config is external and callabled
+    M.dirs = {
+        home = M.Cfg.home,
+        dailies = M.Cfg.dailies,
+        weeklies = M.Cfg.weeklies,
+        templates = M.Cfg.templates,
+        image_subdir = M.Cfg.image_subdir,
+    }
 end
 
 local function generate_note_filename(uuid, title)
@@ -183,54 +192,6 @@ local function generate_note_filename(uuid, title)
     end
 end
 
-local function check_dir_and_ask(dir, purpose)
-    local ret = false
-    if dir ~= nil and Path:new(dir):exists() == false then
-        vim.ui.select({ "No (default)", "Yes" }, {
-            prompt = "Telekasten.nvim: "
-                .. purpose
-                .. " folder "
-                .. dir
-                .. " does not exist!"
-                .. " Shall I create it? ",
-        }, function(answer)
-            if answer == "Yes" then
-                if
-                    Path:new(dir):mkdir({ parents = true, exists_ok = false })
-                then
-                    vim.cmd('echomsg " "')
-                    vim.cmd('echomsg "' .. dir .. ' created"')
-                    ret = true
-                else
-                    -- unreachable: plenary.Path:mkdir() will error out
-                    tkutils.print_error("Could not create directory " .. dir)
-                    ret = false
-                end
-            end
-        end)
-    else
-        ret = true
-    end
-    return ret
-end
-
-local function global_dir_check()
-    local ret
-    if M.Cfg.home == nil then
-        tkutils.print_error("Telekasten.nvim: home is not configured!")
-        ret = false
-    else
-        ret = check_dir_and_ask(M.Cfg.home, "home")
-    end
-
-    ret = ret and check_dir_and_ask(M.Cfg.dailies, "dailies")
-    ret = ret and check_dir_and_ask(M.Cfg.weeklies, "weeklies")
-    ret = ret and check_dir_and_ask(M.Cfg.templates, "templates")
-    ret = ret and check_dir_and_ask(M.Cfg.image_subdir, "images")
-
-    return ret
-end
-
 local function make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
@@ -240,7 +201,7 @@ local function make_config_path_absolute(path)
 end
 
 local function recursive_substitution(dir, old, new)
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -336,7 +297,7 @@ local function make_relative_path(bufferpath, imagepath, sep)
 end
 
 local function imgFromClipboard()
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1108,7 +1069,7 @@ local function FindDailyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1163,7 +1124,7 @@ local function FindWeeklyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1219,7 +1180,7 @@ local function InsertLink(opts)
         or M.Cfg.close_after_yanking
     opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1314,7 +1275,7 @@ local function PreviewImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1373,7 +1334,7 @@ local function BrowseImg(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1420,7 +1381,7 @@ local function FindFriends(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1492,7 +1453,7 @@ local function RenameNote()
 
         -- Savas newfile, delete buffer of old one and remove old file
         if newname ~= "" and newname ~= oldfile.title then
-            if not (check_dir_and_ask(newpath, "Renamed file")) then
+            if not (fileutils.check_dir_and_ask(newpath, "Renamed file")) then
                 return
             end
 
@@ -1610,7 +1571,7 @@ end
 local function GotoToday(opts)
     opts = opts or {}
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1634,7 +1595,7 @@ local function FindNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1682,7 +1643,7 @@ end
 local function InsertImgLink(opts)
     opts = opts or {}
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1736,7 +1697,7 @@ local function SearchNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1772,7 +1733,7 @@ local function ShowBacklinks(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or M.Cfg.close_after_yanking
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1865,7 +1826,7 @@ end
 local function CreateNoteSelectTemplate(opts)
     opts = opts or {}
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1935,7 +1896,7 @@ end
 local function CreateNote(opts)
     opts = opts or {}
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -1965,7 +1926,7 @@ local function FollowLink(opts)
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
     local uuid_type = opts.uuid_type or M.Cfg.uuid_type
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -2042,7 +2003,7 @@ local function FollowLink(opts)
         -- check if subdir exists
         local filepath = title:match("(.*/)") or ""
         filepath = M.Cfg.home .. "/" .. filepath
-        check_dir_and_ask(filepath, "")
+        fileutils.check_dir_and_ask(filepath, "")
 
         -- check if fname exists anywhere
         local pinfo = Pinfo:new({ title = title })
@@ -2401,7 +2362,7 @@ local function GotoThisWeek(opts)
         or M.Cfg.close_after_yanking
     opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
@@ -2601,7 +2562,7 @@ local function FindAllTags(opts)
     opts.templateDir = templateDir
     opts.rg_pcre = M.Cfg.rg_pcre
 
-    if not global_dir_check() then
+    if not fileutils.global_dir_check(M.dirs) then
         return
     end
 
