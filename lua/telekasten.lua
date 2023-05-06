@@ -154,15 +154,15 @@ local function defaultConfig(home)
     }
     M.Cfg = cfg
     M.note_type_templates = {
-        normal = M.Cfg.template_new_note,
-        daily = M.Cfg.template_new_daily,
-        weekly = M.Cfg.template_new_weekly,
+        normal = config.options.template_new_note,
+        daily = config.options.template_new_daily,
+        weekly = config.options.template_new_weekly,
     }
 end
 
 local function generate_note_filename(uuid, title)
-    if M.Cfg.filename_space_subst ~= nil then
-        title = title:gsub(" ", M.Cfg.filename_space_subst)
+    if config.options.filename_space_subst ~= nil then
+        title = title:gsub(" ", config.options.filename_space_subst)
     end
 
     local pp = Path:new(title)
@@ -170,11 +170,11 @@ local function generate_note_filename(uuid, title)
     local filename = p_splits[#p_splits]
     local subdir = title:gsub(tkutils.escape(filename), "")
 
-    local sep = M.Cfg.uuid_sep or "-"
-    if M.Cfg.new_note_filename ~= "uuid" and #title > 0 then
-        if M.Cfg.new_note_filename == "uuid-title" then
+    local sep = config.options.uuid_sep or "-"
+    if config.options.new_note_filename ~= "uuid" and #title > 0 then
+        if config.options.new_note_filename == "uuid-title" then
             return subdir .. uuid .. sep .. filename
-        elseif M.Cfg.new_note_filename == "title-uuid" then
+        elseif config.options.new_note_filename == "title-uuid" then
             return title .. sep .. uuid
         else
             return title
@@ -187,7 +187,7 @@ end
 local function make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
-        ret = M.Cfg.home .. "/" .. path
+        ret = config.options.home .. "/" .. path
     end
     return ret
 end
@@ -231,9 +231,10 @@ local function save_all_mod_buffers()
             vim.fn.getbufvar(i, "&mod") == 1
             and (
                 (
-                    M.Cfg.auto_set_filetype == true
+                    config.options.auto_set_filetype == true
                     and vim.fn.getbufvar(i, "&filetype") == "telekasten"
-                ) or M.Cfg.auto_set_filetype == false
+                )
+                or config.options.auto_set_filetype == false
             )
         then
             vim.cmd(i .. "bufdo w")
@@ -351,7 +352,8 @@ local function imgFromClipboard()
     -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-    local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
+    local pngdir = config.options.image_subdir and config.options.image_subdir
+        or config.options.home
     local png = pngdir .. "/" .. pngname
     local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
@@ -368,7 +370,7 @@ local function imgFromClipboard()
     end
 
     if fileutils.file_exists(png) then
-        if M.Cfg.image_link_style == "markdown" then
+        if config.options.image_link_style == "markdown" then
             vim.api.nvim_put({ "![](" .. relpath .. ")" }, "", true, true)
         else
             vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", true, true)
@@ -404,7 +406,7 @@ local function create_note_from_template(
                 title,
                 calendar_info,
                 uuid,
-                M.Cfg.calendar_opts.calendar_monday
+                config.options.calendar_opts.calendar_monday
             ) .. "\n"
         )
     end
@@ -458,11 +460,12 @@ end
 --- inspects the path and returns a Pinfo table
 function Pinfo:resolve_path(p, opts)
     opts = opts or {}
-    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+    opts.subdirs_in_links = opts.subdirs_in_links
+        or config.options.subdirs_in_links
 
     self.fexists = fileutils.file_exists(p)
     self.filepath = p
-    self.root_dir = M.Cfg.home
+    self.root_dir = config.options.home
     self.is_daily_or_weekly = false
     self.is_daily = false
     self.is_weekly = false
@@ -471,22 +474,22 @@ function Pinfo:resolve_path(p, opts)
     local pp = Path:new(p)
     local p_splits = pp:_split()
     self.filename = p_splits[#p_splits]
-    self.title = self.filename:gsub(M.Cfg.extension, "")
+    self.title = self.filename:gsub(config.options.extension, "")
 
-    if vim.startswith(p, M.Cfg.home) then
-        self.root_dir = M.Cfg.home
+    if vim.startswith(p, config.options.home) then
+        self.root_dir = config.options.home
     end
-    if vim.startswith(p, M.Cfg.dailies) then
-        self.root_dir = M.Cfg.dailies
+    if vim.startswith(p, config.options.dailies) then
+        self.root_dir = config.options.dailies
         -- TODO: parse "title" into calendarinfo like in resolve_link
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         self.is_daily_or_weekly = true
         self.is_daily = true
     end
-    if vim.startswith(p, M.Cfg.weeklies) then
+    if vim.startswith(p, config.options.weeklies) then
         -- TODO: parse "title" into calendarinfo like in resolve_link
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        self.root_dir = M.Cfg.weeklies
+        self.root_dir = config.options.weeklies
         self.is_daily_or_weekly = true
         self.is_weekly = true
     end
@@ -510,8 +513,10 @@ local function check_if_daily_or_weekly(title)
 
     local is_daily = false
     local is_weekly = false
-    local dateinfo =
-        dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday) -- sane default
+    local dateinfo = dateutils.calculate_dates(
+        nil,
+        config.options.calendar_opts.calendar_monday
+    ) -- sane default
 
     local start, _, year, month, day = title:find(daily_match)
     if start ~= nil then
@@ -523,7 +528,7 @@ local function check_if_daily_or_weekly(title)
                 dateinfo.day = tonumber(day)
                 dateinfo = dateutils.calculate_dates(
                     dateinfo,
-                    M.Cfg.calendar_opts.calendar_monday
+                    config.options.calendar_opts.calendar_monday
                 )
             end
         end
@@ -538,7 +543,7 @@ local function check_if_daily_or_weekly(title)
             dateinfo = dateutils.isoweek_to_date(tonumber(year), tonumber(week))
             dateinfo = dateutils.calculate_dates(
                 dateinfo,
-                M.Cfg.calendar_opts.calendar_monday
+                config.options.calendar_opts.calendar_monday
             )
         end
     end
@@ -547,12 +552,14 @@ end
 
 function Pinfo:resolve_link(title, opts)
     opts = opts or {}
-    opts.weeklies = opts.weeklies or M.Cfg.weeklies
-    opts.dailies = opts.dailies or M.Cfg.dailies
-    opts.home = opts.home or M.Cfg.home
-    opts.extension = opts.extension or M.Cfg.extension
-    opts.template_handling = opts.template_handling or M.Cfg.template_handling
-    opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
+    opts.weeklies = opts.weeklies or config.options.weeklies
+    opts.dailies = opts.dailies or config.options.dailies
+    opts.home = opts.home or config.options.home
+    opts.extension = opts.extension or config.options.extension
+    opts.template_handling = opts.template_handling
+        or config.options.template_handling
+    opts.new_note_location = opts.new_note_location
+        or config.options.new_note_location
 
     self.fexists = false
     self.title = title
@@ -693,7 +700,7 @@ end
 
 local function filter_filetypes(flist, ftypes)
     local new_fl = {}
-    ftypes = ftypes or { M.Cfg.extension }
+    ftypes = ftypes or { config.options.extension }
 
     local ftypeok = {}
     for _, ft in pairs(ftypes) do
@@ -715,19 +722,19 @@ local media_files_base_directory = M.base_directory
 local defaulter = utils.make_default_callable
 local media_preview = defaulter(function(opts)
     local preview_cmd = ""
-    if M.Cfg.media_previewer == "telescope-media-files" then
+    if config.options.media_previewer == "telescope-media-files" then
         preview_cmd = media_files_base_directory .. "/scripts/vimg"
     end
 
-    if M.Cfg.media_previewer == "catimg-previewer" then
+    if config.options.media_previewer == "catimg-previewer" then
         preview_cmd = M.base_directory
             .. "/telekasten.nvim/scripts/catimg-previewer"
     end
 
-    if vim.startswith(M.Cfg.media_previewer, "viu-previewer") then
+    if vim.startswith(config.options.media_previewer, "viu-previewer") then
         preview_cmd = M.base_directory
             .. "/telekasten.nvim/scripts/"
-            .. M.Cfg.media_previewer
+            .. config.options.media_previewer
     end
 
     if vim.fn.executable(preview_cmd) == 0 then
@@ -775,7 +782,8 @@ local function find_files_sorted(opts)
     opts = opts or {}
 
     local file_list = scan.scan_dir(opts.cwd, {})
-    local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
+    local filter_extensions = opts.filter_extensions
+        or config.options.filter_extensions
     file_list = filter_filetypes(file_list, filter_extensions)
     local sort_option = opts.sort or "filename"
     if sort_option == "modified" then
@@ -934,10 +942,10 @@ local function find_files_sorted(opts)
 end
 
 picker_actions.post_open = function()
-    if M.Cfg.auto_set_filetype then
+    if config.options.auto_set_filetype then
         vim.cmd("set ft=telekasten")
     end
-    if M.Cfg.auto_set_syntax then
+    if config.options.auto_set_syntax then
         vim.cmd("set syntax=telekasten")
     end
 end
@@ -985,7 +993,8 @@ end
 
 function picker_actions.paste_link(opts)
     opts = opts or {}
-    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+    opts.subdirs_in_links = opts.subdirs_in_links
+        or config.options.subdirs_in_links
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
@@ -1004,7 +1013,8 @@ end
 function picker_actions.yank_link(opts)
     return function(prompt_bufnr)
         opts = opts or {}
-        opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+        opts.subdirs_in_links = opts.subdirs_in_links
+            or config.options.subdirs_in_links
         if opts.close_after_yanking then
             actions.close(prompt_bufnr)
         end
@@ -1057,22 +1067,25 @@ end
 local function FindDailyNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
     end
 
     local today = os.date(dateutils.dateformats.date)
-    local fname = M.Cfg.dailies .. "/" .. today .. M.Cfg.extension
+    local fname = config.options.dailies
+        .. "/"
+        .. today
+        .. config.options.extension
     local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
             (opts.dailies_create_nonexisting == true)
-            or M.Cfg.dailies_create_nonexisting == true
+            or config.options.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -1087,8 +1100,8 @@ local function FindDailyNotes(opts)
 
     find_files_sorted({
         prompt_title = "Find daily note",
-        cwd = M.Cfg.dailies,
-        find_command = M.Cfg.find_command,
+        cwd = config.options.dailies,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1099,7 +1112,7 @@ local function FindDailyNotes(opts)
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
-        sort = M.Cfg.sort,
+        sort = config.options.sort,
     })
 end
 
@@ -1112,22 +1125,25 @@ end
 local function FindWeeklyNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
     end
 
     local title = os.date(dateutils.dateformats.isoweek)
-    local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
+    local fname = config.options.weeklies
+        .. "/"
+        .. title
+        .. config.options.extension
     local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
             (opts.weeklies_create_nonexisting == true)
-            or M.Cfg.weeklies_create_nonexisting == true
+            or config.options.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -1142,8 +1158,8 @@ local function FindWeeklyNotes(opts)
 
     find_files_sorted({
         prompt_title = "Find weekly note",
-        cwd = M.Cfg.weeklies,
-        find_command = M.Cfg.find_command,
+        cwd = config.options.weeklies,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1154,7 +1170,7 @@ local function FindWeeklyNotes(opts)
             map("n", "<esc>", picker_actions.close(opts))
             return true
         end,
-        sort = M.Cfg.sort,
+        sort = config.options.sort,
     })
 end
 
@@ -1167,18 +1183,19 @@ end
 local function InsertLink(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+        or config.options.close_after_yanking
+    opts.subdirs_in_links = opts.subdirs_in_links
+        or config.options.subdirs_in_links
 
     if not fileutils.global_dir_check() then
         return
     end
 
-    local cwd = M.Cfg.home
-    local find_command = M.Cfg.find_command
-    local sort = M.Cfg.sort
+    local cwd = config.options.home
+    local find_command = config.options.find_command
+    local sort = config.options.sort
     local attach_mappings = function(prompt_bufnr, map)
         actions.select_default:replace(function()
             actions.close(prompt_bufnr)
@@ -1228,8 +1245,9 @@ local function check_for_link_or_tag()
 end
 
 local function follow_url(url)
-    if M.Cfg.follow_url_fallback then
-        local cmd = string.gsub(M.Cfg.follow_url_fallback, "{{url}}", url)
+    if config.options.follow_url_fallback then
+        local cmd =
+            string.gsub(config.options.follow_url_fallback, "{{url}}", url)
         return vim.cmd(cmd)
     end
 
@@ -1263,9 +1281,9 @@ end
 local function PreviewImg(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
@@ -1275,7 +1293,7 @@ local function PreviewImg(opts)
     local fname = vim.fn.getreg('"0'):gsub("^img/", "")
 
     -- check if fname exists anywhere
-    local imageDir = M.Cfg.image_subdir or M.Cfg.home
+    local imageDir = config.options.image_subdir or config.options.home
     local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
 
     if fexists == true then
@@ -1283,7 +1301,7 @@ local function PreviewImg(opts)
             prompt_title = "Preview image/media",
             cwd = imageDir,
             default_text = fname,
-            find_command = M.Cfg.find_command,
+            find_command = config.options.find_command,
             filter_extensions = {
                 ".png",
                 ".jpg",
@@ -1306,10 +1324,10 @@ local function PreviewImg(opts)
                 map("n", "<c-cr>", picker_actions.paste_img_link(opts))
                 return true
             end,
-            sort = M.Cfg.sort,
+            sort = config.options.sort,
         })
     else
-        print("File not found: " .. M.Cfg.home .. "/" .. fname)
+        print("File not found: " .. config.options.home .. "/" .. fname)
     end
 end
 
@@ -1322,9 +1340,9 @@ end
 local function BrowseImg(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
@@ -1332,8 +1350,8 @@ local function BrowseImg(opts)
 
     find_files_sorted({
         prompt_title = "Preview image/media",
-        cwd = M.Cfg.home,
-        find_command = M.Cfg.find_command,
+        cwd = config.options.home,
+        find_command = config.options.find_command,
         filter_extensions = {
             ".png",
             ".jpg",
@@ -1356,7 +1374,7 @@ local function BrowseImg(opts)
             map("n", "<c-cr>", picker_actions.paste_img_link(opts))
             return true
         end,
-        sort = M.Cfg.sort,
+        sort = config.options.sort,
     })
 end
 
@@ -1369,9 +1387,9 @@ end
 local function FindFriends(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
@@ -1384,9 +1402,9 @@ local function FindFriends(opts)
 
     builtin.live_grep({
         prompt_title = "Notes referencing `" .. title .. "`",
-        cwd = M.Cfg.home,
+        cwd = config.options.home,
         default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
-        find_command = M.Cfg.find_command,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1423,65 +1441,86 @@ end
 local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
-    fileutils.prompt_title(M.Cfg.extension, oldfile.title, function(newname)
-        local newpath = newname:match("(.*/)") or ""
-        newpath = M.Cfg.home .. "/" .. newpath
+    fileutils.prompt_title(
+        config.options.extension,
+        oldfile.title,
+        function(newname)
+            local newpath = newname:match("(.*/)") or ""
+            newpath = config.options.home .. "/" .. newpath
 
-        -- If no subdir specified, place the new note in the same place as old note
-        if
-            M.Cfg.subdirs_in_links == true
-            and newpath == M.Cfg.home .. "/"
-            and oldfile.sub_dir ~= ""
-        then
-            newname = oldfile.sub_dir .. "/" .. newname
-        end
+            -- If no subdir specified, place the new note in the same place as old note
+            if
+                config.options.subdirs_in_links == true
+                and newpath == config.options.home .. "/"
+                and oldfile.sub_dir ~= ""
+            then
+                newname = oldfile.sub_dir .. "/" .. newname
+            end
 
-        local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
-        local fexists = fileutils.file_exists(fname)
-        if fexists then
-            tkutils.print_error("File alreay exists. Renaming abandonned")
-            return
-        end
-
-        -- Savas newfile, delete buffer of old one and remove old file
-        if newname ~= "" and newname ~= oldfile.title then
-            if not (fileutils.check_dir_and_ask(newpath, "Renamed file")) then
+            local fname = config.options.home
+                .. "/"
+                .. newname
+                .. config.options.extension
+            local fexists = fileutils.file_exists(fname)
+            if fexists then
+                tkutils.print_error("File alreay exists. Renaming abandonned")
                 return
             end
 
-            local oldTitle = oldfile.title:gsub(" ", "\\ ")
-            vim.cmd(
-                "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
-            )
-            vim.cmd("bdelete " .. oldTitle .. M.Cfg.extension)
-            os.execute(
-                "rm " .. M.Cfg.home .. "/" .. oldTitle .. M.Cfg.extension
-            )
-        end
+            -- Savas newfile, delete buffer of old one and remove old file
+            if newname ~= "" and newname ~= oldfile.title then
+                if
+                    not (fileutils.check_dir_and_ask(newpath, "Renamed file"))
+                then
+                    return
+                end
 
-        if M.Cfg.rename_update_links == true then
-            -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
-            -- Should use regex instead to ensure it is a proper link
-            local oldlink = "[[" .. oldfile.title
-            local newlink = "[[" .. newname
-
-            -- Save open buffers before looking for links to replace
-            if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
-                vim.ui.select({ "Yes (default)", "No" }, {
-                    prompt = "Telekasten.nvim: "
-                        .. "Save all modified buffers before updating links?",
-                }, function(answer)
-                    if answer ~= "No" then
-                        save_all_mod_buffers()
-                    end
-                end)
+                local oldTitle = oldfile.title:gsub(" ", "\\ ")
+                vim.cmd(
+                    "saveas "
+                        .. config.options.home
+                        .. "/"
+                        .. newname
+                        .. config.options.extension
+                )
+                vim.cmd("bdelete " .. oldTitle .. config.options.extension)
+                os.execute(
+                    "rm "
+                        .. config.options.home
+                        .. "/"
+                        .. oldTitle
+                        .. config.options.extension
+                )
             end
 
-            recursive_substitution(M.Cfg.home, oldlink, newlink)
-            recursive_substitution(M.Cfg.dailies, oldlink, newlink)
-            recursive_substitution(M.Cfg.weeklies, oldlink, newlink)
+            if config.options.rename_update_links == true then
+                -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
+                -- Should use regex instead to ensure it is a proper link
+                local oldlink = "[[" .. oldfile.title
+                local newlink = "[[" .. newname
+
+                -- Save open buffers before looking for links to replace
+                if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
+                    vim.ui.select({ "Yes (default)", "No" }, {
+                        prompt = "Telekasten.nvim: "
+                            .. "Save all modified buffers before updating links?",
+                    }, function(answer)
+                        if answer ~= "No" then
+                            save_all_mod_buffers()
+                        end
+                    end)
+                end
+
+                recursive_substitution(config.options.home, oldlink, newlink)
+                recursive_substitution(config.options.dailies, oldlink, newlink)
+                recursive_substitution(
+                    config.options.weeklies,
+                    oldlink,
+                    newlink
+                )
+            end
         end
-    end)
+    )
 end
 
 --
@@ -1493,23 +1532,27 @@ end
 local function GotoDate(opts)
     opts.dates = dateutils.calculate_dates(
         opts.date_table,
-        M.Cfg.calendar_opts.calendar_monday
+        config.options.calendar_opts.calendar_monday
     )
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
+        or config.options.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open
+        or config.options.journal_auto_open
 
     local word = opts.date or os.date(dateutils.dateformats.date)
 
-    local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
+    local fname = config.options.dailies
+        .. "/"
+        .. word
+        .. config.options.extension
     local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
             (opts.dailies_create_nonexisting == true)
-            or M.Cfg.dailies_create_nonexisting == true
+            or config.options.dailies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -1528,9 +1571,9 @@ local function GotoDate(opts)
     else
         find_files_sorted({
             prompt_title = "Goto day",
-            cwd = M.Cfg.dailies,
+            cwd = config.options.dailies,
             default_text = word,
-            find_command = M.Cfg.find_command,
+            find_command = config.options.find_command,
             attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
@@ -1583,17 +1626,17 @@ end
 local function FindNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
     end
 
-    local cwd = M.Cfg.home
-    local find_command = M.Cfg.find_command
-    local sort = M.Cfg.sort
+    local cwd = config.options.home
+    local find_command = config.options.find_command
+    local sort = config.options.sort
     local attach_mappings = function(_, map)
         actions.select_default:replace(picker_actions.select_default)
         map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1641,8 +1684,8 @@ local function InsertImgLink(opts)
 
     find_files_sorted({
         prompt_title = "Find image/media",
-        cwd = M.Cfg.home,
-        find_command = M.Cfg.find_command,
+        cwd = config.options.home,
+        find_command = config.options.find_command,
         filter_extensions = {
             ".png",
             ".jpg",
@@ -1672,7 +1715,7 @@ local function InsertImgLink(opts)
             map("n", "<c-cr>", picker_actions.paste_img_link(opts))
             return true
         end,
-        sort = M.Cfg.sort,
+        sort = config.options.sort,
     })
 end
 
@@ -1685,9 +1728,9 @@ end
 local function SearchNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
@@ -1695,10 +1738,10 @@ local function SearchNotes(opts)
 
     builtin.live_grep({
         prompt_title = "Search in notes",
-        cwd = M.Cfg.home,
-        search_dirs = { M.Cfg.home },
+        cwd = config.options.home,
+        search_dirs = { config.options.home },
         default_text = opts.default_text or vim.fn.expand("<cword>"),
-        find_command = M.Cfg.find_command,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1721,9 +1764,9 @@ end
 local function ShowBacklinks(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
     if not fileutils.global_dir_check() then
         return
@@ -1734,10 +1777,10 @@ local function ShowBacklinks(opts)
     builtin.live_grep({
         results_title = "Backlinks to " .. title,
         prompt_title = "Search",
-        cwd = M.Cfg.home,
-        search_dirs = { M.Cfg.home },
+        cwd = config.options.home,
+        search_dirs = { config.options.home },
         default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
-        find_command = M.Cfg.find_command,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1765,12 +1808,14 @@ local function on_create_with_template(opts, title)
 
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-    opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
-    opts.template_handling = opts.template_handling or M.Cfg.template_handling
-    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
+        or config.options.close_after_yanking
+    opts.new_note_location = opts.new_note_location
+        or config.options.new_note_location
+    opts.template_handling = opts.template_handling
+        or config.options.template_handling
+    local uuid_type = opts.uuid_type or config.options.uuid_type
 
     local uuid = fileutils.new_uuid(uuid_type)
     local pinfo = Pinfo:new({
@@ -1787,12 +1832,12 @@ local function on_create_with_template(opts, title)
 
     find_files_sorted({
         prompt_title = "Select template...",
-        cwd = M.Cfg.templates,
-        find_command = M.Cfg.find_command,
+        cwd = config.options.templates,
+        find_command = config.options.find_command,
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
-                -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
+                -- local template = config.options.templates .. "/" .. action_state.get_selected_entry().value
                 local template = action_state.get_selected_entry().value
                 -- TODO: pass in the calendar_info returned from the pinfo
                 create_note_from_template(
@@ -1822,7 +1867,7 @@ local function CreateNoteSelectTemplate(opts)
         return
     end
 
-    fileutils.prompt_title(M.Cfg.extension, nil, function(title)
+    fileutils.prompt_title(config.options.extension, nil, function(title)
         on_create_with_template(opts, title)
     end)
 end
@@ -1836,12 +1881,14 @@ end
 local function on_create(opts, title)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-    opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
-    opts.template_handling = opts.template_handling or M.Cfg.template_handling
-    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
+        or config.options.close_after_yanking
+    opts.new_note_location = opts.new_note_location
+        or config.options.new_note_location
+    opts.template_handling = opts.template_handling
+        or config.options.template_handling
+    local uuid_type = opts.uuid_type or config.options.uuid_type
 
     if title == nil then
         return
@@ -1871,7 +1918,7 @@ local function on_create(opts, title)
         prompt_title = "Created note...",
         cwd = pinfo.root_dir,
         default_text = generate_note_filename(uuid, title),
-        find_command = M.Cfg.find_command,
+        find_command = config.options.find_command,
         attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -1892,11 +1939,11 @@ local function CreateNote(opts)
         return
     end
 
-    if M.Cfg.template_handling == "always_ask" then
+    if config.options.template_handling == "always_ask" then
         return CreateNoteSelectTemplate(opts)
     end
 
-    fileutils.prompt_title(M.Cfg.extension, nil, function(title)
+    fileutils.prompt_title(config.options.extension, nil, function(title)
         on_create(opts, title)
     end)
 end
@@ -1910,13 +1957,15 @@ end
 local function FollowLink(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
+        or config.options.close_after_yanking
 
-    opts.template_handling = opts.template_handling or M.Cfg.template_handling
-    opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
-    local uuid_type = opts.uuid_type or M.Cfg.uuid_type
+    opts.template_handling = opts.template_handling
+        or config.options.template_handling
+    opts.new_note_location = opts.new_note_location
+        or config.options.new_note_location
+    local uuid_type = opts.uuid_type or config.options.uuid_type
 
     if not fileutils.global_dir_check() then
         return
@@ -1994,7 +2043,7 @@ local function FollowLink(opts)
     if search_mode == "files" then
         -- check if subdir exists
         local filepath = title:match("(.*/)") or ""
-        filepath = M.Cfg.home .. "/" .. filepath
+        filepath = config.options.home .. "/" .. filepath
         fileutils.check_dir_and_ask(filepath, "")
 
         -- check if fname exists anywhere
@@ -2003,7 +2052,7 @@ local function FollowLink(opts)
             (pinfo.fexists ~= true)
             and (
                 (opts.follow_creates_nonexisting == true)
-                or M.Cfg.follow_creates_nonexisting == true
+                or config.options.follow_creates_nonexisting == true
             )
         then
             if opts.template_handling == "always_ask" then
@@ -2028,7 +2077,7 @@ local function FollowLink(opts)
             prompt_title = "Follow link to note...",
             cwd = pinfo.root_dir,
             default_text = title,
-            find_command = M.Cfg.find_command,
+            find_command = config.options.find_command,
             attach_mappings = function(_, map)
                 actions.select_default:replace(picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -2039,13 +2088,13 @@ local function FollowLink(opts)
                 map("n", "<esc>", picker_actions.close(opts))
                 return true
             end,
-            sort = M.Cfg.sort,
+            sort = config.options.sort,
         })
     end
 
     if search_mode ~= "files" then
         local search_pattern = title
-        local cwd = M.Cfg.home
+        local cwd = config.options.home
 
         opts.cwd = cwd
         local counts = nil
@@ -2349,25 +2398,31 @@ end
 local function GotoThisWeek(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
+        or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
+        or config.options.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open
+        or config.options.journal_auto_open
 
     if not fileutils.global_dir_check() then
         return
     end
 
-    local dinfo =
-        dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
+    local dinfo = dateutils.calculate_dates(
+        nil,
+        config.options.calendar_opts.calendar_monday
+    )
     local title = dinfo.isoweek
-    local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
+    local fname = config.options.weeklies
+        .. "/"
+        .. title
+        .. config.options.extension
     local fexists = fileutils.file_exists(fname)
     if
         (fexists ~= true)
         and (
             (opts.weeklies_create_nonexisting == true)
-            or M.Cfg.weeklies_create_nonexisting == true
+            or config.options.weeklies_create_nonexisting == true
         )
     then
         create_note_from_template(
@@ -2385,9 +2440,9 @@ local function GotoThisWeek(opts)
     else
         find_files_sorted({
             prompt_title = "Goto this week:",
-            cwd = M.Cfg.weeklies,
+            cwd = config.options.weeklies,
             default_text = title,
-            find_command = M.Cfg.find_command,
+            find_command = config.options.find_command,
             attach_mappings = function(_, map)
                 actions.select_default:replace(picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -2408,10 +2463,10 @@ end
 
 -- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
 local function CalendarSignDay(day, month, year)
-    local fn = M.Cfg.dailies
+    local fn = config.options.dailies
         .. "/"
         .. string.format("%04d-%02d-%02d", year, month, day)
-        .. M.Cfg.extension
+        .. config.options.extension
     if fileutils.file_exists(fn) then
         return 1
     end
@@ -2447,7 +2502,7 @@ end
 
 -- set up calendar integration: forward to our lua functions
 local function SetupCalendar(opts)
-    local defaults = M.Cfg.calendar_opts
+    local defaults = config.options.calendar_opts
     opts = opts or defaults
 
     local cmd = [[
@@ -2548,11 +2603,12 @@ end
 local function FindAllTags(opts)
     opts = opts or {}
     local i = opts.i
-    opts.cwd = M.Cfg.home
-    opts.tag_notation = M.Cfg.tag_notation
-    local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
+    opts.cwd = config.options.home
+    opts.tag_notation = config.options.tag_notation
+    local templateDir = Path:new(config.options.templates)
+        :make_relative(config.options.home)
     opts.templateDir = templateDir
-    opts.rg_pcre = M.Cfg.rg_pcre
+    opts.rg_pcre = config.options.rg_pcre
 
     if not fileutils.global_dir_check() then
         return
@@ -2569,13 +2625,13 @@ local function FindAllTags(opts)
         end
     end
 
-    if M.Cfg.show_tags_theme == "get_cursor" then
+    if config.options.show_tags_theme == "get_cursor" then
         opts = themes.get_cursor({
             layout_config = {
                 height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
             },
         })
-    elseif M.Cfg.show_tags_theme == "ivy" then
+    elseif config.options.show_tags_theme == "ivy" then
         opts = themes.get_ivy({
             layout_config = {
                 prompt_position = "top",
@@ -2591,8 +2647,8 @@ local function FindAllTags(opts)
         })
     end
     -- re-apply
-    opts.cwd = M.Cfg.home
-    opts.tag_notation = M.Cfg.tag_notation
+    opts.cwd = config.options.home
+    opts.tag_notation = config.options.tag_notation
     opts.i = i
     pickers
         .new(opts, {
@@ -2674,56 +2730,60 @@ local function Setup(cfg)
     end
     -- TODO: this is obsolete:
     if vim.fn.executable("rg") == 1 then
-        M.Cfg.find_command = { "rg", "--files", "--sortr", "created" }
+        config.options.find_command = { "rg", "--files", "--sortr", "created" }
     else
-        M.Cfg.find_command = nil
+        config.options.find_command = nil
     end
 
     -- this looks a little messy
-    if M.Cfg.plug_into_calendar then
+    if config.options.plug_into_calendar then
         cfg.calendar_opts = cfg.calendar_opts or {}
-        M.Cfg.calendar_opts = M.Cfg.calendar_opts or {}
-        M.Cfg.calendar_opts.weeknm = cfg.calendar_opts.weeknm
-            or M.Cfg.calendar_opts.weeknm
+        config.options.calendar_opts = config.options.calendar_opts or {}
+        config.options.calendar_opts.weeknm = cfg.calendar_opts.weeknm
+            or config.options.calendar_opts.weeknm
             or 1
-        M.Cfg.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday
-            or M.Cfg.calendar_opts.calendar_monday
+        config.options.calendar_opts.calendar_monday = cfg.calendar_opts.calendar_monday
+            or config.options.calendar_opts.calendar_monday
             or 1
-        M.Cfg.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark
-            or M.Cfg.calendar_opts.calendar_mark
+        config.options.calendar_opts.calendar_mark = cfg.calendar_opts.calendar_mark
+            or config.options.calendar_opts.calendar_mark
             or "left-fit"
-        SetupCalendar(M.Cfg.calendar_opts)
+        SetupCalendar(config.options.calendar_opts)
     end
 
     -- setup extensions to filter for
-    M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
+    config.options.filter_extensions = cfg.filter_extensions
+        or { config.options.extension }
 
     -- provide fake filenames for template loading to fail silently if template is configured off
-    M.Cfg.template_new_note = M.Cfg.template_new_note or "none"
-    M.Cfg.template_new_daily = M.Cfg.template_new_daily or "none"
-    M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or "none"
+    config.options.template_new_note = config.options.template_new_note
+        or "none"
+    config.options.template_new_daily = config.options.template_new_daily
+        or "none"
+    config.options.template_new_weekly = config.options.template_new_weekly
+        or "none"
 
     -- refresh templates
     M.note_type_templates = {
-        normal = M.Cfg.template_new_note,
-        daily = M.Cfg.template_new_daily,
-        weekly = M.Cfg.template_new_weekly,
+        normal = config.options.template_new_note,
+        daily = config.options.template_new_daily,
+        weekly = config.options.template_new_weekly,
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
-    if M.Cfg.auto_set_filetype or M.Cfg.auto_set_syntax then
+    if config.options.auto_set_filetype or config.options.auto_set_syntax then
         filetype.add_file("telekasten")
     end
     -- setting the syntax moved into plugin/telekasten.vim
     -- and does not work
 
-    if M.Cfg.take_over_my_home == true then
-        if M.Cfg.auto_set_filetype then
+    if config.options.take_over_my_home == true then
+        if config.options.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                    .. M.Cfg.home
+                    .. config.options.home
                     .. "/*"
-                    .. M.Cfg.extension
+                    .. config.options.extension
                     .. " set ft=telekasten"
             )
         end
@@ -2736,22 +2796,24 @@ local function Setup(cfg)
     end
 
     -- Convert all directories in full path
-    M.Cfg.image_subdir = make_config_path_absolute(M.Cfg.image_subdir)
-    M.Cfg.dailies = make_config_path_absolute(M.Cfg.dailies)
-    M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
-    M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
+    config.options.image_subdir =
+        make_config_path_absolute(config.options.image_subdir)
+    config.options.dailies = make_config_path_absolute(config.options.dailies)
+    config.options.weeklies = make_config_path_absolute(config.options.weeklies)
+    config.options.templates =
+        make_config_path_absolute(config.options.templates)
 
     -- Check if ripgrep is compiled with --pcre
     -- ! This will need to be fixed when neovim moves to lua >=5.2 by the following:
-    -- M.Cfg.rg_pcre = os.execute("echo 'hello' | rg --pcr2 hello &> /dev/null") or false
+    -- config.options.rg_pcre = os.execute("echo 'hello' | rg --pcr2 hello &> /dev/null") or false
 
-    M.Cfg.rg_pcre = false
+    config.options.rg_pcre = false
     local has_pcre =
         os.execute("echo 'hello' | rg --pcre2 hello > /dev/null 2>&1")
     if has_pcre == 0 then
-        M.Cfg.rg_pcre = true
+        config.options.rg_pcre = true
     end
-    M.Cfg.media_previewer = M.Cfg.media_previewer
+    config.options.media_previewer = config.options.media_previewer
 end
 
 local function _setup(cfg)
@@ -2897,7 +2959,7 @@ TelekastenCmd.command = function(subcommand)
     else
         local theme
 
-        if M.Cfg.command_palette_theme == "ivy" then
+        if config.options.command_palette_theme == "ivy" then
             theme = themes.get_ivy()
         else
             theme = themes.get_dropdown({
@@ -2909,7 +2971,8 @@ TelekastenCmd.command = function(subcommand)
 end
 function picker_actions.create_new(opts)
     opts = opts or {}
-    opts.subdirs_in_links = opts.subdirs_in_links or M.Cfg.subdirs_in_links
+    opts.subdirs_in_links = opts.subdirs_in_links
+        or config.options.subdirs_in_links
     return function(prompt_bufnr)
         local prompt =
             action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
