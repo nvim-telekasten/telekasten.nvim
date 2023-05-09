@@ -236,7 +236,12 @@ local function make_config_path_absolute(path)
     if not (Path:new(path):is_absolute()) and path ~= nil then
         ret = M.Cfg.home .. "/" .. path
     end
-    return ret:gsub("/$", "")
+
+    if ret ~= nil then
+        ret = ret:gsub("/$", "")
+    end
+
+    return ret
 end
 
 local function recursive_substitution(dir, old, new)
