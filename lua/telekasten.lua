@@ -236,7 +236,7 @@ local function make_config_path_absolute(path)
     if not (Path:new(path):is_absolute()) and path ~= nil then
         ret = M.Cfg.home .. "/" .. path
     end
-    return ret
+    return ret:gsub("/$", "")
 end
 
 local function recursive_substitution(dir, old, new)
@@ -399,13 +399,13 @@ local function imgFromClipboard()
 
     local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
     local pngdir = M.Cfg.image_subdir and M.Cfg.image_subdir or M.Cfg.home
-    local png = pngdir .. "/" .. pngname
+    local png = Path:new(pngdir, pngname).filename
     local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
     local output = vim.fn.system(get_paste_command(pngdir, pngname))
     if output ~= "" then
         -- Remove empty file created by previous command if failed
-        vim.fn.system("rm " .. pngdir .. "/" .. pngname)
+        vim.fn.system("rm " .. png)
         vim.api.nvim_err_writeln(
             string.format(
                 "Unable to write image %s.\nIs there an image on the clipboard?\nSee also issue 131",
