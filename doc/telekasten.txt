@@ -114,7 +114,7 @@ telekasten.setup({opts})
       -- Make syntax available to markdown buffers and telescope previewers
       install_syntax = true,
 
-      -- Tag notation: '#tag', ':tag:', 'yaml-bare'
+      -- Tag notation: '#tag', '@tag', ':tag:', 'yaml-bare'
       tag_notation = "#tag",
 
       -- When linking to a note in subdir/, create a [[subdir/title]] link

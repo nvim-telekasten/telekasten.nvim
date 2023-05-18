@@ -52,6 +52,9 @@ M.is_tag_or_link_at = function(line, col, opts)
             if char == "#" then
                 seen_hashtag = true
             end
+            if char == "@" then
+                seen_hashtag = true
+            end
             -- Tags should have a space before #, if not we are likely in a link
             if char == " " and seen_hashtag and opts.tag_notation == "#tag" then
                 if not cannot_be_tag then
