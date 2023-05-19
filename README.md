@@ -362,8 +362,9 @@ See the documentation for more details regarding the different types of links
 Telekasten supports the following tag notations:
 
 1. `#tag`
-2. `:tag:`
-3. `yaml-bare`: bare tags in a tag collection in the yaml metadata:
+2. `@tag`
+3. `:tag:`
+4. `yaml-bare`: bare tags in a tag collection in the yaml metadata:
 
 
 See the documentation for more details regarding the tag syntax (`:h
