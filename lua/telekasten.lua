@@ -2672,7 +2672,7 @@ local function FindAllTags(opts)
                         action_state.get_selected_entry().value.tag
                     local follow_opts = {
                         follow_tag = selection,
-                        show_link_counts = true,
+                        show_link_counts = false,
                         templateDir = templateDir,
                     }
                     actions._close(prompt_bufnr, false)
