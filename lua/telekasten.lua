@@ -1323,8 +1323,10 @@ local function PreviewImg(opts)
         return
     end
 
+    local saved_reg = vim.fn.getreg('"0')
     vim.cmd("normal yi)")
     local fname = vim.fn.getreg('"0'):gsub("^img/", "")
+    vim.fn.setreg('"0', saved_reg)
 
     -- check if fname exists anywhere
     local imageDir = M.Cfg.image_subdir or M.Cfg.home
@@ -1429,8 +1431,11 @@ local function FindFriends(opts)
         return
     end
 
+    local saved_reg = vim.fn.getreg('"0')
     vim.cmd("normal yi]")
     local title = vim.fn.getreg('"0')
+    vim.fn.setreg('"0', saved_reg)
+
     title = linkutils.remove_alias(title)
     title = title:gsub("^(%[)(.+)(%])$", "%2")
 
@@ -2003,6 +2008,7 @@ local function FollowLink(opts)
         search_mode = "tag"
         title = tag
     else
+        local saved_reg = vim.fn.getreg('"0')
         if kind == "link" then
             -- we are in a link
             vim.cmd("normal yi]")
@@ -2015,6 +2021,7 @@ local function FollowLink(opts)
             local url = vim.fn.getreg('"0')
             return follow_url(url)
         end
+        vim.fn.setreg('"0', saved_reg)
 
         local parts = vim.split(title, "#")
 
