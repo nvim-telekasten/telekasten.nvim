@@ -666,7 +666,7 @@ telekasten.insert_link({opts})~
     Default: `nil`
 
                                                    *telekasten.follow_link()*
-telekasten.insert_link()~
+telekasten.follow_link()~
   Take the text between the brackets of a link pointing to a linked note, or
   of a tag and open a Telescope file finder with it.
 
