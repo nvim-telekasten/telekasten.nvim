@@ -448,7 +448,13 @@ local function create_note_from_template(
     end
 
     -- now write the output file, substituting vars line by line
+    local filedir = title:match("(.*/)") or ""
+    local dir_succeed = check_dir_and_ask(filedir, filedir)
+    if dir_succeed == false then
+        return
+    end
     local ofile = io.open(filepath, "a")
+
     for _, line in pairs(lines) do
         ofile:write(
             templates.subst_templated_values(
