@@ -191,6 +191,8 @@ greatly improve the note-taking experience.
   generate a table of contents for your markdown documents
 - [synctodo](https://github.com/cnshsliu/synctodo): bash script to sync todos
   among Telekasten, Mac and iPhone reminders.
+- [telescope-all-recent](https://github.com/prochri/telescope-all-recent.nvim):
+  shows files you have recently opened.
 
 
 ## Usage
