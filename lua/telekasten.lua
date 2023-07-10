@@ -2195,7 +2195,7 @@ local function FollowLink(opts)
                             pinfo.calendar_info,
                             function()
                                 opts.erase = true
-                                opts.erase_file = fname
+                                opts.erase_file = pinfo.filepath
                                 picker()
                             end
                         )
