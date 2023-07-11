@@ -70,7 +70,7 @@ telekasten.setup({opts})
       -- Main paths
       home = '/path/to/directory',        -- path to main notes folder
       daily = '/path/to/directory',       -- path to daily notes
-      weekly = '/path/to/directory',      -- path to weekly notes
+      weeklies = '/path/to/directory',      -- path to weekly notes
       templates = '/path/to/directory',   -- path to templates
 
       -- Specific note templates
