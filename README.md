@@ -270,6 +270,7 @@ Telekasten.nvim allows you to color your `[[links]]` and `#tags` by providing
 the following syntax groups:
 
 - `tkLink` : the link title inside the brackets
+- `tkAliasedLink` : the concealed portion of `[[concealed link|link alias]]`
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
 - `tkTag` :  well, tags
