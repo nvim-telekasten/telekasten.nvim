@@ -11,7 +11,7 @@ syn region Comment matchgroup=Comment start="<!--" end="-->"  contains=tkTag kee
 syntax region tkLink matchgroup=tkBrackets start=/\[\[/ end=/\]\]/ keepend display oneline contains=tkAliasedLink
 syntax match tkAliasedLink "[^\[\]]\+|" contained conceal
 
-syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline contains=tkHighlightedAliasedLink
+syntax region tkHighlight matchgroup=tkBrackets start=/==/ end=/==/ display oneline contains=tkAliasedLink
 
 syntax match tkTag "\v#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*"
 syntax match tkTag "\v:[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\-_]*:"
