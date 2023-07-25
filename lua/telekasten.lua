@@ -2081,29 +2081,24 @@ local function FollowLink(opts)
         local filename_part = ""
 
         -- first: check if we're in a tag or a link
-        local kind, atcol, tag
+        local kind
         local globArg = ""
 
         if opts.follow_tag ~= nil then
             kind = "tag"
-            tag = opts.follow_tag
             if opts.templateDir ~= nil then
                 globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
             end
         else
-            kind, atcol = check_for_link_or_tag()
+            kind, _ = check_for_link_or_tag()
         end
 
         if kind == "tag" then
-            if atcol ~= nil then
-                tag = taglinks.get_tag_at(
-                    vim.api.nvim_get_current_line(),
-                    atcol,
-                    M.Cfg
-                )
-            end
             search_mode = "tag"
-            title = tag
+            local saved_reg = vim.fn.getreg('"0')
+            vim.cmd("normal yiw")
+            title = vim.fn.getreg('"0')
+            vim.fn.setreg('"0', saved_reg)
         else
             local saved_reg = vim.fn.getreg('"0')
             if kind == "link" then
