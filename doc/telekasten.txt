@@ -820,8 +820,9 @@ Section 3.2: Tag Notation                            *telekasten.tag_notation*
 Telekasten supports the following tag notations:
 
 1. `#tag`
-2. `:tag:`
-3. bare tags in a tag collection in the yaml metadata:
+2. `@tag`
+3. `:tag:`
+4. bare tags in a tag collection in the yaml metadata:
 >
   ---
   title: My awesome note
