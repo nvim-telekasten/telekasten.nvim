@@ -52,7 +52,6 @@ also just insert a link to the note or yank a link instead of opening the note.
 
 ![](img/tags-linkcounts.png)
 
-
 ## Contents
 
 <!-- FIXME -->
@@ -76,6 +75,7 @@ also just insert a link to the note or yank a link instead of opening the note.
 - [Hard-coded stuff](#hard-coded-stuff)
 
 ## Requirements
+
 Telekasten requires Neovim v0.6.0 or higher. Besides that, its only mandatory
 dependency of is
 [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), which acts
@@ -115,7 +115,6 @@ telekasten.requirements`).
 
 </details>
 
-
 <details>
 <summary>Vim-plug</summary>
 
@@ -136,8 +135,8 @@ telekasten.requirements`).
 
 </details>
 
-
 ### Base setup
+
 In order to use Telekasten, you need to first require its setup function
 somewhere in your `init.lua`. Take this opportunity to indicate the path for
 your notes directory. If you do not specify anything, the plugin will ask you to
@@ -148,6 +147,7 @@ require('telekasten').setup({
   home = vim.fn.expand("~/zettelkasten"), -- Put the name of your notes directory here
 })
 ```
+
 **NOTE:** For Windows users, please indicate the path as
 `C:/Users/username/zettelkasten/`. See `:h telekasten.windows` for more details
 about the specificities for Windows.
@@ -155,25 +155,28 @@ about the specificities for Windows.
 ### Suggested dependencies
 
 #### Calendar
+
 Telekasten interacts very nicely with
 [calendar-vim](https://github.com/renerocksai/calendar-vim). Installing this
 plugin will allow you to create journal entries for the selected dates and
 highlight dates with attached entries.
 
 #### Image preview
+
 Various plugins or external tools can be used as image previewers to help you
 pick the correct illustrations for your note.
+
 - [telescope-media-files.nvim](https://github.com/nvim-telescope/telescope-media-files.nvim)
 - [catimg](https://github.com/posva/catimg)
 - [viu](https://github.com/atanunq/viu)
 
 #### Image pasting
+
 - [xclip](https://github.com/astrand/xclip)
 - [wl-clipboard](https://github.com/bugaevc/wl-clipboard)
 
 _Image pasting is supported by default on MacOS, it is not necessary to install
 any other tool._
-
 
 #### Other useful resources/plugins
 
@@ -194,14 +197,15 @@ greatly improve the note-taking experience.
 - [telescope-all-recent](https://github.com/prochri/telescope-all-recent.nvim):
   shows files you have recently opened.
 
-
 ## Usage
 
 The simplest way to use the plugin is to call directly the related Telekasten
 command:
+
 ```vim
 :Telekasten <sub-command>
 ```
+
 <details>
 <summary>Advanced use</summary>
 Each sub-command is implemented by a specific lua function. While high-level
@@ -220,7 +224,7 @@ See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#adva
 
 The following sub-commands are defined:
 
-- `panel` : brings up the [command palette](command-palette)
+- `panel` : brings up the [command palette](#command-palette)
 - `find_notes` : Find notes by title (filename)
 - `show_tags` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
 - `find_daily_notes` : Find daily notes by title (date)
@@ -245,8 +249,7 @@ The following sub-commands are defined:
 - `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
   option for more.
 
-
-###  Command palette
+### Command palette
 
 Telekasten comes with a small helper command palette that let the user browse
 the different commands available. This feature is quite similar to the excellent
@@ -254,13 +257,14 @@ the different commands available. This feature is quite similar to the excellent
 limited to Telekasten.
 
 You can call this panel using
+
 ```vim
 :Telekasten panel
 ```
+
 This can be especially useful if all your Telekasten mappings start with the
 same prefix. In that case, bind the command panel to the prefix only and it will
 pop-up when you hesitate to complete the mapping.
-
 
 ## Customization
 
@@ -277,7 +281,6 @@ the following syntax groups:
 An additional `CalNavi` group is defined to tweak the appearance of the calendar
 navigation button.
 
-
 ```vim
 " Example
 hi tkLink ctermfg=Blue cterm=bold,underline guifg=blue gui=bold,underline
@@ -290,7 +293,6 @@ The real power of Telekasten lays in defining sensible mappings to make your
 workflow even smoother. A good idea is to take advantage of the [command
 palette][#command-palette] and start all your mappings with the same prefix
 (`<leader>z`, for `Z`ettelkasten for instance).
-
 
 ```lua
 -- Launch panel if nothing is typed after <leader>z
@@ -311,18 +313,18 @@ vim.keymap.set("i", "[[", "<cmd>Telekasten insert_link<CR>")
 
 ```
 
-
 #### Advanced mappings
+
 Each Telekasten command is bound to a specific lua function. As lua functions
 can accept arguments, it is possible to craft special mappings to tailor the
 execution of a function to your specific need.
 
 See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#advanced-key-mappings) for more details regarding advanced key mappings.
 
-
 ## Features
 
 ### Vaults
+
 Telekasten allows the user to have completely separated note collections and
 switch between them easily. Simply add data to the `vaults` table in the
     configuration and configure each vault as you wish.
@@ -358,7 +360,6 @@ these can be previewed.
 See the documentation for more details regarding the different types of links
 (`:h telekasten.link_notation`).
 
-
 ### Tag notation
 
 Telekasten supports the following tag notations:
@@ -367,7 +368,6 @@ Telekasten supports the following tag notations:
 2. `@tag`
 3. `:tag:`
 4. `yaml-bare`: bare tags in a tag collection in the yaml metadata:
-
 
 See the documentation for more details regarding the tag syntax (`:h
 telekasten.tag_notation`).

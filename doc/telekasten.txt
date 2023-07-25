@@ -125,7 +125,9 @@ telekasten.setup({opts})
       command_palette_theme = "ivy",
 
       -- Tag list theme:
-        -- get_cursor: small tag list at cursor; ivy and dropdown like above
+        -- get_cursor (small tag list at cursor)
+        -- dropdown (window)
+        -- ivy (bottom panel)
       show_tags_theme = "ivy",
 
       -- Previewer for media files (images mostly)
@@ -369,6 +371,7 @@ telekasten.setup({opts})
 
         Valid options are:
         - `'#tag'`
+        - `'@tag'`
         - `':tag:'`
         - `'yaml-bare'`
 
@@ -428,7 +431,7 @@ telekasten.setup({opts})
 
                                        *telekasten.settings.media_previewer*
     media_previewer:~
-        Previewer used for viewing media / image files. There are two
+        Previewer used for viewing media / image files. There are three
         options:
         - `'telescope-media-files'` : use the telescope-media-files.nvim
           plugin
