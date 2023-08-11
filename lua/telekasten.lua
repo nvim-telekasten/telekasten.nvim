@@ -2086,6 +2086,7 @@ local function FollowLink(opts)
 
         if opts.follow_tag ~= nil then
             kind = "tag"
+            title = opts.follow_tag
             if opts.templateDir ~= nil then
                 globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
             end
@@ -2095,10 +2096,12 @@ local function FollowLink(opts)
 
         if kind == "tag" then
             search_mode = "tag"
-            local saved_reg = vim.fn.getreg('"0')
-            vim.cmd("normal yiw")
-            title = vim.fn.getreg('"0')
-            vim.fn.setreg('"0', saved_reg)
+            if title == nil then
+                local saved_reg = vim.fn.getreg('"0')
+                vim.cmd("normal yiw")
+                title = vim.fn.getreg('"0')
+                vim.fn.setreg('"0', saved_reg)
+            end
         else
             local saved_reg = vim.fn.getreg('"0')
             if kind == "link" then
