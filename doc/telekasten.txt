@@ -527,6 +527,12 @@ You can assign colors to the new syntax groups in your `init.vim`:
   hi tkTag ctermfg=175 guifg=#d3869B
 <
 
+NOTE: Users configuring the following highlight groups prior to 09/2023, be aware they are deprecated:
+- `tkHighlightedAliasLink`: this syntax group is now covered by `tkHighlight`
+- `tkLinkBody`: this syntax group is renamed to `tkAliasedLink`
+- `tkAliasedLink`: this group used to cover the whole link, it is now equivalent to the former `tkLinkBody`
+- `tkLinkAlias`: this rule is deprecated
+
 ================================================================================
 Section 3: Usage                                              *telekasten.usage*
 
