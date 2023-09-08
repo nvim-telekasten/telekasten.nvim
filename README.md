@@ -285,6 +285,12 @@ hi tkLink ctermfg=Blue cterm=bold,underline guifg=blue gui=bold,underline
 hi tkBrackets ctermfg=gray guifg=gray
 ```
 
+**NOTE**: Users configuring the following highlight groups prior to 09/2023, be aware they are deprecated:
+- `tkHighlightedAliasLink`: this syntax group is now covered by `tkHighlight`
+- `tkLinkBody`: this syntax group is renamed to `tkAliasedLink`
+- `tkAliasedLink`: this group used to cover the whole link, it is now equivalent to the former `tkLinkBody` 
+- `tkLinkAlias`: this rule is deprecated
+
 ### Mappings
 
 The real power of Telekasten lays in defining sensible mappings to make your
