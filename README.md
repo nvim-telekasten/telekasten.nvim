@@ -148,6 +148,8 @@ require('telekasten').setup({
 })
 ```
 
+If you want to customize the settings, see the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Configuration) for more detailed configurations.
+
 **NOTE:** For Windows users, please indicate the path as
 `C:/Users/username/zettelkasten/`. See `:h telekasten.windows` for more details
 about the specificities for Windows.
