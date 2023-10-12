@@ -1280,6 +1280,9 @@ local function InsertLink(opts)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
+                if selection == nil then
+                    selection = { filename = action_state.get_current_line() }
+                end
                 local pinfo = Pinfo:new({
                     filepath = selection.filename or selection.value,
                     opts,
