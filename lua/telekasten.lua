@@ -1873,12 +1873,16 @@ local function ShowBacklinks(opts)
         local title =
             Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg }).title
         -- or vim.api.nvim_buf_get_name(0)
+
+        local escaped_title = string.gsub(title, "%(", "\\(")
+        escaped_title = string.gsub(escaped_title, "%)", "\\)")
+
         builtin.live_grep({
             results_title = "Backlinks to " .. title,
             prompt_title = "Search",
             cwd = M.Cfg.home,
             search_dirs = { M.Cfg.home },
-            default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
+            default_text = "\\[\\[" .. escaped_title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
                 actions.select_default:replace(picker_actions.select_default)
