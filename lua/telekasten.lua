@@ -150,6 +150,8 @@ local function defaultConfig(home)
         media_previewer = "telescope-media-files",
         -- A customizable fallback handler for urls.
         follow_url_fallback = nil,
+        -- Enable creation new notes with Ctrl-n when finding notes
+        enable_create_new = true,
     }
     M.Cfg = cfg
     M.note_type_templates = {
@@ -1737,8 +1739,10 @@ local function FindNotes(opts)
             map("n", "<c-i>", picker_actions.paste_link(opts))
             map("i", "<c-cr>", picker_actions.paste_link(opts))
             map("n", "<c-cr>", picker_actions.paste_link(opts))
-            map("i", "<c-n>", picker_actions.create_new(opts))
-            map("n", "<c-n>", picker_actions.create_new(opts))
+            if M.Cfg.enable_create_new then
+                map("i", "<c-n>", picker_actions.create_new(opts))
+                map("n", "<c-n>", picker_actions.create_new(opts))
+            end
             return true
         end
 

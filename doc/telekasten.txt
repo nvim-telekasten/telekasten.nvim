@@ -449,6 +449,14 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `"call jobstart('firefox --new-window {{url}}')"`
+
+                                  *telekasten.settings.enable_create_new*
+    enable_create_new: ~
+        Flag that determines if creating new notes with <C-n> in enabled when
+        using the `find_notes` picker.
+
+        Default: true
+
                                                *telekasten.calendar_opts*
     -----------------------------------
     Valid keys for {opts.calendar_opts}
