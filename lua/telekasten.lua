@@ -2125,6 +2125,7 @@ local function FollowLink(opts)
                 -- we are in an external [link]
                 vim.cmd("normal yi)")
                 local url = vim.fn.getreg('"0')
+                vim.fn.setreg('"0', saved_reg)
                 return follow_url(url)
             end
             vim.fn.setreg('"0', saved_reg)
