@@ -376,6 +376,13 @@ local function imgFromClipboard()
                     return ""
                 end
             end
+        elseif vim.fn.executable("xclip") == 1 then
+            get_paste_command = function(dir, filename)
+                return "xclip -selection clipboard -t image/png -o > "
+                    .. dir
+                    .. "/"
+                    .. filename
+            end
         elseif vim.fn.executable("wl-paste") == 1 then
             get_paste_command = function(dir, filename)
                 return "wl-paste -n -t image/png > " .. dir .. "/" .. filename
