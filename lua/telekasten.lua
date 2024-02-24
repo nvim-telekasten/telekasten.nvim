@@ -148,6 +148,17 @@ local function defaultConfig(home)
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
+        -- files which will be aviable in insert and preview images list
+        media_extensions = {
+            ".png",
+            ".jpg",
+            ".bmp",
+            ".gif",
+            ".pdf",
+            ".mp4",
+            ".webm",
+            ".webp",
+        },
         -- A customizable fallback handler for urls.
         follow_url_fallback = nil,
         -- Enable creation new notes with Ctrl-n when finding notes
@@ -1395,15 +1406,7 @@ local function PreviewImg(opts)
                 cwd = imageDir,
                 default_text = fname,
                 find_command = M.Cfg.find_command,
-                filter_extensions = {
-                    ".png",
-                    ".jpg",
-                    ".bmp",
-                    ".gif",
-                    ".pdf",
-                    ".mp4",
-                    ".webm",
-                },
+                filter_extensions = M.Cfg.media_extensions,
                 preview_type = "media",
                 attach_mappings = function(prompt_bufnr, map)
                     actions.select_default:replace(function()
@@ -1447,15 +1450,7 @@ local function BrowseImg(opts)
             prompt_title = "Preview image/media",
             cwd = M.Cfg.home,
             find_command = M.Cfg.find_command,
-            filter_extensions = {
-                ".png",
-                ".jpg",
-                ".bmp",
-                ".gif",
-                ".pdf",
-                ".mp4",
-                ".webm",
-            },
+            filter_extensions = M.Cfg.media_extensions,
             preview_type = "media",
             attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
@@ -1784,15 +1779,7 @@ local function InsertImgLink(opts)
             prompt_title = "Find image/media",
             cwd = M.Cfg.home,
             find_command = M.Cfg.find_command,
-            filter_extensions = {
-                ".png",
-                ".jpg",
-                ".bmp",
-                ".gif",
-                ".pdf",
-                ".mp4",
-                ".webm",
-            },
+            filter_extensions = M.Cfg.media_extensions,
             preview_type = "media",
             attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
@@ -2943,6 +2930,7 @@ local function Setup(cfg)
         M.Cfg.rg_pcre = true
     end
     M.Cfg.media_previewer = M.Cfg.media_previewer
+    M.Cfg.media_extensions = M.Cfg.media_extensions
 end
 
 local function _setup(cfg)
