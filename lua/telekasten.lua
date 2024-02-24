@@ -430,7 +430,6 @@ local function imgFromClipboard()
         local png = Path:new(pngdir, pngname).filename
         local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
 
-        print(get_paste_command(pngdir, pngname))
         local output = vim.fn.system(get_paste_command(pngdir, pngname))
         if output ~= "" then
             -- Remove empty file created by previous command if failed
