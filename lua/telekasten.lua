@@ -372,7 +372,22 @@ local function imgFromClipboard()
         end
 
         local get_paste_command
-        if vim.fn.executable("xclip") == 1 then
+        if vim.fn.executable("xsel") == 1 then
+            get_paste_command = function(dir, filename)
+                local _image_path = vim.fn.system("xsel --clipboard --output")
+                local image_path = _image_path:gsub("file://", "")
+                if
+                    vim.fn
+                        .system("file --mime-type -b " .. image_path)
+                        :gsub("%s+", "")
+                    == "image/png"
+                then
+                    return "cp " .. image_path .. " " .. dir .. "/" .. filename
+                else
+                    return ""
+                end
+            end
+        elseif vim.fn.executable("xclip") == 1 then
             get_paste_command = function(dir, filename)
                 return "xclip -selection clipboard -t image/png -o > "
                     .. dir
@@ -397,7 +412,7 @@ local function imgFromClipboard()
             return
         end
 
-        -- TODO: check `xclip -selection clipboard -t TARGETS -o` for the occurence of `image/png`
+        -- TODO: check `xclip -selection clipboard -t TARGETS -o` for the occurrence of `image/png`
 
         -- using plenary.job::new():sync() with on_stdout(_, data) unfortunately did some weird ASCII translation on the
         -- data, so the PNGs were invalid. It seems like 0d 0a and single 0a bytes were stripped by the plenary job:
@@ -1578,7 +1593,7 @@ local function RenameNote()
         local fname = M.Cfg.home .. "/" .. newname .. M.Cfg.extension
         local fexists = fileutils.file_exists(fname)
         if fexists then
-            tkutils.print_error("File alreay exists. Renaming abandonned")
+            tkutils.print_error("File already exists. Renaming abandoned")
             return
         end
 
