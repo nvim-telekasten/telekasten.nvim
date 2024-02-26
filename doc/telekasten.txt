@@ -136,6 +136,20 @@ telekasten.setup({opts})
         -- "viu-previewer" if you have viu installed
       media_previewer = "telescope-media-files",
 
+      -- Customize insert image and preview image files list. This is useful
+      -- to add optional filetypes into filtered list (for example
+      -- telescope-media-files optionally supporting svg preview)
+      media_extensions = {
+        ".png",
+        ".jpg",
+        ".bmp",
+        ".gif",
+        ".pdf",
+        ".mp4",
+        ".webm",
+        ".webp",
+      },
+
       -- Calendar integration
       plug_into_calendar = true,         -- use calendar integration
       calendar_opts = {
