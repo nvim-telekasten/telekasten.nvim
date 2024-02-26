@@ -144,10 +144,10 @@ telekasten.setup({opts})
         ".jpg",
         ".bmp",
         ".gif",
-        ".webm",
-        ".svg",
         ".pdf",
         ".mp4",
+        ".webm",
+        ".webp",
       },
 
       -- Calendar integration
