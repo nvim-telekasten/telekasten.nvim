@@ -2122,6 +2122,7 @@ local function FollowLink(opts)
                 vim.cmd("normal yi]")
                 title = vim.fn.getreg('"0')
                 title = title:gsub("^(%[)(.+)(%])$", "%2")
+                title = title:gsub("%s*\n", " ")
                 title = linkutils.remove_alias(title)
             else
                 -- we are in an external [link]
