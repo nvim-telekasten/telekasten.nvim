@@ -449,6 +449,13 @@ telekasten.setup({opts})
 
         Default: `smart`
 
+                                   *telekasten.settings.smart_inbox_folder*
+    smart_inbox_folder:~
+        Path to an zettlekasten-style "inbox" folder. If new_note_location is
+        set to 'smart' all non-daily and non-weekly notes will be created
+        in this folder.
+
+        Default: `nil`
                                    *telekasten.settings.rename_update_links*
     rename_update_links:~
         If `true`, telekasten will automatically update the links after a file

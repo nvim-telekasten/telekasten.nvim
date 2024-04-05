@@ -674,6 +674,8 @@ function Pinfo:resolve_link(title, opts)
     opts.weeklies = opts.weeklies or M.Cfg.weeklies
     opts.dailies = opts.dailies or M.Cfg.dailies
     opts.home = opts.home or M.Cfg.home
+    opts.smart_inbox_folder = opts.smart_inbox_folder
+        or M.Cfg.smart_inbox_folder
     opts.extension = opts.extension or M.Cfg.extension
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
@@ -743,7 +745,8 @@ function Pinfo:resolve_link(title, opts)
         _, _, self.calendar_info = check_if_daily_or_weekly(self.title) -- will set today as default, so leave in!
 
         if opts.new_note_location == "smart" then
-            self.filepath = opts.home .. "/" .. self.filename -- default
+            self.root_dir = opts.smart_inbox_folder or opts.home
+            self.filepath = self.root_dir .. "/" .. self.filename -- default
             self.is_daily, self.is_weekly, self.calendar_info =
                 check_if_daily_or_weekly(self.title)
             if self.is_daily == true then
