@@ -217,7 +217,6 @@ custom mappings.
 :lua require('telekasten').search_notes()
 ```
 
-See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#advanced-key-mappings) for more details regarding advanced usage.
 </details>
 
 ### Commands
@@ -319,8 +318,6 @@ vim.keymap.set("i", "[[", "<cmd>Telekasten insert_link<CR>")
 Each Telekasten command is bound to a specific lua function. As lua functions
 can accept arguments, it is possible to craft special mappings to tailor the
 execution of a function to your specific need.
-
-See the [wiki](https://github.com/renerocksai/telekasten.nvim/wiki/Mappings#advanced-key-mappings) for more details regarding advanced key mappings.
 
 ## Features
 
