@@ -163,6 +163,9 @@ local function defaultConfig(home)
         follow_url_fallback = nil,
         -- Enable creation new notes with Ctrl-n when finding notes
         enable_create_new = true,
+
+        -- Specify a clipboard program to use
+        clipboard_program = "", -- xsel, xclip, wl-paste, osascript
     }
     M.Cfg = cfg
     M.note_type_templates = {
@@ -371,45 +374,55 @@ local function imgFromClipboard()
             return
         end
 
+        local paste_command = {}
+        paste_command["xsel"] = function(dir, filename)
+            local _image_path = vim.fn.system("xsel --clipboard --output")
+            local image_path = _image_path:gsub("file://", "")
+            if
+                vim.fn
+                    .system("file --mime-type -b " .. image_path)
+                    :gsub("%s+", "")
+                == "image/png"
+            then
+                return "cp " .. image_path .. " " .. dir .. "/" .. filename
+            else
+                return ""
+            end
+        end
+        paste_command["xclip"] = function(dir, filename)
+            return "xclip -selection clipboard -t image/png -o > "
+                .. dir
+                .. "/"
+                .. filename
+        end
+        paste_command["osascript"] = function(dir, filename)
+            return string.format(
+                'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                dir,
+                filename
+            )
+        end
+
+        paste_command["wl-paste"] = function(dir, filename)
+            return "wl-paste -n -t image/png > " .. dir .. "/" .. filename
+        end
+
         local get_paste_command
-        if vim.fn.executable("xsel") == 1 then
-            get_paste_command = function(dir, filename)
-                local _image_path = vim.fn.system("xsel --clipboard --output")
-                local image_path = _image_path:gsub("file://", "")
-                if
-                    vim.fn
-                        .system("file --mime-type -b " .. image_path)
-                        :gsub("%s+", "")
-                    == "image/png"
-                then
-                    return "cp " .. image_path .. " " .. dir .. "/" .. filename
-                else
-                    return ""
-                end
-            end
+        if paste_command[M.Cfg.clipboard_program] ~= nil then
+            get_paste_command = paste_command[M.Cfg.clipboard_program]
+        elseif vim.fn.executable("xsel") == 1 then
+            get_paste_command = paste_command["xsel"]
         elseif vim.fn.executable("xclip") == 1 then
-            get_paste_command = function(dir, filename)
-                return "xclip -selection clipboard -t image/png -o > "
-                    .. dir
-                    .. "/"
-                    .. filename
-            end
+            get_paste_command = paste_command["xclip"]
         elseif vim.fn.executable("wl-paste") == 1 then
-            get_paste_command = function(dir, filename)
-                return "wl-paste -n -t image/png > " .. dir .. "/" .. filename
-            end
+            get_paste_command = paste_command["wl-paste"]
         elseif vim.fn.executable("osascript") == 1 then
-            get_paste_command = function(dir, filename)
-                return string.format(
-                    'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                        .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
-                    dir,
-                    filename
-                )
-            end
+            get_paste_command = paste_command["osascript"]
         else
-            vim.api.nvim_err_write("No xclip installed!\n")
-            return
+            vim.api.nvim_err_write(
+                "No clipboard programs found!\nChecked executables: xsel, xclip, wl-paste, osascript\n"
+            )
         end
 
         -- TODO: check `xclip -selection clipboard -t TARGETS -o` for the occurrence of `image/png`

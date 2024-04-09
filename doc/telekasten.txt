@@ -178,6 +178,8 @@ telekasten.setup({opts})
         }
       },
 
+      -- Specify a clipboard program to use
+      clipboard_program = "", -- xsel, xclip, wl-paste, osascript
     }
 <
 
