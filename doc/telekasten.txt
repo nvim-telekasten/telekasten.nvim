@@ -103,6 +103,9 @@ telekasten.setup({opts})
       dailies_create_nonexisting = true,    -- create non-existing dailies
       weeklies_create_nonexisting = true,   -- create non-existing weeklies
 
+      -- skip telescope prompt for goto_today and goto_thisweek
+      journal_auto_open = false,
+
       -- Image link style",
         -- wiki:     ![[image name]]
         -- markdown: ![](image_subdir/xxxxx.png)
@@ -346,6 +349,14 @@ telekasten.setup({opts})
         opening them via the calendar.
 
         Default: true
+
+                         *telekasten.settings.journal_auto_open*
+    journal_auto_open: ~
+        Flag that determines whether the telescope picker should be used when
+        opening the daily and weekly notes, or if they should be directly
+        created/opened.
+
+        Default: false
 
                                    *telekasten.settings.template_new_note*
     template_new_note: ~
