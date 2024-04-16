@@ -410,6 +410,13 @@ local function imgFromClipboard()
 
         local get_paste_command
         if paste_command[M.Cfg.clipboard_program] ~= nil then
+            if vim.fn.executable(M.Cfg.clipboard_program) ~= 1 then
+                vim.api.nvim_err_write(
+                    "The clipboard program specified [`"
+                        .. M.cfg.clipboard_program
+                        .. "`] is not executable or not in your $PATH\n"
+                )
+            end
             get_paste_command = paste_command[M.Cfg.clipboard_program]
         elseif vim.fn.executable("xsel") == 1 then
             get_paste_command = paste_command["xsel"]
