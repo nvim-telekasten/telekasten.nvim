@@ -1643,6 +1643,10 @@ local function GotoDate(opts)
     local fexists = fileutils.file_exists(fname)
     local function picker()
         if opts.journal_auto_open then
+            if opts.calendar == true then
+                -- ensure that the calendar window is not improperly overwritten
+                vim.cmd("wincmd w")
+            end
             vim.cmd("e " .. fname)
         else
             find_files_sorted({
@@ -2550,6 +2554,10 @@ local function GotoThisWeek(opts)
         local fexists = fileutils.file_exists(fname)
         local function picker()
             if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
                 vim.cmd("e " .. fname)
             else
                 find_files_sorted({
