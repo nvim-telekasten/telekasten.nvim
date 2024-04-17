@@ -2002,9 +2002,16 @@ local function CreateNoteSelectTemplate(opts)
             return
         end
 
+        -- get the current working directory
+        local current_dir = vim.fn.getcwd()
+        -- change the cwd to the configured home directory, so tab completion
+        -- works for the folders in that directory
+        vim.fn.chdir(M.Cfg.home)
         fileutils.prompt_title(M.Cfg.extension, nil, function(title)
             on_create_with_template(opts, title)
         end)
+        -- change back to the original directory
+        vim.fn.chdir(current_dir)
     end)
 end
 
@@ -2085,9 +2092,16 @@ local function CreateNote(opts)
             return CreateNoteSelectTemplate(opts)
         end
 
+        -- get the current working directory
+        local current_dir = vim.fn.getcwd()
+        -- change the cwd to the configured home directory, so tab completion
+        -- works for the folders in that directory
+        vim.fn.chdir(M.Cfg.home)
         fileutils.prompt_title(M.Cfg.extension, nil, function(title)
             on_create(opts, title)
         end)
+        -- change back to the original directory
+        vim.fn.chdir(current_dir)
     end)
 end
 
