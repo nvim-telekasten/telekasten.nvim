@@ -873,8 +873,11 @@ local picker_actions = {}
 --         - this requires the telescope-media-files.nvim extension
 local function find_files_sorted(opts)
     opts = opts or {}
+    local search_pattern = opts.search_pattern or nil
+    local search_depth = opts.search_depth or nil
+    local scan_opts = {search_pattern = search_pattern, depth = search_depth}
 
-    local file_list = scan.scan_dir(opts.cwd, {})
+    local file_list = scan.scan_dir(opts.cwd, scan_opts)
     local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
     file_list = filter_filetypes(file_list, filter_extensions)
     local sort_option = opts.sort or "filename"
@@ -1174,6 +1177,8 @@ local function FindDailyNotes(opts)
                 prompt_title = "Find daily note",
                 cwd = M.Cfg.dailies,
                 find_command = M.Cfg.find_command,
+                search_pattern = "%d%d%d%d%-%d%d%-%d%d",
+                search_depth = 1,
                 attach_mappings = function(_, map)
                     actions.select_default:replace(
                         picker_actions.select_default
@@ -1241,6 +1246,8 @@ local function FindWeeklyNotes(opts)
                 prompt_title = "Find weekly note",
                 cwd = M.Cfg.weeklies,
                 find_command = M.Cfg.find_command,
+                search_pattern = "%d%d%d%d%-W%d+",
+                search_depth = 1,
                 attach_mappings = function(_, map)
                     actions.select_default:replace(
                         picker_actions.select_default
