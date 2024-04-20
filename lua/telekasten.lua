@@ -875,7 +875,7 @@ local function find_files_sorted(opts)
     opts = opts or {}
     local search_pattern = opts.search_pattern or nil
     local search_depth = opts.search_depth or nil
-    local scan_opts = {search_pattern = search_pattern, depth = search_depth}
+    local scan_opts = { search_pattern = search_pattern, depth = search_depth }
 
     local file_list = scan.scan_dir(opts.cwd, scan_opts)
     local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
