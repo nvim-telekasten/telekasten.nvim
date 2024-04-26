@@ -69,8 +69,8 @@ telekasten.setup({opts})
 
       -- Main paths
       home = '/path/to/directory',        -- path to main notes folder
-      daily = '/path/to/directory',       -- path to daily notes
-      weekly = '/path/to/directory',      -- path to weekly notes
+      dailies = '/path/to/directory',       -- path to daily notes
+      weeklies = '/path/to/directory',      -- path to weekly notes
       templates = '/path/to/directory',   -- path to templates
 
       -- Specific note templates
@@ -103,6 +103,9 @@ telekasten.setup({opts})
       dailies_create_nonexisting = true,    -- create non-existing dailies
       weeklies_create_nonexisting = true,   -- create non-existing weeklies
 
+      -- skip telescope prompt for goto_today and goto_thisweek
+      journal_auto_open = false,
+
       -- Image link style",
         -- wiki:     ![[image name]]
         -- markdown: ![](image_subdir/xxxxx.png)
@@ -114,7 +117,7 @@ telekasten.setup({opts})
       -- Make syntax available to markdown buffers and telescope previewers
       install_syntax = true,
 
-      -- Tag notation: '#tag', ':tag:', 'yaml-bare'
+      -- Tag notation: '#tag', '@tag', ':tag:', 'yaml-bare'
       tag_notation = "#tag",
 
       -- When linking to a note in subdir/, create a [[subdir/title]] link
@@ -125,7 +128,9 @@ telekasten.setup({opts})
       command_palette_theme = "ivy",
 
       -- Tag list theme:
-        -- get_cursor: small tag list at cursor; ivy and dropdown like above
+        -- get_cursor (small tag list at cursor)
+        -- dropdown (window)
+        -- ivy (bottom panel)
       show_tags_theme = "ivy",
 
       -- Previewer for media files (images mostly)
@@ -133,6 +138,20 @@ telekasten.setup({opts})
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
       media_previewer = "telescope-media-files",
+
+      -- Customize insert image and preview image files list. This is useful
+      -- to add optional filetypes into filtered list (for example
+      -- telescope-media-files optionally supporting svg preview)
+      media_extensions = {
+        ".png",
+        ".jpg",
+        ".bmp",
+        ".gif",
+        ".pdf",
+        ".mp4",
+        ".webm",
+        ".webp",
+      },
 
       -- Calendar integration
       plug_into_calendar = true,         -- use calendar integration
@@ -162,6 +181,8 @@ telekasten.setup({opts})
         }
       },
 
+      -- Specify a clipboard program to use
+      clipboard_program = "", -- xsel, xclip, wl-paste, osascript
     }
 <
 
@@ -331,6 +352,14 @@ telekasten.setup({opts})
 
         Default: true
 
+                         *telekasten.settings.journal_auto_open*
+    journal_auto_open: ~
+        Flag that determines whether the telescope picker should be used when
+        opening the daily and weekly notes, or if they should be directly
+        created/opened.
+
+        Default: false
+
                                    *telekasten.settings.template_new_note*
     template_new_note: ~
         Markdown template for new notes. Set to `nil` if you don't want a
@@ -369,6 +398,7 @@ telekasten.setup({opts})
 
         Valid options are:
         - `'#tag'`
+        - `'@tag'`
         - `':tag:'`
         - `'yaml-bare'`
 
@@ -428,7 +458,7 @@ telekasten.setup({opts})
 
                                        *telekasten.settings.media_previewer*
     media_previewer:~
-        Previewer used for viewing media / image files. There are two
+        Previewer used for viewing media / image files. There are three
         options:
         - `'telescope-media-files'` : use the telescope-media-files.nvim
           plugin
@@ -446,6 +476,14 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `"call jobstart('firefox --new-window {{url}}')"`
+
+                                  *telekasten.settings.enable_create_new*
+    enable_create_new: ~
+        Flag that determines if creating new notes with <C-n> in enabled when
+        using the `find_notes` picker.
+
+        Default: true
+
                                                *telekasten.calendar_opts*
     -----------------------------------
     Valid keys for {opts.calendar_opts}
@@ -496,10 +534,7 @@ groups:
 - `tkBrackets` : the brackets surrounding the link title
 - `tkHighlight` : ==highlighted== text (non-standard markdown)
 - `tkTag` :  well, tags
-- `tkAliasedLink` : link with alias
-- `tkHighlightedAliasedLink` : link with alias in `tkAliasedLink`
-- `tkLinkAlias` : body of the link (left part of `[[aaa|bbb]]`)
-- `tkLinkBody` : alias of the link (right part of `[[aaa|bbb]]`)
+- `tkAliasedLink` : the concealed part of the link (left part of `[[aaa|bbb]]`)
 
 `tkHighlight`, has nothing to do with links but I added it anyway, since I like
 highlighting text when taking notes.
@@ -529,6 +564,12 @@ You can assign colors to the new syntax groups in your `init.vim`:
   hi tkTagSep ctermfg=gray guifg=gray
   hi tkTag ctermfg=175 guifg=#d3869B
 <
+
+NOTE: Users configuring the following highlight groups prior to 09/2023, be aware they are deprecated:
+- `tkHighlightedAliasLink`: this syntax group is now covered by `tkHighlight`
+- `tkLinkBody`: this syntax group is renamed to `tkAliasedLink`
+- `tkAliasedLink`: this group used to cover the whole link, it is now equivalent to the former `tkLinkBody`
+- `tkLinkAlias`: this rule is deprecated
 
 ================================================================================
 Section 3: Usage                                              *telekasten.usage*
@@ -666,7 +707,7 @@ telekasten.insert_link({opts})~
     Default: `nil`
 
                                                    *telekasten.follow_link()*
-telekasten.insert_link()~
+telekasten.follow_link()~
   Take the text between the brackets of a link pointing to a linked note, or
   of a tag and open a Telescope file finder with it.
 
@@ -817,8 +858,9 @@ Section 3.2: Tag Notation                            *telekasten.tag_notation*
 Telekasten supports the following tag notations:
 
 1. `#tag`
-2. `:tag:`
-3. bare tags in a tag collection in the yaml metadata:
+2. `@tag`
+3. `:tag:`
+4. bare tags in a tag collection in the yaml metadata:
 >
   ---
   title: My awesome note

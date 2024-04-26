@@ -75,7 +75,22 @@ local function get_defaults(home)
         new_note_location = "smart",
         rename_update_links = true,
         media_previewer = "telescope-media-files",
+	media_extensions = {
+            ".png",
+            ".jpg",
+            ".bmp",
+            ".gif",
+            ".pdf",
+            ".mp4",
+            ".webm",
+            ".webp",
+        },
+        -- A customizable fallback handler for urls.
         follow_url_fallback = nil,
+        -- Enable creation new notes with Ctrl-n when finding notes
+        enable_create_new = true,
+        -- Specify a clipboard program to use
+        clipboard_program = "", -- xsel, xclip, wl-paste, osascript
     }
     return { options = opts }
 end
