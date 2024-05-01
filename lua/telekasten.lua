@@ -1994,7 +1994,7 @@ local function FollowLink(opts)
 
         if opts.follow_tag ~= nil then
             kind = "tag"
-            tag = opts.follow_tag
+            title = opts.follow_tag
             if opts.templateDir ~= nil then
                 globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
             end
