@@ -104,7 +104,7 @@ function M.check_dir_and_ask(dir, purpose, callback)
     else
         ret = true
         if callback ~= nil then
-        callback(ret)
+            callback(ret)
 	end
     end
     return ret
