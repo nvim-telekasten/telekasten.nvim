@@ -75,7 +75,7 @@ local function get_defaults(home)
         new_note_location = "smart",
         rename_update_links = true,
         media_previewer = "telescope-media-files",
-	media_extensions = {
+        media_extensions = {
             ".png",
             ".jpg",
             ".bmp",

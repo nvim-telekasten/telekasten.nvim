@@ -54,7 +54,6 @@ local function generate_note_filename(uuid, title)
     end
 end
 
-
 local function make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
@@ -244,7 +243,7 @@ local function imgFromClipboard()
         -- 00000030  0e 1b 00 00 20 00 49 44  41 54 78 9c ec dd 77 58  |.... .IDATx...wX|
         -- 00000040  14 d7 fa 07 f0 33 bb b3  4b af 0b 2c 08 22 1d 04  |.....3..K..,."..|
         -- 00000050  05 11 10 1b a2 54 c5 1e  bb b1 c6 98 c4 68 72 4d  |.....T.......hrM|
-	-- 00000060  e2 cd 35 37 26 b9 49 6e  6e 7e f7 a6 98 98 a8 29  |..57&.Inn~.....)|
+        -- 00000060  e2 cd 35 37 26 b9 49 6e  6e 7e f7 a6 98 98 a8 29  |..57&.Inn~.....)|
         -- 00000070  26 6a 8c 51 63 8b bd 00  8a 58 40 b0 81 08 2a 45  |&j.Qc....X@...*E|
         -- 00000080  69 52 17 58 ca ee b2 f5  f7 c7 ea 4a 10 66 d7 01  |iR.X.......J.f..|
         -- 00000090  b1 e4 fb 79 7c f2 2c e7  cc 39 e7 3d 67 66 b3 2f  |...y|.,..9.=gf./|
@@ -285,7 +284,6 @@ local function imgFromClipboard()
             else
                 vim.api.nvim_put({ "![[" .. pngname .. "]]" }, "", true, true)
             end
-
         else
             vim.api.nvim_err_writeln("Unable to write image " .. png)
         end
@@ -312,29 +310,33 @@ local function create_note_from_template(
 
     -- now write the output file, substituting vars line by line
     local file_dir = filepath:match("(.*/)") or ""
-    fileutils.check_dir_and_ask(file_dir, "Create weekly dir", function(dir_succeed)
-        if dir_succeed == false then
-            return
-	end
+    fileutils.check_dir_and_ask(
+        file_dir,
+        "Create weekly dir",
+        function(dir_succeed)
+            if dir_succeed == false then
+                return
+            end
 
-        local ofile = io.open(filepath, "a")
+            local ofile = io.open(filepath, "a")
 
-        for _, line in pairs(lines) do
-            ofile:write(
-                templates.subst_templated_values(
-                    line,
-                    title,
-                    calendar_info,
-                    uuid,
-                    config.options.calendar_opts.calendar_monday
-                ) .. "\n"
-            )
+            for _, line in pairs(lines) do
+                ofile:write(
+                    templates.subst_templated_values(
+                        line,
+                        title,
+                        calendar_info,
+                        uuid,
+                        config.options.calendar_opts.calendar_monday
+                    ) .. "\n"
+                )
+            end
+
+            ofile:flush()
+            ofile:close()
+            callback()
         end
-
-        ofile:flush()
-        ofile:close()
-        callback()
-    end)
+    )
 end
 
 --- Pinfo
@@ -382,7 +384,8 @@ end
 --- inspects the path and returns a Pinfo table
 function Pinfo:resolve_path(p, opts)
     opts = opts or {}
-    opts.subdirs_in_links = opts.subdirs_in_links or config.options.subdirs_in_links
+    opts.subdirs_in_links = opts.subdirs_in_links
+        or config.options.subdirs_in_links
 
     self.fexists = fileutils.file_exists(p)
     self.filepath = p
@@ -702,7 +705,8 @@ local function find_files_sorted(opts)
     local scan_opts = { search_pattern = search_pattern, depth = search_depth }
 
     local file_list = scan.scan_dir(opts.cwd, scan_opts)
-    local filter_extensions = opts.filter_extensions or config.options.filter_extensions
+    local filter_extensions = opts.filter_extensions
+        or config.options.filter_extensions
     file_list = filter_filetypes(file_list, filter_extensions)
     local sort_option = opts.sort or "filename"
     if sort_option == "modified" then
@@ -996,7 +1000,10 @@ local function FindDailyNotes(opts)
         end
 
         local today = os.date(dateutils.dateformats.date)
-        local fname = config.options.dailies .. "/" .. today .. config.options.extension
+        local fname = config.options.dailies
+            .. "/"
+            .. today
+            .. config.options.extension
         local fexists = fileutils.file_exists(fname)
         local function picker()
             find_files_sorted({
@@ -1058,14 +1065,16 @@ local function FindWeeklyNotes(opts)
     opts.close_after_yanking = opts.close_after_yanking
         or config.options.close_after_yanking
 
-
     fileutils.global_dir_check(function(dir_check)
         if not dir_check then
             return
         end
 
         local title = os.date(dateutils.dateformats.isoweek)
-        local fname = config.options.weeklies .. "/" .. title .. config.options.extension
+        local fname = config.options.weeklies
+            .. "/"
+            .. title
+            .. config.options.extension
         local fexists = fileutils.file_exists(fname)
 
         local function picker()
@@ -1281,7 +1290,7 @@ end
 
 --
 -- BrowseImg:
--- ----------- 
+-- -----------
 --
 -- preview media
 --
@@ -1342,7 +1351,6 @@ local function FindFriends(opts)
         vim.cmd("normal yi]")
         local title = vim.fn.getreg('"0')
         vim.fn.setreg('"0', saved_reg)
-
 
         title = linkutils.remove_alias(title)
         title = title:gsub("^(%[)(.+)(%])$", "%2")
@@ -1443,32 +1451,38 @@ local function RenameNote()
 
             -- Savas newfile, delete buffer of old one and remove old file
             if newname ~= "" and newname ~= oldfile.title then
-                fileutils.check_dir_and_ask(newpath, "Renamed file", function(success)
-                    if not success then
-                        return
-                    end
+                fileutils.check_dir_and_ask(
+                    newpath,
+                    "Renamed file",
+                    function(success)
+                        if not success then
+                            return
+                        end
 
-                    local oldTitle = oldfile.title:gsub(" ", "\\ ")
-                    vim.cmd(
-                        "saveas "
-                            .. config.options.home
-                            .. "/"
-                            .. newname
-                            .. config.options.extension
-                    )
-                    vim.cmd("bdelete " .. oldTitle .. config.options.extension)
-                    os.execute(
-                        "rm "
-                            .. config.options.home
-                            .. "/"
-                            .. oldTitle
-                            .. config.options.extension
-                    )
-		    rename_update_links(oldfile, newname)
-                end)
+                        local oldTitle = oldfile.title:gsub(" ", "\\ ")
+                        vim.cmd(
+                            "saveas "
+                                .. config.options.home
+                                .. "/"
+                                .. newname
+                                .. config.options.extension
+                        )
+                        vim.cmd(
+                            "bdelete " .. oldTitle .. config.options.extension
+                        )
+                        os.execute(
+                            "rm "
+                                .. config.options.home
+                                .. "/"
+                                .. oldTitle
+                                .. config.options.extension
+                        )
+                        rename_update_links(oldfile, newname)
+                    end
+                )
             else
-	        rename_update_links(oldfile, newname)
-	    end
+                rename_update_links(oldfile, newname)
+            end
         end
     )
 end
@@ -2425,10 +2439,15 @@ local function GotoThisWeek(opts)
             return
         end
 
-        local dinfo =
-            dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
         local title = dinfo.isoweek
-        local fname = config.options.weeklies .. "/" .. title .. config.options.extension
+        local fname = config.options.weeklies
+            .. "/"
+            .. title
+            .. config.options.extension
         local fexists = fileutils.file_exists(fname)
         local function picker()
             if opts.journal_auto_open then
