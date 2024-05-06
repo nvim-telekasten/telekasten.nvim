@@ -1,14 +1,20 @@
 local Job = require("plenary.job")
 
 local M = {}
-local hashtag_re = "(^|\\s|'|\")#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*"
--- PCRE hashtag allows to remove the hex color codes from hastags
-local hashtag_re_pcre =
-    "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))#[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*)"
-local colon_re = "(^|\\s):[a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*:"
-local yaml_re =
-    "(^|\\s)tags:\\s*\\[\\s*([a-zA-ZÀ-ÿ]+[a-zA-ZÀ-ÿ0-9/\\-_]*(,\\s*)*)*\\s*]"
 
+local hashtag_re =
+    "(^|\\s|'|\")#[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*"
+-- PCRE hashtag allows to remove the hex color codes from hastags
+local hashtag_re_pcre = "(^|\\s|'|\")((?!(#[a-fA-F0-9]{3})(\\W|$)|(#[a-fA-F0-9]{6})(\\W|$))"
+    .. "#[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*)"
+local atsign_re =
+    "(^|\\s|'|\")@[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*"
+local atsign_re_pcre = "(^|\\s|'|\")((?!(@[a-fA-F0-9]{3})(\\W|$)|(@[a-fA-F0-9]{6})(\\W|$))"
+    .. "@[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*)"
+local colon_re =
+    "(^|\\s):[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*:"
+local yaml_re =
+    "(^|\\s)tags:\\s*\\[\\s*([a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*(,\\s*)*)*\\s*]"
 local function command_find_all_tags(opts)
     opts = opts or {}
     opts.cwd = opts.cwd or "."
@@ -23,11 +29,11 @@ local function command_find_all_tags(opts)
 
     local re = hashtag_re
 
-    if opts.tag_notation == ":tag:" then
+    if opts.tag_notation == "@tag" then
+        re = atsign_re
+    elseif opts.tag_notation == ":tag:" then
         re = colon_re
-    end
-
-    if opts.tag_notation == "yaml-bare" then
+    elseif opts.tag_notation == "yaml-bare" then
         re = yaml_re
     end
 
@@ -41,18 +47,32 @@ local function command_find_all_tags(opts)
     }
 
     -- PCRE engine allows to remove hex color codes from #hastags
-    if opts.rg_pcre and (re == hashtag_re) then
-        re = hashtag_re_pcre
+    if opts.rg_pcre then
+        if re == hashtag_re then
+            re = hashtag_re_pcre
 
-        rg_args = {
-            "--vimgrep",
-            "--pcre2",
-            globArg,
-            "-o",
-            re,
-            "--",
-            opts.cwd,
-        }
+            rg_args = {
+                "--vimgrep",
+                "--pcre2",
+                globArg,
+                "-o",
+                re,
+                "--",
+                opts.cwd,
+            }
+        elseif re == atsign_re then
+            re = atsign_re_pcre
+
+            rg_args = {
+                "--vimgrep",
+                "--pcre2",
+                globArg,
+                "-o",
+                re,
+                "--",
+                opts.cwd,
+            }
+        end
     end
 
     return "rg", rg_args

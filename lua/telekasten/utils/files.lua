@@ -75,7 +75,7 @@ function M.new_uuid(uuid_style)
     return uuid
 end
 
-function M.check_dir_and_ask(dir, purpose)
+function M.check_dir_and_ask(dir, purpose, callback)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
         vim.ui.select({ "No (default)", "Yes" }, {
@@ -97,30 +97,39 @@ function M.check_dir_and_ask(dir, purpose)
                     -- unreachable: plenary.Path:mkdir() will error out
                     tkutils.print_error("Could not create directory " .. dir)
                     ret = false
+                    callback(ret)
                 end
             end
         end)
     else
         ret = true
+        if callback ~= nil then
+            callback(ret)
+        end
     end
     return ret
 end
 
-function M.global_dir_check()
+function M.global_dir_check(callback)
     local ret
     if config.options.home == nil then
         tkutils.print_error("Telekasten.nvim: home is not configured!")
         ret = false
-    else
-        ret = M.check_dir_and_ask(config.options.home, "home")
+        callback(ret)
     end
-
-    ret = ret and M.check_dir_and_ask(config.options.dailies, "dailies")
-    ret = ret and M.check_dir_and_ask(config.options.weeklies, "weeklies")
-    ret = ret and M.check_dir_and_ask(config.options.templates, "templates")
-    ret = ret and M.check_dir_and_ask(config.options.image_subdir, "images")
-
-    return ret
+    local check = M.check_dir_and_ask
+    -- nested callbacks to handle asynchronous vim.ui.select
+    -- looks a little confusing but execution is sequential from top to bottom
+    check(config.options.home, "home", function()
+        check(config.options.dailies, "dailies", function()
+            check(config.options.weeklies, "weeklies", function()
+                check(config.options.templates, "templates", function()
+                    -- Note the `callback` in this last function call
+                    check(config.options.image_subdir, "images", callback)
+                end)
+            end)
+        end)
+    end)
 end
 
 return M
