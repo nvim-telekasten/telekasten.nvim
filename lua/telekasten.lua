@@ -27,121 +27,16 @@ local vim = vim
 local M = {}
 
 
--- string, string, string -> N/A
--- No return, runs ripgrep and sed if and only if the global dir check passes
--- ripgrep finds all files with instances of 'old' in 'dir'
--- sed takes file list from rg and replaces all instances of 'old' with 'new'
--- Move to utils/files.lua? Arguably file related
-local function recursive_substitution(dir, old, new)
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        if vim.fn.executable("sed") == 0 then
-            vim.api.nvim_err_write("Sed not installed!\n")
-            return
-        end
-
-        old = tkutils.grep_escape(old)
-        new = tkutils.grep_escape(new)
-
-        local sedcommand = "sed -i"
-        if vim.fn.has("mac") == 1 then
-            sedcommand = "sed -i ''"
-        end
-
-        -- 's|\(\[\[foo\)\([]#|\]\)|\[\[MYTEST\2|g'
-        local replace_cmd = "rg -0 -l -t markdown '"
-            .. old
-            .. "' "
-            .. dir
-            .. " | xargs -0 "
-            .. sedcommand
-            .. " 's|\\("
-            .. old
-            .. "\\)\\([]#|]\\)|"
-            .. new
-            .. "\\2|g' >/dev/null 2>&1"
-        os.execute(replace_cmd)
-    end)
-end
-
--- N/A -> N/A
--- No return
--- Saves all modified buffers if auto_set_filetype and buffer's filetype is telekasten or if not auto_set_filetype
--- Move to utils/files.lua? Arguably file related, but maybe better utils/init.lua
-local function save_all_mod_buffers()
-    for i = 1, vim.fn.bufnr("$") do
-        if
-            vim.fn.getbufvar(i, "&mod") == 1
-            and (
-                (
-                    config.options.auto_set_filetype == true
-                    and vim.fn.getbufvar(i, "&filetype") == "telekasten"
-                )
-                or config.options.auto_set_filetype == false
-            )
-        then
-            vim.cmd(i .. "bufdo w")
-        end
-    end
-end
 
 -- ----------------------------------------------------------------------------
 -- image stuff
 -- ----------------------------------------------------------------------------
 
--- string, string, string -> string
--- Return a relative path from the buffer to the image dir
--- Move to a utils/images.lua?
-local function make_relative_path(bufferpath, imagepath, sep)
-    sep = sep or "/" -- TODO: This seems UNIX-centric. Consider using something from os or plenary to get OS's file sep
-
-    -- Split the buffer and image path into their dirs/files
-    local buffer_dirs = {}
-    for w in string.gmatch(bufferpath, "([^" .. sep .. "]+)") do
-        buffer_dirs[#buffer_dirs + 1] = w
-    end
-    local image_dirs = {}
-    for w in string.gmatch(imagepath, "([^" .. sep .. "]+)") do
-        image_dirs[#image_dirs + 1] = w
-    end
-
-    -- The parts of the dir list that match won't matter, so skip them
-    local i = 1
-    while i < #image_dirs and i < #buffer_dirs do
-        if image_dirs[i] ~= buffer_dirs[i] then
-            break
-        else
-            i = i + 1
-        end
-    end
-
-    -- Append ../ to walk up from the buffer location and the path downward
-    -- to the location of the image file in order to create a relative path
-    local relative_path = ""
-    while i <= #image_dirs or i <= #buffer_dirs do
-        if i <= #image_dirs then
-            if relative_path == "" then
-                relative_path = image_dirs[i]
-            else
-                relative_path = relative_path .. sep .. image_dirs[i]
-            end
-        end
-        if i <= #buffer_dirs - 1 then
-            relative_path = ".." .. sep .. relative_path
-        end
-        i = i + 1
-    end
-
-    return relative_path
-end
 
 -- N/A -> N/A
 -- No return, copies png image from clipboard to a new file in the vault
 -- and inserts link according to configured format
--- Move to a utils/images.lua?
+-- USER FACING, leave in place
 local function imgFromClipboard()
     fileutils.global_dir_check(function(dir_check)
         if not dir_check then
@@ -357,7 +252,7 @@ local function FindDailyNotes(opts)
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
         local function picker()
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Find daily note",
                 cwd = config.options.dailies,
                 find_command = config.options.find_command,
@@ -569,38 +464,6 @@ local function check_for_link_or_tag()
     return taglinks.is_tag_or_link_at(line, col, config.options)
 end
 
--- string -> N/A
--- No return. Passes the given URL to the OS's tool for handling and opening URLs
--- Move to utils/links.lua?
-local function follow_url(url)
-    if config.options.follow_url_fallback then
-        local cmd =
-            string.gsub(config.options.follow_url_fallback, "{{url}}", url)
-        return vim.cmd(cmd)
-    end
-
-    -- we just leave it to the OS's handler to deal with what kind of URL it is
-    local function format_command(cmd)
-        return 'call jobstart(["'
-            .. cmd
-            .. '", "'
-            .. url
-            .. '"], {"detach": v:true})'
-    end
-
-    -- Choose OS-appropriate command and run it if possible
-    local command
-    if vim.fn.has("mac") == 1 then
-        command = format_command("open")
-        vim.cmd(command)
-    elseif vim.fn.has("unix") then
-        command = format_command("xdg-open")
-        vim.cmd(command)
-    else
-        print("Cannot open URLs on your operating system") -- TODO: Figure out how to do this on Windows
-    end
-end
-
 --
 -- PreviewImg:
 -- -----------
@@ -634,7 +497,7 @@ local function PreviewImg(opts)
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
 
         if fexists == true then
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Preview image/media",
                 cwd = imageDir,
                 default_text = fname,
@@ -764,38 +627,11 @@ end
 -- USER FACING, leace in place
 local function YankLink()
     local title = "[["
-        .. Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
+        .. fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
         .. "]]"
     vim.fn.setreg('"', title)
+
     print("yanked " .. title)
-end
-
--- string, string -> N/A
--- No return. Update links with name change if configured to
--- Move to utils/files.lua? utils/links.lua?
-local function rename_update_links(oldfile, newname)
-    if config.options.rename_update_links == true then
-        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
-        -- Should use regex instead to ensure it is a proper link
-        local oldlink = "[[" .. oldfile.title
-        local newlink = "[[" .. newname
-
-        -- Save open buffers before looking for links to replace
-        if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
-            vim.ui.select({ "Yes (default)", "No" }, {
-                prompt = "Telekasten.nvim: "
-                    .. "Save all modified buffers before updating links?",
-            }, function(answer)
-                if answer ~= "No" then
-                    save_all_mod_buffers()
-                end
-            end)
-        end
-
-        recursive_substitution(config.options.home, oldlink, newlink)
-        recursive_substitution(config.options.dailies, oldlink, newlink)
-        recursive_substitution(config.options.weeklies, oldlink, newlink)
-    end
 end
 
 --
@@ -808,7 +644,7 @@ end
 -- USER FACING, leave in place
 local function RenameNote()
     local oldfile =
-        Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options })
+        fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options })
 
     fileutils.prompt_title(
         config.options.extension,
@@ -864,11 +700,11 @@ local function RenameNote()
                                 .. oldTitle
                                 .. config.options.extension
                         )
-                        rename_update_links(oldfile, newname)
+                        linkutils.rename_update_links(oldfile, newname)
                     end
                 )
             else
-                rename_update_links(oldfile, newname)
+                linkutils.rename_update_links(oldfile, newname)
             end
         end
     )
@@ -909,7 +745,7 @@ local function GotoDate(opts)
             end
             vim.cmd("e " .. fname)
         else
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Goto day",
                 cwd = config.options.dailies,
                 default_text = word,
@@ -1033,7 +869,7 @@ local function FindNotes(opts)
                 sort = sort,
             })
         else
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Find notes by name",
                 cwd = cwd,
                 find_command = find_command,
@@ -1060,7 +896,7 @@ local function InsertImgLink(opts)
             return
         end
 
-        find_files_sorted({
+        fileutils.find_files_sorted({
             prompt_title = "Find image/media",
             cwd = config.options.home,
             find_command = config.options.find_command,
@@ -1203,8 +1039,8 @@ local function on_create_with_template(opts, title)
     local uuid_type = opts.uuid_type or config.options.uuid_type
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = Pinfo:new({
-        title = generate_note_filename(uuid, title),
+    local pinfo = fileutils.Pinfo:new({
+        title = fileutils.generate_note_filename(uuid, title),
         opts,
     })
     local fname = pinfo.filepath
@@ -1215,7 +1051,7 @@ local function on_create_with_template(opts, title)
         return
     end
 
-    find_files_sorted({
+    fileutils.find_files_sorted({
         prompt_title = "Select template...",
         cwd = config.options.templates,
         find_command = config.options.find_command,
@@ -1296,17 +1132,17 @@ local function on_create(opts, title)
     end
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = Pinfo:new({
-        title = generate_note_filename(uuid, title),
+    local pinfo = fileutils.Pinfo:new({
+        title = fileutils.generate_note_filename(uuid, title),
         opts,
     })
     local fname = pinfo.filepath
 
     local function picker()
-        find_files_sorted({
+        fileutils.find_files_sorted({
             prompt_title = "Created note...",
             cwd = pinfo.root_dir,
-            default_text = generate_note_filename(uuid, title),
+            default_text = fileutils.generate_note_filename(uuid, title),
             find_command = config.options.find_command,
             attach_mappings = function(_, map)
                 actions.select_default:replace(picker_actions.select_default)
@@ -2305,37 +2141,8 @@ local function chdir(cfg)
     Setup(cfg)
 end
 
--- Define all user facing functions
-M.find_notes = FindNotes
-M.find_daily_notes = FindDailyNotes
-M.search_notes = SearchNotes
-M.insert_link = InsertLink
-M.follow_link = FollowLink
-M.setup = _setup
-M.goto_today = GotoToday
-M.new_note = CreateNote
-M.goto_thisweek = GotoThisWeek
-M.find_weekly_notes = FindWeeklyNotes
-M.yank_notelink = YankLink
-M.rename_note = RenameNote
-M.new_templated_note = CreateNoteSelectTemplate
-M.show_calendar = ShowCalendar
-M.CalendarSignDay = CalendarSignDay
-M.CalendarAction = CalendarAction
-M.paste_img_and_link = imgFromClipboard
-M.toggle_todo = ToggleTodo
-M.show_backlinks = ShowBacklinks
-M.find_friends = FindFriends
-M.insert_img_link = InsertImgLink
-M.preview_img = PreviewImg
-M.browse_media = BrowseImg
-M.taglinks = taglinks
-M.show_tags = FindAllTags
-M.switch_vault = ChangeVault
-M.chdir = chdir
 
 -- Telekasten command, completion
--- Move above definition of user facing functions just above
 local TelekastenCmd = {
     commands = function()
         return {
@@ -2448,6 +2255,34 @@ TelekastenCmd.complete = function()
     return candidates
 end
 
+-- Define all user facing functions
+M.find_notes = FindNotes
+M.find_daily_notes = FindDailyNotes
+M.search_notes = SearchNotes
+M.insert_link = InsertLink
+M.follow_link = FollowLink
+M.setup = _setup
+M.goto_today = GotoToday
+M.new_note = CreateNote
+M.goto_thisweek = GotoThisWeek
+M.find_weekly_notes = FindWeeklyNotes
+M.yank_notelink = YankLink
+M.rename_note = RenameNote
+M.new_templated_note = CreateNoteSelectTemplate
+M.show_calendar = ShowCalendar
+M.CalendarSignDay = CalendarSignDay
+M.CalendarAction = CalendarAction
+M.paste_img_and_link = imgFromClipboard
+M.toggle_todo = ToggleTodo
+M.show_backlinks = ShowBacklinks
+M.find_friends = FindFriends
+M.insert_img_link = InsertImgLink
+M.preview_img = PreviewImg
+M.browse_media = BrowseImg
+M.taglinks = taglinks
+M.show_tags = FindAllTags
+M.switch_vault = ChangeVault
+M.chdir = chdir
 M.panel = TelekastenCmd.command
 M.Command = TelekastenCmd
 
