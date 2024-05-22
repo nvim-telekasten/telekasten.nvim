@@ -1,9 +1,10 @@
+local M = {}
+package.loaded[...] = M
+
 local config = require("telekasten.config")
-local fileutils = fileutils or require("telekasten.utils.files")
+local fileutils = require("telekasten.utils.files")
 
 local vim = vim
-
-local M = {}
 
 -- Prints a basic error message
 function M.print_error(s)
