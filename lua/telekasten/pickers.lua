@@ -5,12 +5,13 @@ local conf = require("telescope.config").values
 local finders = require("telescope.finders")
 local pickers = require("telescope.pickers")
 local config = require("telekasten.config")
-local fileutils = fileutils or require("telekasten.utils.files")
+local fileutils = require("telekasten.utils.files")
 local linkutils = require("telekasten.utils.links")
 
 local vim = vim
 
 local M = {}
+package.loaded[...] = M
 
 -- Pick between the various configured vaults
 function M.vaults(telekasten, opts)

@@ -9,7 +9,7 @@ local entry_display = require("telescope.pickers.entry_display")
 local previewers = require("telescope.previewers")
 local utils = require("telescope.utils")
 local config = require("telekasten.config")
-local tkpickers = tkpickers or require("telekasten.pickers")
+local tkpickers = require("telekasten.pickers")
 local templates = require("telekasten.templates")
 local tkutils = require("telekasten.utils")
 local dateutils = require("telekasten.utils.dates")
@@ -17,6 +17,7 @@ local linkutils = require("telekasten.utils.links")
 
 local vim = vim
 local M = {}
+package.loaded[...] = M
 
 -- Checks if file exists
 function M.file_exists(fname)
