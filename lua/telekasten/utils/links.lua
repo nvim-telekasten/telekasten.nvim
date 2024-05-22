@@ -1,11 +1,11 @@
--- local async = require("plenary.async")
+local M = {}
+package.loaded[...] = M
+
 local scan = require("plenary.scandir")
 local config = require("telekasten.config")
 local tkutils = require("telekasten.utils")
 
 local vim = vim
-
-local M = {}
 
 local function file_exists(fn, file_list)
     return file_list[fn] ~= nil
