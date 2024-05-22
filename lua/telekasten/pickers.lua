@@ -6,6 +6,7 @@ local finders = require("telescope.finders")
 local pickers = require("telescope.pickers")
 local config = require("telekasten.config")
 local fileutils = require("telekasten.utils.files")
+local linkutils = require("telekasten.utils.links")
 
 local vim = vim
 
@@ -161,7 +162,7 @@ function M.picker_actions.paste_img_link(opts)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
+        fn = linkutils.make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.api.nvim_put({ imglink }, "", true, true)
         if opts.insert_after_inserting or opts.i then
@@ -180,7 +181,7 @@ function M.picker_actions.yank_img_link(opts)
         end
         local selection = action_state.get_selected_entry()
         local fn = selection.value
-        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
+        fn = linkutils.make_relative_path(vim.fn.expand("%:p"), fn, "/")
         local imglink = "![](" .. fn .. ")"
         vim.fn.setreg('"', imglink)
         print("yanked " .. imglink)
@@ -197,9 +198,73 @@ function M.picker_actions.create_new(opts)
         local prompt =
             action_state.get_current_picker(prompt_bufnr).sorter._discard_state.prompt
         actions.close(prompt_bufnr)
-        on_create(opts, prompt)
+        M.on_create(opts, prompt)
         -- local selection = action_state.get_selected_entry()
     end
+end
+
+-- table, string -> N/A
+-- Move? Used in CreateNote and picker_actions.create_new
+function M.on_create(opts, title)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+    opts.new_note_location = opts.new_note_location
+        or config.options.new_note_location
+    opts.template_handling = opts.template_handling
+        or config.options.template_handling
+    local uuid_type = opts.uuid_type or config.options.uuid_type
+
+    if title == nil then
+        return
+    end
+
+    local uuid = fileutils.new_uuid(uuid_type)
+    local pinfo = fileutils.Pinfo:new({
+        title = fileutils.generate_note_filename(uuid, title),
+        opts,
+    })
+    local fname = pinfo.filepath
+
+    local picker_actions = M.picker_actions
+    local function picker()
+        fileutils.find_files_sorted({
+            prompt_title = "Created note...",
+            cwd = pinfo.root_dir,
+            default_text = fileutils.generate_note_filename(uuid, title),
+            find_command = config.options.find_command,
+            attach_mappings = function(_, map)
+                actions.select_default:replace(picker_actions.select_default)
+                map("i", "<c-y>", picker_actions.yank_link(opts))
+                map("i", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-y>", picker_actions.yank_link(opts))
+                map("n", "<c-i>", picker_actions.paste_link(opts))
+                map("n", "<c-c>", picker_actions.close(opts))
+                map("n", "<esc>", picker_actions.close(opts))
+                return true
+            end,
+        })
+    end
+    if pinfo.fexists ~= true then
+        -- TODO: pass in the calendar_info returned in pinfo
+        fileutils.create_note_from_template(
+            title,
+            uuid,
+            fname,
+            pinfo.template,
+            pinfo.calendar_info,
+            function()
+                opts.erase = true
+                opts.erase_file = fname
+                picker()
+            end
+        )
+        return
+    end
+
+    picker()
 end
 
 return M

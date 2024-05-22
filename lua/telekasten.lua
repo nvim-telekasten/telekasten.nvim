@@ -15,7 +15,6 @@ local tagutils = require("telekasten.utils.tags")
 local linkutils = require("telekasten.utils.links")
 local dateutils = require("telekasten.utils.dates")
 local fileutils = require("telekasten.utils.files")
-local templates = require("telekasten.templates")
 local Path = require("plenary.path")
 local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
@@ -141,7 +140,7 @@ local function imgFromClipboard()
                 and config.options.image_subdir
             or config.options.home
         local png = Path:new(pngdir, pngname).filename
-        local relpath = make_relative_path(vim.fn.expand("%:p"), png, "/")
+        local relpath = linkutils.make_relative_path(vim.fn.expand("%:p"), png, "/")
 
 	-- Try to paste the image to a file and check output to verify success
         local output = vim.fn.system(get_paste_command(pngdir, pngname))
@@ -171,55 +170,6 @@ end
 
 -- end of image stuff
 
--- string, string, string, string, table, function -> N/A
--- No return, only creates a new note file from a given template file
--- utils/templates.lua? utils/files.lua? utils/init.lua?
-local function create_note_from_template(
-    title,
-    uuid,
-    filepath,
-    templatefn,
-    calendar_info,
-    callback
-)
-    -- first, read the template file
-    local lines = {}
-    if fileutils.file_exists(templatefn) then
-        for line in io.lines(templatefn) do
-            lines[#lines + 1] = line
-        end
-    end
-
-    -- now write the output file, substituting vars line by line
-    local file_dir = filepath:match("(.*/)") or ""
-    fileutils.check_dir_and_ask(
-        file_dir,
-        "Create weekly dir",
-        function(dir_succeed)
-            if dir_succeed == false then
-                return
-            end
-
-            local ofile = io.open(filepath, "a")
-
-            for _, line in pairs(lines) do
-                ofile:write(
-                    templates.subst_templated_values(
-                        line,
-                        title,
-                        calendar_info,
-                        uuid,
-                        config.options.calendar_opts.calendar_monday
-                    ) .. "\n"
-                )
-            end
-
-            ofile:flush()
-            ofile:close()
-            callback()
-        end
-    )
-end
 
 --
 -- FindDailyNotes:
@@ -236,6 +186,7 @@ local function FindDailyNotes(opts)
         or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or config.options.close_after_yanking
+    local picker_actions = tkpickers.picker_actions
 
     -- If global dir check passes, defines a picker for daily files
     -- If today's daily doesn't exist, create one from template
@@ -280,7 +231,7 @@ local function FindDailyNotes(opts)
                 or config.options.dailies_create_nonexisting == true
             )
         then
-            create_note_from_template(
+            fileutils.create_note_from_template(
                 today,
                 nil,
                 fname,
@@ -328,9 +279,10 @@ local function FindWeeklyNotes(opts)
             .. title
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
+	local picker_actions = tkpickers.picker_actions
 
         local function picker()
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Find weekly note",
                 cwd = config.options.weeklies,
                 find_command = config.options.find_command,
@@ -359,7 +311,7 @@ local function FindWeeklyNotes(opts)
                 or config.options.weeklies_create_nonexisting == true
             )
         then
-            create_note_from_template(
+            fileutils.create_note_from_template(
                 title,
                 nil,
                 fname,
@@ -403,6 +355,7 @@ local function InsertLink(opts)
         local cwd = config.options.home
         local find_command = config.options.find_command
         local sort = config.options.sort
+        local picker_actions = tkpickers.picker_actions
         local attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
@@ -410,7 +363,7 @@ local function InsertLink(opts)
                 if selection == nil then
                     selection = { filename = action_state.get_current_line() }
                 end
-                local pinfo = Pinfo:new({
+                local pinfo = fileutils.Pinfo:new({
                     filepath = selection.filename or selection.value,
                     opts,
                 })
@@ -443,7 +396,7 @@ local function InsertLink(opts)
                 sort = sort,
             })
         else
-            find_files_sorted({
+            fileutils.find_files_sorted({
                 prompt_title = "Insert link to note",
                 cwd = cwd,
                 attach_mappings = attach_mappings,
@@ -454,15 +407,6 @@ local function InsertLink(opts)
     end)
 end
 
--- N/A -> string, number
--- Returns "tag"/"link"/nil, location's column
--- Checks if the location under the cursor is a tag or link
--- Move to utils/links.lua?
-local function check_for_link_or_tag()
-    local line = vim.api.nvim_get_current_line()
-    local col = vim.fn.col(".")
-    return taglinks.is_tag_or_link_at(line, col, config.options)
-end
 
 --
 -- PreviewImg:
@@ -495,6 +439,7 @@ local function PreviewImg(opts)
         -- check if fname exists anywhere
         local imageDir = config.options.image_subdir or config.options.home
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
+	local picker_actions = tkpickers.picker_actions
 
         if fexists == true then
             fileutils.find_files_sorted({
@@ -545,7 +490,8 @@ local function BrowseImg(opts)
             return
         end
 
-        find_files_sorted({
+        local picker_actions = tkpickers.picker_actions
+	fileutils.find_files_sorted({
             prompt_title = "Preview image/media",
             cwd = config.options.home,
             find_command = config.options.find_command,
@@ -598,6 +544,7 @@ local function FindFriends(opts)
         title = linkutils.remove_alias(title)
         title = title:gsub("^(%[)(.+)(%])$", "%2")
 
+        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             prompt_title = "Notes referencing `" .. title .. "`",
             cwd = config.options.home,
@@ -737,6 +684,7 @@ local function GotoDate(opts)
         .. word
         .. config.options.extension
     local fexists = fileutils.file_exists(fname)
+    local picker_actions = tkpickers.picker_actions
     local function picker()
         if opts.journal_auto_open then
             if opts.calendar == true then
@@ -780,7 +728,7 @@ local function GotoDate(opts)
             or config.options.dailies_create_nonexisting == true
         )
     then
-        create_note_from_template(
+        fileutils.create_note_from_template(
             word,
             nil,
             fname,
@@ -845,6 +793,7 @@ local function FindNotes(opts)
         local cwd = config.options.home
         local find_command = config.options.find_command
         local sort = config.options.sort
+	local picker_actions = tkpickers.picker_actions
         local attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -896,6 +845,7 @@ local function InsertImgLink(opts)
             return
         end
 
+        local picker_actions = tkpickers.picker_actions
         fileutils.find_files_sorted({
             prompt_title = "Find image/media",
             cwd = config.options.home,
@@ -907,7 +857,7 @@ local function InsertImgLink(opts)
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
                     local fn = selection.value
-                    fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
+                    fn = linkutils.make_relative_path(vim.fn.expand("%:p"), fn, "/")
                     vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
                     if opts.i then
                         vim.api.nvim_feedkeys("A", "m", false)
@@ -946,6 +896,7 @@ local function SearchNotes(opts)
             return
         end
 
+        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             prompt_title = "Search in notes",
             cwd = config.options.home,
@@ -987,12 +938,13 @@ local function ShowBacklinks(opts)
         end
 
         local title =
-            Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
+            fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
         -- or vim.api.nvim_buf_get_name(0)
 
         local escaped_title = string.gsub(title, "%(", "\\(")
         escaped_title = string.gsub(escaped_title, "%)", "\\)")
 
+        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             results_title = "Backlinks to " .. title,
             prompt_title = "Search",
@@ -1037,6 +989,7 @@ local function on_create_with_template(opts, title)
     opts.template_handling = opts.template_handling
         or config.options.template_handling
     local uuid_type = opts.uuid_type or config.options.uuid_type
+    local picker_actions = tkpickers.picker_actions
 
     local uuid = fileutils.new_uuid(uuid_type)
     local pinfo = fileutils.Pinfo:new({
@@ -1061,7 +1014,7 @@ local function on_create_with_template(opts, title)
                 -- local template = config.options.templates .. "/" .. action_state.get_selected_entry().value
                 local template = action_state.get_selected_entry().value
                 -- TODO: pass in the calendar_info returned from the pinfo
-                create_note_from_template(
+                fileutils.create_note_from_template(
                     title,
                     uuid,
                     fname,
@@ -1113,69 +1066,6 @@ end
 --
 -- Prompts for title and creates note with default template
 --
--- table, string -> N/A
--- Move? Used in CreateNote and picker_actions.create_new
-local function on_create(opts, title)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-    opts.new_note_location = opts.new_note_location
-        or config.options.new_note_location
-    opts.template_handling = opts.template_handling
-        or config.options.template_handling
-    local uuid_type = opts.uuid_type or config.options.uuid_type
-
-    if title == nil then
-        return
-    end
-
-    local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = fileutils.Pinfo:new({
-        title = fileutils.generate_note_filename(uuid, title),
-        opts,
-    })
-    local fname = pinfo.filepath
-
-    local function picker()
-        fileutils.find_files_sorted({
-            prompt_title = "Created note...",
-            cwd = pinfo.root_dir,
-            default_text = fileutils.generate_note_filename(uuid, title),
-            find_command = config.options.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-c>", picker_actions.close(opts))
-                map("n", "<esc>", picker_actions.close(opts))
-                return true
-            end,
-        })
-    end
-    if pinfo.fexists ~= true then
-        -- TODO: pass in the calendar_info returned in pinfo
-        create_note_from_template(
-            title,
-            uuid,
-            fname,
-            pinfo.template,
-            pinfo.calendar_info,
-            function()
-                opts.erase = true
-                opts.erase_file = fname
-                picker()
-            end
-        )
-        return
-    end
-
-    picker()
-end
-
 -- table -> N/A
 -- USER FACING, leave in place
 local function CreateNote(opts)
@@ -1196,7 +1086,7 @@ local function CreateNote(opts)
         -- works for the folders in that directory
         vim.fn.chdir(config.options.home)
         fileutils.prompt_title(config.options.extension, nil, function(title)
-            on_create(opts, title)
+            tkpickers.on_create(opts, title)
         end)
         -- change back to the original directory
         vim.fn.chdir(current_dir)
@@ -1232,6 +1122,7 @@ local function FollowLink(opts)
         local search_mode = "files"
         local title
         local filename_part = ""
+	local picker_actions = tkpickers.picker_actions
 
         -- first: check if we're in a tag or a link
         local kind
@@ -1244,7 +1135,7 @@ local function FollowLink(opts)
                 globArg = "--glob=!" .. "**/" .. opts.templateDir .. "/*.md"
             end
         else
-            kind, _ = check_for_link_or_tag()
+            kind, _ = taglinks.check_for_link_or_tag()
         end
 
         if kind == "tag" then
@@ -1269,7 +1160,7 @@ local function FollowLink(opts)
                 vim.cmd("normal yi)")
                 local url = vim.fn.getreg('"0')
                 vim.fn.setreg('"0', saved_reg)
-                return follow_url(url)
+                return linkutils.follow_url(url)
             end
             vim.fn.setreg('"0', saved_reg)
 
@@ -1291,7 +1182,7 @@ local function FollowLink(opts)
             -- if we cannot find the file, revert to global heading search by
             -- setting filename to empty string
             if #filename_part > 0 then
-                local pinfo = Pinfo:new({ title = filename_part })
+                local pinfo = fileutils.Pinfo:new({ title = filename_part })
                 filename_part = pinfo.filepath
                 if pinfo.fexists == false then
                     -- print("error")
@@ -1306,9 +1197,9 @@ local function FollowLink(opts)
             filepath = config.options.home .. "/" .. filepath
             fileutils.check_dir_and_ask(filepath, "", function()
                 -- check if fname exists anywhere
-                local pinfo = Pinfo:new({ title = title })
+                local pinfo = fileutils.Pinfo:new({ title = title })
                 local function picker()
-                    find_files_sorted({
+                    fileutils.find_files_sorted({
                         prompt_title = "Follow link to note...",
                         cwd = pinfo.root_dir,
                         default_text = title,
@@ -1342,7 +1233,7 @@ local function FollowLink(opts)
 
                     if #pinfo.filepath > 0 then
                         local uuid = fileutils.new_uuid(uuid_type)
-                        create_note_from_template(
+                        fileutils.create_note_from_template(
                             title,
                             uuid,
                             pinfo.filepath,
@@ -1696,6 +1587,7 @@ local function GotoThisWeek(opts)
             .. title
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
+	local picker_actions = tkpickers.picker_actions
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1732,7 +1624,7 @@ local function GotoThisWeek(opts)
                 or config.options.weeklies_create_nonexisting == true
             )
         then
-            create_note_from_template(
+            fileutils.create_note_from_template(
                 title,
                 nil,
                 fname,
@@ -1925,6 +1817,7 @@ local function FindAllTags(opts)
 
         local tag_map = tagutils.do_find_all_tags(opts)
         local taglist = {}
+        local picker_actions = tkpickers.picker_actions
 
         local max_tag_len = 0
         for k, v in pairs(tag_map) do
@@ -2090,11 +1983,11 @@ local function Setup(cfg)
 
     -- Convert all directories in full path
     config.options.image_subdir =
-        make_config_path_absolute(config.options.image_subdir)
-    config.options.dailies = make_config_path_absolute(config.options.dailies)
-    config.options.weeklies = make_config_path_absolute(config.options.weeklies)
+        fileutils.make_config_path_absolute(config.options.image_subdir)
+    config.options.dailies = fileutils.make_config_path_absolute(config.options.dailies)
+    config.options.weeklies = fileutils.make_config_path_absolute(config.options.weeklies)
     config.options.templates =
-        make_config_path_absolute(config.options.templates)
+        fileutils.make_config_path_absolute(config.options.templates)
 
     -- Check if ripgrep is compiled with --pcre
     -- ! This will need to be fixed when neovim moves to lua >=5.2 by the following:

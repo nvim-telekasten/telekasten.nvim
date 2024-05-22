@@ -1,6 +1,7 @@
 local debug_utils = require("plenary.debug_utils")
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
+local actions = require("telescope.actions")
 local conf = require("telescope.config").values
 local finders = require("telescope.finders")
 local pickers = require("telescope.pickers")
@@ -8,10 +9,13 @@ local entry_display = require("telescope.pickers.entry_display")
 local previewers = require("telescope.prevewers")
 local utils = require("telescope.utils")
 local config = require("telekasten.config")
+local tkpickers = require("telekasten.pickers")
+local templates = require("telekasten.templates")
 local tkutils = require("telekasten.utils")
 local dateutils = require("telekasten.utils.dates")
 local linkutils = require("telekasten.utils.links")
 
+local vim = vim
 local M = {}
 
 -- Checks if file exists
@@ -205,6 +209,10 @@ function M.new_uuid(uuid_style)
     return uuid
 end
 
+-- string, string, function -> bool
+-- If dir doesn't exist and it is successfully created, returns true
+-- If dir doesn't exist and can't be created, calls callback(false) and returns false
+-- If dir exists, calls callback(true) and returns true
 function M.check_dir_and_ask(dir, purpose, callback)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
@@ -699,7 +707,7 @@ function M.find_files_sorted(opts)
 
     opts.attach_mappings = opts.attach_mappings
         or function(_, _)
-            actions.select_default:replace(picker_actions.select_default)
+            actions.select_default:replace(tkpickers.picker_actions.select_default)
         end
 
     local picker = pickers.new(opts, {
@@ -732,6 +740,56 @@ function M.find_files_sorted(opts)
     popup_opts = picker:get_window_options(vim.o.columns, line_count)
 
     picker:find()
+end
+
+-- string, string, string, string, table, function -> N/A
+-- No return, only creates a new note file from a given template file
+-- utils/templates.lua? utils/files.lua? utils/init.lua?
+function M.create_note_from_template(
+    title,
+    uuid,
+    filepath,
+    templatefn,
+    calendar_info,
+    callback
+)
+    -- first, read the template file
+    local lines = {}
+    if M.file_exists(templatefn) then
+        for line in io.lines(templatefn) do
+            lines[#lines + 1] = line
+        end
+    end
+
+    -- now write the output file, substituting vars line by line
+    local file_dir = filepath:match("(.*/)") or ""
+    M.check_dir_and_ask(
+        file_dir,
+        "Create weekly dir",
+        function(dir_succeed)
+            if dir_succeed == false then
+                return
+            end
+
+            local ofile = io.open(filepath, "a")
+
+            for _, line in pairs(lines) do
+                ofile:write(
+                    templates.subst_templated_values(
+                        line,
+                        title,
+                        calendar_info,
+                        uuid,
+                        config.options.calendar_opts.calendar_monday
+                    ) .. "\n"
+                )
+            end
+
+            ofile:flush()
+            ofile:close()
+            callback()
+        end
+    )
 end
 
 return M

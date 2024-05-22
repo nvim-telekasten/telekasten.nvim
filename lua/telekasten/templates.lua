@@ -3,6 +3,7 @@
 local dateutils = require("telekasten.utils.dates")
 
 local M = {}
+local vim = vim
 
 function M.subst_templated_values(line, title, dates, uuid, calendar_monday)
     -- Various date formats

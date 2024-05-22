@@ -1,6 +1,7 @@
 -- local async = require("plenary.async")
 local scan = require("plenary.scandir")
 local config = require("telekasten.config")
+local tkutils = require("telekasten.utils")
 
 local vim = vim
 
@@ -191,14 +192,14 @@ function M.rename_update_links(oldfile, newname)
                     .. "Save all modified buffers before updating links?",
             }, function(answer)
                 if answer ~= "No" then
-                    save_all_mod_buffers()
+                    tkutils.save_all_mod_buffers()
                 end
             end)
         end
 
-        recursive_substitution(config.options.home, oldlink, newlink)
-        recursive_substitution(config.options.dailies, oldlink, newlink)
-        recursive_substitution(config.options.weeklies, oldlink, newlink)
+        tkutils.recursive_substitution(config.options.home, oldlink, newlink)
+        tkutils.recursive_substitution(config.options.dailies, oldlink, newlink)
+        tkutils.recursive_substitution(config.options.weeklies, oldlink, newlink)
     end
 end
 
