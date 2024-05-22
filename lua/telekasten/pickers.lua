@@ -5,7 +5,7 @@ local conf = require("telescope.config").values
 local finders = require("telescope.finders")
 local pickers = require("telescope.pickers")
 local config = require("telekasten.config")
-local fileutils = require("telekasten.utils.files")
+local fileutils = fileutils or require("telekasten.utils.files")
 local linkutils = require("telekasten.utils.links")
 
 local vim = vim
