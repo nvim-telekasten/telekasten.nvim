@@ -1,3 +1,6 @@
+local M = {}
+package.loaded[...] = M
+
 local debug_utils = require("plenary.debug_utils")
 local Path = require("plenary.path")
 local scan = require("plenary.scandir")
@@ -16,8 +19,6 @@ local dateutils = require("telekasten.utils.dates")
 local linkutils = require("telekasten.utils.links")
 
 local vim = vim
-local M = {}
-package.loaded[...] = M
 
 -- Checks if file exists
 function M.file_exists(fname)
