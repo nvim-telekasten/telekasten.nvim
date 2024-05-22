@@ -25,12 +25,9 @@ local vim = vim
 
 local M = {}
 
-
-
 -- ----------------------------------------------------------------------------
 -- image stuff
 -- ----------------------------------------------------------------------------
-
 
 -- N/A -> N/A
 -- No return, copies png image from clipboard to a new file in the vault
@@ -76,9 +73,9 @@ local function imgFromClipboard()
             return "wl-paste -n -t image/png > " .. dir .. "/" .. filename
         end
 
-	-- Choose a command to use
-	-- First, try to set to configured command if available
-	-- Otherwise, set to first default command available on user's machine
+        -- Choose a command to use
+        -- First, try to set to configured command if available
+        -- Otherwise, set to first default command available on user's machine
         local get_paste_command
         if paste_command[config.options.clipboard_program] ~= nil then
             if vim.fn.executable(config.options.clipboard_program) ~= 1 then
@@ -134,15 +131,16 @@ local function imgFromClipboard()
         -- 00000080  81 08 2a 45 69 52 17 58  ca ee b2 f5 f7 c7 ea 4a  |..*EiR.X.......J|
         -- 00000090  10 66 d7 01 b1 e4 fb 79  7c f2 2c e7 cc 39 e7 3d  |.f.....y|.,..9.=|
 
-	-- Get a destination to store the image in
+        -- Get a destination to store the image in
         local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
         local pngdir = config.options.image_subdir
                 and config.options.image_subdir
             or config.options.home
         local png = Path:new(pngdir, pngname).filename
-        local relpath = linkutils.make_relative_path(vim.fn.expand("%:p"), png, "/")
+        local relpath =
+            linkutils.make_relative_path(vim.fn.expand("%:p"), png, "/")
 
-	-- Try to paste the image to a file and check output to verify success
+        -- Try to paste the image to a file and check output to verify success
         local output = vim.fn.system(get_paste_command(pngdir, pngname))
         if output ~= "" then
             -- Remove empty file created by previous command if failed
@@ -169,7 +167,6 @@ local function imgFromClipboard()
 end
 
 -- end of image stuff
-
 
 --
 -- FindDailyNotes:
@@ -279,7 +276,7 @@ local function FindWeeklyNotes(opts)
             .. title
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
-	local picker_actions = tkpickers.picker_actions
+        local picker_actions = tkpickers.picker_actions
 
         local function picker()
             fileutils.find_files_sorted({
@@ -407,7 +404,6 @@ local function InsertLink(opts)
     end)
 end
 
-
 --
 -- PreviewImg:
 -- -----------
@@ -439,7 +435,7 @@ local function PreviewImg(opts)
         -- check if fname exists anywhere
         local imageDir = config.options.image_subdir or config.options.home
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
-	local picker_actions = tkpickers.picker_actions
+        local picker_actions = tkpickers.picker_actions
 
         if fexists == true then
             fileutils.find_files_sorted({
@@ -491,7 +487,7 @@ local function BrowseImg(opts)
         end
 
         local picker_actions = tkpickers.picker_actions
-	fileutils.find_files_sorted({
+        fileutils.find_files_sorted({
             prompt_title = "Preview image/media",
             cwd = config.options.home,
             find_command = config.options.find_command,
@@ -574,7 +570,10 @@ end
 -- USER FACING, leace in place
 local function YankLink()
     local title = "[["
-        .. fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
+        .. fileutils.Pinfo:new({
+            filepath = vim.fn.expand("%:p"),
+            config.options,
+        }).title
         .. "]]"
     vim.fn.setreg('"', title)
 
@@ -793,7 +792,7 @@ local function FindNotes(opts)
         local cwd = config.options.home
         local find_command = config.options.find_command
         local sort = config.options.sort
-	local picker_actions = tkpickers.picker_actions
+        local picker_actions = tkpickers.picker_actions
         local attach_mappings = function(_, map)
             actions.select_default:replace(picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
@@ -857,7 +856,11 @@ local function InsertImgLink(opts)
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
                     local fn = selection.value
-                    fn = linkutils.make_relative_path(vim.fn.expand("%:p"), fn, "/")
+                    fn = linkutils.make_relative_path(
+                        vim.fn.expand("%:p"),
+                        fn,
+                        "/"
+                    )
                     vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
                     if opts.i then
                         vim.api.nvim_feedkeys("A", "m", false)
@@ -937,8 +940,10 @@ local function ShowBacklinks(opts)
             return
         end
 
-        local title =
-            fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options }).title
+        local title = fileutils.Pinfo:new({
+            filepath = vim.fn.expand("%:p"),
+            config.options,
+        }).title
         -- or vim.api.nvim_buf_get_name(0)
 
         local escaped_title = string.gsub(title, "%(", "\\(")
@@ -1122,7 +1127,7 @@ local function FollowLink(opts)
         local search_mode = "files"
         local title
         local filename_part = ""
-	local picker_actions = tkpickers.picker_actions
+        local picker_actions = tkpickers.picker_actions
 
         -- first: check if we're in a tag or a link
         local kind
@@ -1587,7 +1592,7 @@ local function GotoThisWeek(opts)
             .. title
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
-	local picker_actions = tkpickers.picker_actions
+        local picker_actions = tkpickers.picker_actions
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1984,8 +1989,10 @@ local function Setup(cfg)
     -- Convert all directories in full path
     config.options.image_subdir =
         fileutils.make_config_path_absolute(config.options.image_subdir)
-    config.options.dailies = fileutils.make_config_path_absolute(config.options.dailies)
-    config.options.weeklies = fileutils.make_config_path_absolute(config.options.weeklies)
+    config.options.dailies =
+        fileutils.make_config_path_absolute(config.options.dailies)
+    config.options.weeklies =
+        fileutils.make_config_path_absolute(config.options.weeklies)
     config.options.templates =
         fileutils.make_config_path_absolute(config.options.templates)
 
@@ -2033,7 +2040,6 @@ end
 local function chdir(cfg)
     Setup(cfg)
 end
-
 
 -- Telekasten command, completion
 local TelekastenCmd = {

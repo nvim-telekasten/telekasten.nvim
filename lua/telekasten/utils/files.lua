@@ -707,7 +707,9 @@ function M.find_files_sorted(opts)
 
     opts.attach_mappings = opts.attach_mappings
         or function(_, _)
-            actions.select_default:replace(tkpickers.picker_actions.select_default)
+            actions.select_default:replace(
+                tkpickers.picker_actions.select_default
+            )
         end
 
     local picker = pickers.new(opts, {
@@ -763,33 +765,29 @@ function M.create_note_from_template(
 
     -- now write the output file, substituting vars line by line
     local file_dir = filepath:match("(.*/)") or ""
-    M.check_dir_and_ask(
-        file_dir,
-        "Create weekly dir",
-        function(dir_succeed)
-            if dir_succeed == false then
-                return
-            end
-
-            local ofile = io.open(filepath, "a")
-
-            for _, line in pairs(lines) do
-                ofile:write(
-                    templates.subst_templated_values(
-                        line,
-                        title,
-                        calendar_info,
-                        uuid,
-                        config.options.calendar_opts.calendar_monday
-                    ) .. "\n"
-                )
-            end
-
-            ofile:flush()
-            ofile:close()
-            callback()
+    M.check_dir_and_ask(file_dir, "Create weekly dir", function(dir_succeed)
+        if dir_succeed == false then
+            return
         end
-    )
+
+        local ofile = io.open(filepath, "a")
+
+        for _, line in pairs(lines) do
+            ofile:write(
+                templates.subst_templated_values(
+                    line,
+                    title,
+                    calendar_info,
+                    uuid,
+                    config.options.calendar_opts.calendar_monday
+                ) .. "\n"
+            )
+        end
+
+        ofile:flush()
+        ofile:close()
+        callback()
+    end)
 end
 
 return M

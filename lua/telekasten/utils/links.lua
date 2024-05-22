@@ -199,7 +199,11 @@ function M.rename_update_links(oldfile, newname)
 
         tkutils.recursive_substitution(config.options.home, oldlink, newlink)
         tkutils.recursive_substitution(config.options.dailies, oldlink, newlink)
-        tkutils.recursive_substitution(config.options.weeklies, oldlink, newlink)
+        tkutils.recursive_substitution(
+            config.options.weeklies,
+            oldlink,
+            newlink
+        )
     end
 end
 
