@@ -1,5 +1,5 @@
 local config = require("telekasten.config")
-local fileutils = require("telekasten.utils.files")
+local fileutils = fileutils or require("telekasten.utils.files")
 
 local vim = vim
 
