@@ -2084,8 +2084,8 @@ local TelekastenCmd = {
     end,
 }
 
--- string -> N/A
--- Keep with TelekastenCmd just above
+---@param subcommand string
+---@returns N/A
 TelekastenCmd.command = function(subcommand)
     local show = function(opts)
         opts = opts or {}
@@ -2120,15 +2120,15 @@ TelekastenCmd.command = function(subcommand)
             :find()
     end
     if subcommand then
-        -- print("trying subcommand " .. "`" .. subcommand .. "`")
+        local trimmed_subcommand = string.gsub(subcommand, "^%s*(.-)%s*$", "%1")
         for _, entry in pairs(TelekastenCmd.commands()) do
-            if entry[2] == subcommand then
+            if entry[2] == trimmed_subcommand then
                 local selection = entry[3]
                 selection()
                 return
             end
         end
-        print("No such subcommand: `" .. subcommand .. "`")
+        print("No such subcommand: `" .. trimmed_subcommand .. "`")
     else
         local theme
 
