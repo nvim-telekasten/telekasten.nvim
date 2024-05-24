@@ -47,8 +47,7 @@ local function imgFromClipboard()
             if
                 vim.fn
                     .system("file --mime-type -b " .. image_path)
-                    :gsub("%s+", "")
-                == "image/png"
+                    :gsub("%s+", "") == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
             else

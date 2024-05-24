@@ -428,6 +428,8 @@ function M.Pinfo:resolve_link(title, opts)
         or config.options.template_handling
     opts.new_note_location = opts.new_note_location
         or config.options.new_note_location
+    opts.note_type_templates = opts.note_type_templates
+        or config.options.note_type_templates
 
     -- Set basic Pinfo values
     self.fexists = false
@@ -443,8 +445,7 @@ function M.Pinfo:resolve_link(title, opts)
 
     -- Try checking for existence and assigning values as a weekly, then as a daily, then as a plain note in home
     if
-        opts.weeklies
-        and M.file_exists(opts.weeklies .. "/" .. self.filename)
+        opts.weeklies and M.file_exists(opts.weeklies .. "/" .. self.filename)
     then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
@@ -456,8 +457,7 @@ function M.Pinfo:resolve_link(title, opts)
         self.is_weekly = true
     end
     if -- TODO: This should be able to convert to an elseif, I think. Weekly and daily file names are distinct
-        opts.dailies
-        and M.file_exists(opts.dailies .. "/" .. self.filename)
+        opts.dailies and M.file_exists(opts.dailies .. "/" .. self.filename)
     then
         -- TODO: parse "title" into calendarinfo like below
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
