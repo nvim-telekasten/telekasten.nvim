@@ -429,7 +429,11 @@ function M.Pinfo:resolve_link(title, opts)
     opts.new_note_location = opts.new_note_location
         or config.options.new_note_location
     opts.note_type_templates = opts.note_type_templates
-        or config.options.note_type_templates
+        or {
+            normal = config.options.template_new_note,
+            daily = config.options.template_new_daily,
+            weekly = config.options.template_new_weekly,
+        }
 
     -- Set basic Pinfo values
     self.fexists = false
