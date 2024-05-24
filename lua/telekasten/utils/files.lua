@@ -548,18 +548,18 @@ function M.Pinfo:resolve_link(title, opts)
         :gsub("^/", "")
 
     -- now suggest a template based on opts
-    self.template = M.note_type_templates.normal
+    self.template = opts.note_type_templates.normal
     if opts.template_handling == "prefer_new_note" then
-        self.template = M.note_type_templates.normal
+        self.template = opts.note_type_templates.normal
     elseif opts.template_handling == "always_ask" then
         self.template = nil
     elseif opts.template_handling == "smart" then
         if self.is_daily then
-            self.template = M.note_type_templates.daily
+            self.template = opts.note_type_templates.daily
         elseif self.is_weekly then
-            self.template = M.note_type_templates.weekly
+            self.template = opts.note_type_templates.weekly
         else
-            self.template = M.note_type_templates.normal
+            self.template = opts.note_type_templates.normal
         end
     end
 
