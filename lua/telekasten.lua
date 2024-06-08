@@ -1809,9 +1809,9 @@ local function FindAllTags(opts)
 end
 
 --- Setup(cfg)
--- Overrides config with elements from cfg. See lua/telekasten/config.lua for defaults.
--- @param cfg table Table of configuration values to override defaults
--- Maybe fold into _setup? Also used in chdir, though...
+--- Overrides config with elements from cfg. See lua/telekasten/config.lua for defaults.
+--- Maybe fold into _setup? Also used in chdir, though...
+---@param cfg VaultConfig table of configuration values to override defaults
 local function Setup(cfg)
     cfg = cfg or {}
 
@@ -1912,9 +1912,17 @@ local function Setup(cfg)
     config.options.media_extensions = config.options.media_extensions
 end
 
+---Type in progress
+---@class VaultConfig
+---@field home string
+
+---@class MultiVaultConfig
+---@field vaults table<string, VaultConfig>
+---@field default_vault? string
+
 --- _setup(cfg)
 -- Sets the available vaults and passes further configuration options to Setup
--- @param cfg table Table of configuration values
+---@param cfg MultiVaultConfig | VaultConfig table of configuration values
 local function _setup(cfg)
     if cfg.vaults ~= nil and cfg.default_vault ~= nil then
         M.vaults = cfg.vaults
@@ -1927,6 +1935,7 @@ local function _setup(cfg)
     elseif cfg.home ~= nil then
         M.vaults = cfg.vaults or {}
         cfg.vaults = nil
+        ---@cast cfg VaultConfig
         M.vaults["default"] = cfg
         Setup(cfg)
     end
