@@ -2751,6 +2751,7 @@ end
 --
 -- Overrides config with elements from cfg. See top of file for defaults.
 --
+---@param cfg VaultConfig
 local function Setup(cfg)
     cfg = cfg or {}
 
@@ -2849,6 +2850,17 @@ local function Setup(cfg)
     config.options.media_extensions = config.options.media_extensions
 end
 
+---Type in progress
+---@class VaultConfig
+---@field home string
+
+---@class MultiVaultConfig
+---@field vaults table<string, VaultConfig>
+---@field default_vault? string
+
+--- Wrapper around the Setup function to handle cfgs variable input type
+--- Try the specified key -> vault as default, then the "default" -> vault, then its a VaultConfig
+---@param cfg MultiVaultConfig | VaultConfig
 local function _setup(cfg)
     if cfg.vaults ~= nil and cfg.default_vault ~= nil then
         M.vaults = cfg.vaults
@@ -2861,6 +2873,7 @@ local function _setup(cfg)
     elseif cfg.home ~= nil then
         M.vaults = cfg.vaults or {}
         cfg.vaults = nil
+        ---@cast cfg VaultConfig
         M.vaults["default"] = cfg
         Setup(cfg)
     end
