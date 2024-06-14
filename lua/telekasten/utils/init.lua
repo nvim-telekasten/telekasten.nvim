@@ -43,10 +43,8 @@ function M.grep_escape(s)
     })
 end
 
--- N/A -> N/A
--- No return
+--- save_all_mod_buffers()
 -- Saves all modified buffers if auto_set_filetype and buffer's filetype is telekasten or if not auto_set_filetype
--- Move to utils/files.lua? Arguably file related, but maybe better utils/init.lua
 function M.save_all_mod_buffers()
     for i = 1, vim.fn.bufnr("$") do
         if
@@ -64,11 +62,13 @@ function M.save_all_mod_buffers()
     end
 end
 
--- string, string, string -> N/A
--- No return, runs ripgrep and sed if and only if the global dir check passes
+--- recursive_substitution(dir, old, new)
+-- Runs ripgrep and sed if and only if the global dir check passes
 -- ripgrep finds all files with instances of 'old' in 'dir'
 -- sed takes file list from rg and replaces all instances of 'old' with 'new'
--- Move to utils/files.lua? Arguably file related
+-- @param dir string Directory in which to perform the substitution
+-- @param old string Old string to be removed
+-- @param new string New string to replace the removed old string
 function M.recursive_substitution(dir, old, new)
     fileutils.global_dir_check(function(dir_check)
         if not dir_check then

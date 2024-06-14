@@ -79,9 +79,12 @@ local function random_variable(length)
     return res
 end
 
--- string -> bool, bool, table
+--- check_if_daily_or_weekly(title)
 -- Returns info on if the title given is for a daily or weekly and the date(s)
--- Maybe move to utils/dates.lua?
+-- @param title string Title of the note to be checked
+-- @return boolean True if daily note
+-- @return boolean True if weekly note
+-- @return table Date info
 local function check_if_daily_or_weekly(title)
     local daily_match = "^(%d%d%d%d)-(%d%d)-(%d%d)$"
     local weekly_match = "^(%d%d%d%d)-W(%d%d)$"
@@ -129,8 +132,11 @@ local function check_if_daily_or_weekly(title)
     return is_daily, is_weekly, dateinfo
 end
 
--- table, table -> table
+--- filter_filetypes(flist, ftypes)
 -- Returns all entries in flist with filetypes in ftypes
+-- @param flist table List of files
+-- @param ftypes table List of file types
+-- @return table List of flist entries with filetype in ftypes
 local function filter_filetypes(flist, ftypes)
     local new_fl = {}
     ftypes = ftypes or { config.options.extension }
@@ -199,6 +205,11 @@ local media_preview = defaulter(function(opts)
     })
 end, {})
 
+--- new_uuid(uuid_style)
+-- Returns a new UUID in the specified style. If
+-- @param uuid_style string|function If "rand", use random_variable(6),
+-- else if function, use to make UUID, else use as date format
+-- @return string UUID
 function M.new_uuid(uuid_style)
     local uuid
     if uuid_style == "rand" then
@@ -211,10 +222,14 @@ function M.new_uuid(uuid_style)
     return uuid
 end
 
--- string, string, function -> bool
--- If dir doesn't exist and it is successfully created, returns true
--- If dir doesn't exist and can't be created, calls callback(false) and returns false
--- If dir exists, calls callback(true) and returns true
+--- check_dir_and_ask(dir, purpose, callback)
+-- Checks for the existence of directory/folder dir and if not, creates it if possible.
+-- Runs callback(true) if dir exists or callback(false) if dir doesn't exist and can't be created.
+-- @param dir string A file system directory/folder
+-- @param purpose string Purpose of the directory being checked
+-- @param callback function
+-- @return boolean True if dir exists or didn't but is successfully created, false if nonexistent and creation fails
+-- TODO: Why doesn't callback get called if the directory exists? Figure out and explain here.
 function M.check_dir_and_ask(dir, purpose, callback)
     local ret = false
     if dir ~= nil and Path:new(dir):exists() == false then
@@ -272,9 +287,11 @@ function M.global_dir_check(callback)
     end)
 end
 
--- string, string -> string
--- Returns the new note's file name, accounting for UUID usage and any desired space substition.
--- Move to utils/files.lua?
+--- generate_note_filename(uuid, title)
+-- Returns the new note's file name, accounting for UUID usage and any desired space substition
+-- @param uuid string New UUID for file name if needed
+-- @param title string Title of the new note
+-- @return string Complete file name with appropriate UUID if needed
 function M.generate_note_filename(uuid, title)
     if config.options.filename_space_subst ~= nil then
         title = title:gsub(" ", config.options.filename_space_subst)
@@ -299,9 +316,10 @@ function M.generate_note_filename(uuid, title)
     end
 end
 
--- string -> string
+--- make_config_path_absolute(path)
 -- Returns the absolute path to a local file
--- Move to utils/files.lua
+-- @param path string Path to be made absolute
+-- @return string Absolute version of the given path
 function M.make_config_path_absolute(path)
     local ret = path
     if not (Path:new(path):is_absolute()) and path ~= nil then
@@ -328,7 +346,6 @@ end
 ---    - is_daily : bool
 ---    - is_weekly : bool
 ---    - template : suggested template based on opts
--- Move to utils/files.lua?
 M.Pinfo = {
     fexists = false,
     title = "",
@@ -343,10 +360,11 @@ M.Pinfo = {
     calendar_info = nil,
 }
 
--- table -> table
+--- Pinfo:new(opts)
 -- Returns a Pinfo table tailored to the file path or title specified in opts
--- Unsure of potential relation to new file paths and/or titles, check later
--- Keep with Pinfo
+-- @param opts table Options, ideally including filepath and title
+-- @return table Pinfo table of file info
+-- TODO: Unsure of potential relation to new file paths and/or titles, check later
 function M.Pinfo:new(opts)
     opts = opts or {}
 
@@ -362,10 +380,11 @@ function M.Pinfo:new(opts)
     return object
 end
 
--- string, table -> table
 --- resolve_path(p, opts)
---- inspects the path and returns a Pinfo table
--- Keep with Pinfo
+-- Inspects the path p and returns a Pinfo table
+-- @param p string Path to directory
+-- @param opts table Options, ideally including subdirs_in_links
+-- @return table Pinfo
 function M.Pinfo:resolve_path(p, opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links
@@ -416,7 +435,12 @@ function M.Pinfo:resolve_path(p, opts)
 end
 
 -- string, table -> table
+--- resolve_link(title, opts)
 -- Returns a Pinfo table for the given title and options
+-- @param title string Title to be resolved to file path
+-- @param opts table Options, ideally including weeklies, dailies, home, extention, template_handling,
+-- new_note_location, and note_type_templates
+-- @return table Pinfo for note corresponding to title if found or detailing the failure
 function M.Pinfo:resolve_link(title, opts)
     -- Set options, preferring passed opts over user config
     opts = opts or {}
@@ -581,7 +605,8 @@ end
 --         - but when entering a date in find_notes, the daily/ and weekly/ subdirs are displayed
 --     - optionally previews media (pdf, images, mp4, webm)
 --         - this requires the telescope-media-files.nvim extension
--- Move to utils/files.lua
+-- @param opts table Options, ideally including search_pattern, search_depth, filter_extensions, sort,
+--                   show_link_counts, and preview_type
 function M.find_files_sorted(opts)
     opts = opts or {}
     local search_pattern = opts.search_pattern or nil
@@ -751,6 +776,10 @@ function M.find_files_sorted(opts)
 end
 
 -- string, string, string, string, table, function -> N/A
+--- create_note_from_template(title, uuid, filepath, templatefn, calendar_info, callback)
+-- @param title string Title for the new note
+-- @param uuid string UUID to include in title
+-- @param filepath string
 -- No return, only creates a new note file from a given template file
 -- utils/templates.lua? utils/files.lua? utils/init.lua?
 function M.create_note_from_template(

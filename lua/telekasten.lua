@@ -25,14 +25,8 @@ local vim = vim
 
 local M = {}
 
--- ----------------------------------------------------------------------------
--- image stuff
--- ----------------------------------------------------------------------------
-
--- N/A -> N/A
--- No return, copies png image from clipboard to a new file in the vault
--- and inserts link according to configured format
--- USER FACING, leave in place
+--- imgFromClipboard()
+-- Copies png image from clipboard to a new file in the vault and inserts link according to configured format
 local function imgFromClipboard()
     fileutils.global_dir_check(function(dir_check)
         if not dir_check then
@@ -165,17 +159,9 @@ local function imgFromClipboard()
     end)
 end
 
--- end of image stuff
-
---
--- FindDailyNotes:
--- ---------------
---
--- Select from daily notes
---
--- table -> N/A
--- No return. Opens a picker looking for daily notes, creating new from template if needed
--- USER FACING, leave in place
+--- FindDailyNotes(opts)
+-- Opens a picker looking for daily notes, creating new from template if needed
+-- @param opts table Options if they should differ from user's configuration
 local function FindDailyNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -245,15 +231,9 @@ local function FindDailyNotes(opts)
     end)
 end
 
---
--- FindWeeklyNotes:
--- ---------------
---
--- Select from daily notes
---
--- table -> N/A
--- No return. Defines a picker looking for weekly notes, creating a new one from template if needed
--- USER FACING, leave in place
+--- FindWeeklyNotes(opts)
+-- Defines and uses a picker looking for weekly notes, creating a new one from template if needed
+-- @param opts table Options if they should differ from user's configuration
 local function FindWeeklyNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -325,14 +305,9 @@ local function FindWeeklyNotes(opts)
     end)
 end
 
---
--- InsertLink:
--- -----------
---
--- Select from all notes and put a link in the current buffer
--- table -> N/A
--- No return. Sets up a picker from which users can pick a note to insert a link to
--- USER FACING, leave in place
+--- InsertLink(opts)
+-- Sets up and uses a picker from which users can pick a note to insert a link to
+-- @param opts table Options if they should differ from user's configuration
 local function InsertLink(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -403,15 +378,9 @@ local function InsertLink(opts)
     end)
 end
 
---
--- PreviewImg:
--- -----------
---
--- preview media
---
--- table -> N/A
--- No return. Takes text under cursor by normal yi, and if this is an image path, show it in a picker
--- USER FACING, leave in place
+--- PreviewImg(opts)
+-- Takes text under cursor by normal yi, and if this is an image path, show it in a picker
+-- @param opts table Options if they should differ from user's configuration
 local function PreviewImg(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -464,15 +433,9 @@ local function PreviewImg(opts)
     end)
 end
 
---
--- BrowseImg:
--- -----------
---
--- preview media
---
--- table -> N/A
--- No return. Opens a picker filtering to only media for users to browse
--- USER FACING, leave in place
+--- BrowseImg(opts)
+-- Opens a picker filtering to only media for users to browse
+-- @param opts table Options if they should differ from user's configuration
 local function BrowseImg(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -509,15 +472,9 @@ local function BrowseImg(opts)
     end)
 end
 
---
--- FindFriends:
--- -----------
---
--- Find notes also linking to the link under cursor
---
--- table -> N/A
--- No return. Opens a picker filtering to only notes linking to the note linked under the cursor
--- USER FACING, leave in place
+--- FindFriends(opts)
+-- Opens a picker filtering to only notes linking to the note linked under the cursor
+-- @param opts table Options if they should differ from user's configuration
 local function FindFriends(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -559,14 +516,8 @@ local function FindFriends(opts)
     end)
 end
 
---
--- YankLink:
--- -----------
---
--- Create and yank a [[link]] from the current note.
---
--- N/A -> N/A, puts link to current note in unnamed register ""
--- USER FACING, leace in place
+--- YankLink()
+-- Create and yank a [[link]] from the current note to unnamed register ""
 local function YankLink()
     local title = "[["
         .. fileutils.Pinfo:new({
@@ -579,14 +530,8 @@ local function YankLink()
     print("yanked " .. title)
 end
 
---
--- RenameNote:
--- -----------
---
+--- RenameNote()
 -- Prompt for new note title, rename the note and update all links.
---
--- N/A -> N/A
--- USER FACING, leave in place
 local function RenameNote()
     local oldfile =
         fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options })
@@ -655,13 +600,9 @@ local function RenameNote()
     )
 end
 
---
--- GotoDate:
--- ----------
---
+--- GoToDate(opts)
 -- find note for date and create it if necessary.
---
--- table -> N/A
+-- @param opts table Options if they should differ from user's configuration
 -- Move to utils/files.lua? Technically not user facing...
 local function GotoDate(opts)
     opts.dates = dateutils.calculate_dates(
@@ -744,14 +685,9 @@ local function GotoDate(opts)
     picker()
 end
 
---
--- GotoToday:
--- ----------
---
--- find today's daily note and create it if necessary.
---
--- table -> N/A
--- USER FACING, leave in place
+--- GotoToday(opts)
+-- Find today's daily note and create it if necessary.
+-- @param opts table Options if they should differ from user's configuration
 local function GotoToday(opts)
     opts = opts or {}
 
@@ -768,14 +704,9 @@ local function GotoToday(opts)
     end)
 end
 
---
--- FindNotes:
--- ----------
---
+--- FindNotes(opts)
 -- Select from notes
---
--- table -> N/A
--- USER FACING, leave in place
+-- @param opts table Options if they should differ from user's configuration
 local function FindNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -827,14 +758,9 @@ local function FindNotes(opts)
     end)
 end
 
---
--- InsertImgLink:
--- --------------
---
+--- InsertImgLink(opts)
 -- Insert link to image / media, with optional preview
---
--- table -> N/A
--- USER FACING, leave in place
+-- @param opts table Options if they should differ from user's configuration
 local function InsertImgLink(opts)
     opts = opts or {}
 
@@ -878,14 +804,9 @@ local function InsertImgLink(opts)
     end)
 end
 
---
--- SearchNotes:
--- ------------
---
--- find the file linked to by the word under the cursor
---
--- table -> N/A
--- USER FACING, leave in place
+--- SearchNotes(opts)
+-- Find the file linked to by the word under the cursor
+-- @param opts table Options if they should differ from user's configuration
 local function SearchNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -919,14 +840,9 @@ local function SearchNotes(opts)
     end)
 end
 
---
--- ShowBacklinks:
--- ------------
---
+--- ShowBacklinks(opts)
 -- Find all notes linking to this one
---
--- table -> N/A
--- USER FACING, leave in place
+-- @param opts table Options if they should differ from user's configuration
 local function ShowBacklinks(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -970,13 +886,9 @@ local function ShowBacklinks(opts)
     end)
 end
 
---
--- CreateNoteSelectTemplate()
--- --------------------------
---
--- Prompts for title, then pops up telescope for template selection,
--- creates the new note by template and opens it
--- table, string -> N/A
+--- CreateNoteSelectTemplate(opts, title)
+-- Prompts for title, then pops up telescope for template selection, creates the new note by template and opens it
+-- @param opts table Options if they should differ from user's configuration
 -- Move? Used by CreateNoteSelectTemplate and FollowLink. Maybe good case for utils/init.lua to share it?
 local function on_create_with_template(opts, title)
     if title == nil then
@@ -1040,9 +952,9 @@ local function on_create_with_template(opts, title)
     })
 end
 
--- table -> N/A
--- No return, select template and create new note
--- USER FACING, leave in place
+--- CreateNoteSelectTemplate(opts)
+-- Select a template and create a new note
+-- @param opts table Options if they should differ from user's configuration
 local function CreateNoteSelectTemplate(opts)
     opts = opts or {}
 
@@ -1064,14 +976,9 @@ local function CreateNoteSelectTemplate(opts)
     end)
 end
 
---
--- CreateNote:
--- ------------
---
+--- CreateNote(opts)
 -- Prompts for title and creates note with default template
---
--- table -> N/A
--- USER FACING, leave in place
+-- @param opts table Options if they should differ from user's configuration
 local function CreateNote(opts)
     opts = opts or {}
 
@@ -1097,14 +1004,9 @@ local function CreateNote(opts)
     end)
 end
 
---
--- FollowLink:
--- -----------
---
--- find the file linked to by the word under the cursor
---
--- table -> N/A
--- USER FACING, leave in place
+--- FollowLink(opts)
+-- Find the file linked to by the word under the cursor
+-- @param opts table Options if they should differ from user's configuration
 local function FollowLink(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -1559,14 +1461,9 @@ local function FollowLink(opts)
     end)
 end
 
---
--- GotoThisWeek:
--- -------------
---
--- find this week's weekly note and create it if necessary.
---
--- table -> N/A
--- USER FACING, leave in place
+--- GotoThisWeek(opts)
+-- Find this week's weekly note and create it if necessary.
+-- @param opts table Options if they should differ from user's configuration
 local function GotoThisWeek(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -1647,13 +1544,12 @@ local function GotoThisWeek(opts)
     end)
 end
 
---
--- Calendar Stuff
--- --------------
-
--- return if a daily 'note exists' indicator (sign) should be displayed for a particular day
--- number, number, number -> number (0 or 1)
--- USER FACING, Leave in place
+--- CalendarSignDay(day, month, year)
+-- Return if a daily 'note exists' indicator (sign) should be displayed for a particular day
+-- @param day number Day of the month
+-- @param month number Month of the year
+-- @param year number Year of the Gregorian calendar
+-- @return number Representing a boolean, 0 for false and 1 for true
 local function CalendarSignDay(day, month, year)
     local fn = config.options.dailies
         .. "/"
@@ -1665,10 +1561,15 @@ local function CalendarSignDay(day, month, year)
     return 0
 end
 
--- action on enter on a specific day:
--- preview in telescope, stay in calendar on cancel, open note in other window on accept
--- number, number, number, _, _ -> N/A
--- USER FACING, leave in place
+--- CalendarAction(day, month, year, _, _)
+-- Action on enter on a specific day:
+-- Preview in telescope, stay in calendar on cancel, open note in other window on accept
+-- @param day number Day of the month
+-- @param month number Month of the year
+-- @param year number Year of the Gregorian calendar
+-- @param _ any Unused
+-- @param _ any Unused
+-- TODO: Ensure it's safe to remove the extra paramters
 local function CalendarAction(day, month, year, _, _)
     local opts = {}
     opts.date = string.format("%04d-%02d-%02d", year, month, day)
@@ -1677,8 +1578,10 @@ local function CalendarAction(day, month, year, _, _)
     GotoDate(opts)
 end
 
--- table -> N/A
--- USER FACING, leave in place
+--- ShowCalendar(opts)
+-- Display the calendar
+-- @param opts table Options if they should differ from user's configuration
+-- TODO: No attempt made to backup load from config as in other functions taking opts. See if one can be added
 local function ShowCalendar(opts)
     local defaults = {}
     defaults.cmd = "CalendarVR"
@@ -1696,10 +1599,10 @@ local function ShowCalendar(opts)
     ]])
 end
 
--- set up calendar integration: forward to our lua functions
--- table -> N/A
--- No return, uses vim commands to set up the calendar
--- Move to config.lua?
+--- SetupCalendar(opts)
+-- Set up calendar integration with vim commands, forward to our lua functions
+-- @param opts table Options if they should differ from user's configuration
+-- Move to config.lua? More related to initial setup, though. Maybe telekasten/init.lua?
 local function SetupCalendar(opts)
     local defaults = config.options.calendar_opts
     opts = opts or defaults
@@ -1741,9 +1644,9 @@ local function SetupCalendar(opts)
     end
 end
 
--- table -> N/A
--- No return. Toggles todo status under the cursor
--- USER FACING, leave in place
+--- ToggleTodo(opts)
+-- Toggles todo status under the cursor
+-- @param opts table Options if they should differ from user's configuration
 local function ToggleTodo(opts)
     -- replace
     --       by -
@@ -1802,8 +1705,10 @@ local function ToggleTodo(opts)
     end
 end
 
--- table -> N/A
--- USER FACING, leave in place
+--- FindAllTags(opts)
+-- Needs description
+-- @param opts table Options if they should differ from user's configuration
+-- TODO: Add a quality description for this function
 local function FindAllTags(opts)
     opts = opts or {}
     local i = opts.i
@@ -1903,11 +1808,9 @@ local function FindAllTags(opts)
     end)
 end
 
--- Setup(cfg)
---
--- Overrides config with elements from cfg. See top of file for defaults.
---
--- table -> N/A
+--- Setup(cfg)
+-- Overrides config with elements from cfg. See lua/telekasten/config.lua for defaults.
+-- @param cfg table Table of configuration values to override defaults
 -- Maybe fold into _setup? Also used in chdir, though...
 local function Setup(cfg)
     cfg = cfg or {}
@@ -2009,8 +1912,9 @@ local function Setup(cfg)
     config.options.media_extensions = config.options.media_extensions
 end
 
--- table -> N/A
--- USER FACING, leave in place
+--- _setup(cfg)
+-- Sets the available vaults and passes further configuration options to Setup
+-- @param cfg table Table of configuration values
 local function _setup(cfg)
     if cfg.vaults ~= nil and cfg.default_vault ~= nil then
         M.vaults = cfg.vaults
@@ -2028,14 +1932,17 @@ local function _setup(cfg)
     end
 end
 
--- table -> N/A
--- USER FACING, leave in place
+--- ChangeVault(opts)
+-- Sets the vault to be used
+-- @param opts table Options if they should differ from user's configuration
 local function ChangeVault(opts)
     tkpickers.vaults(M, opts)
 end
 
--- table -> N/A
--- USER FACING, leave in place
+--- chdir(cfg)
+-- Passes cfg to Setup
+-- @param cfg table Table of configuration values
+-- TODO: Maybe remove this function? Seems useless, just call Setup
 local function chdir(cfg)
     Setup(cfg)
 end
@@ -2083,8 +1990,9 @@ local TelekastenCmd = {
     end,
 }
 
----@param subcommand string
----@returns N/A
+--- TelekastenCmd.command(subcommand)
+-- Parses and runs the provided subcommand, e.g., find_notes in ':Telekasten find_notes'
+-- @param subcommand string Subcommand to be run
 TelekastenCmd.command = function(subcommand)
     local show = function(opts)
         opts = opts or {}
@@ -2142,9 +2050,9 @@ TelekastenCmd.command = function(subcommand)
     end
 end
 
+--- TelekastenCmd.complete()
 -- nvim completion function for completing :Telekasten sub-commands
--- N/A -> [string]
--- Keep with TelekastenCmd above
+-- @return [string] List of potential completions for the subcommand
 TelekastenCmd.complete = function()
     local candidates = {}
     for k, v in pairs(TelekastenCmd.commands()) do

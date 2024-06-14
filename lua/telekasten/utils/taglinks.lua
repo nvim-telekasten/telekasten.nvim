@@ -103,9 +103,10 @@ M.get_tag_at = function(line, col, opts)
     return line:sub(col, endcol)
 end
 
--- N/A -> string, number
--- Returns "tag"/"link"/nil, location's column
+--- check_for_link_or_tag
 -- Checks if the location under the cursor is a tag or link
+-- @return string "tag" if a tag, "link" if a link, nil otherwise
+-- @return number Column location of the target
 -- Move to utils/taglinks.lua?
 function M.check_for_link_or_tag()
     local line = vim.api.nvim_get_current_line()

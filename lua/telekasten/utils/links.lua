@@ -143,9 +143,9 @@ function M.remove_alias(link)
     return link
 end
 
--- string -> N/A
--- No return. Passes the given URL to the OS's tool for handling and opening URLs
--- Move to utils/links.lua?
+--- follow_url(url)
+-- Passes the given URL to the OS's tool for handling and opening URLs
+-- @param url string URL for an external resource
 function M.follow_url(url)
     if config.options.follow_url_fallback then
         local cmd =
@@ -175,9 +175,10 @@ function M.follow_url(url)
     end
 end
 
--- string, string -> N/A
--- No return. Update links with name change if configured to
--- Move to utils/files.lua? utils/links.lua?
+--- rename_update_links(oldfile, newname)
+-- Update links with name change if configured to
+-- @param oldfile table Pinfo table for the file having its name changed
+-- @param newname string New name for the note at oldfile
 function M.rename_update_links(oldfile, newname)
     if config.options.rename_update_links == true then
         -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
@@ -207,10 +208,13 @@ function M.rename_update_links(oldfile, newname)
     end
 end
 
--- string, string, string -> string
--- Return a relative path from the buffer to the image dir
--- Move to a utils/images.lua? Seems like it could be used for regular notes, too, just no current use,
--- so utils/files.lua? utils/links.lua?
+--- make_relative_path
+-- Return a relative path from the buffer to the image
+-- @param bufferpath string Path to the buffer's open file
+-- @param imagepath string Path to the desired image
+-- @param sep string Directory separator for the local OS file paths, e.g., \ on Windows and / on Linux
+-- @return string Relative path from the note open in the buffer to the given image at imagepath
+-- TODO: Verify the exact values passed as bufferpath and imagepath. Are they to files or to directories?
 function M.make_relative_path(bufferpath, imagepath, sep)
     sep = sep or "/" -- TODO: This seems UNIX-centric. Consider using something from os or plenary to get OS's file sep
 

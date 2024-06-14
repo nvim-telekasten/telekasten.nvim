@@ -52,9 +52,8 @@ end
 -- Move to utils/pickers.lua? Make sure to bring table entry definitions from below
 M.picker_actions = {}
 
--- N/A -> N/A
--- No return. If user config auto sets filetype or syntax, actually set them
--- Keep with picker_actions definition
+--- picker_actions.post_open()
+-- If user config auto sets filetype or syntax, actually set them
 M.picker_actions.post_open = function()
     if config.options.auto_set_filetype then
         vim.cmd("set ft=telekasten")
@@ -64,17 +63,22 @@ M.picker_actions.post_open = function()
     end
 end
 
--- int -> nil? action_set.select returns result of action_set.edit, but edit doesn't return a value
--- Keep with picker_actions definition
+--- picker_actions.select_default(prompt_bufnr)
+-- Needs description
+-- @param prompt_bufnr number Buffer number
+-- @return nil? action_set.select returns result of action_set.edit, but edit doesn't return a value
+-- TODO: Give a quality description for the function
+-- TODO: Verif the return type
 M.picker_actions.select_default = function(prompt_bufnr)
     local ret = action_set.select(prompt_bufnr, "default")
     M.picker_actions.post_open()
     return ret
 end
 
--- table -> function
+--- picker_actions.close(opts)
 -- Returns a configured function mapped to a key while using the picker
--- Keep with picker_actions definition
+-- @param opts table Option to erase the file when closing the buffer
+-- @return function Closes buffer and optionally erases a file
 function M.picker_actions.close(opts)
     opts = opts or {}
     return function(prompt_bufnr)
@@ -87,8 +91,11 @@ function M.picker_actions.close(opts)
     end
 end
 
--- table -> function
+--- picker_actions.paste_tag(opts)
 -- Returns a configured function that gets mapped to a key while using the picker in FindAllTags
+-- @param opts table Options, ideally including insert_after_insterting or i
+-- @return function
+-- TODO: Add quality description for the returned function
 function M.picker_actions.paste_tag(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
@@ -100,8 +107,10 @@ function M.picker_actions.paste_tag(opts)
     end
 end
 
--- table -> function
+--- picker_actions.yank_tag(opts)
 -- Returns a configured function that gets mapped to a key while using the picker in FindAllTags
+-- @param opts table Options, ideally including close_after_yanking
+-- @return function Yanks a tag and optionally closes the buffer
 function M.picker_actions.yank_tag(opts)
     return function(prompt_bufnr)
         opts = opts or {}
@@ -114,8 +123,10 @@ function M.picker_actions.yank_tag(opts)
     end
 end
 
--- table -> function
--- Returns a configured function that gets mapped to a key while using the picker
+--- picker_actions.paste_link(opts)
+-- Returns a configured function that gets mapped to a keyt while using the picker
+-- @param opts table Options, ideally including subdirs_in_links and insert_after_inserting
+-- @return function Closes the buffer and pastes the chosen link
 function M.picker_actions.paste_link(opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links
@@ -135,8 +146,10 @@ function M.picker_actions.paste_link(opts)
     end
 end
 
--- table -> function
+--- picker_actions.yank_link(opts)
 -- Returns a configured function that gets mapped to a key while using the picker
+-- @param opts table Options, ideally including subdir_in_links and close_after_yanking
+-- @return function Yanks a link to the chosen note
 function M.picker_actions.yank_link(opts)
     return function(prompt_bufnr)
         opts = opts or {}
@@ -156,8 +169,10 @@ function M.picker_actions.yank_link(opts)
     end
 end
 
--- table -> function
+--- picker_actions.paste_img_link(opts)
 -- Returns a configured function that gets mapped to a key while using the picker for images
+-- @param opts table Options, ideally including insert_after_inserting or i
+-- @return function Pastes an image link
 function M.picker_actions.paste_img_link(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
@@ -172,8 +187,10 @@ function M.picker_actions.paste_img_link(opts)
     end
 end
 
--- table -> function
+--- picker_actions.yank_img_link(opts)
 -- Returns a configured function that gets mapped to a key while using the picker for images
+-- @param opts table Options, ideally including close_after_yanking
+-- @return function Yanks a link to a chosen image
 function M.picker_actions.yank_img_link(opts)
     return function(prompt_bufnr)
         opts = opts or {}
@@ -189,8 +206,10 @@ function M.picker_actions.yank_img_link(opts)
     end
 end
 
--- table -> function
--- Keep with other picker_actions
+--- picker_actions.create_new(opts)
+-- Returns a configured function that gets mapped to a key while using the picker for images
+-- @param opts table Options, ideally including subdir_in_links
+-- @return function Creates a new note
 function M.picker_actions.create_new(opts)
     opts = opts or {}
     opts.subdirs_in_links = opts.subdirs_in_links
@@ -204,8 +223,11 @@ function M.picker_actions.create_new(opts)
     end
 end
 
--- table, string -> N/A
--- Move? Used in CreateNote and picker_actions.create_new
+--- on_create(opts, title)
+-- Needs description
+-- @param opts table Options, ideally including insert_after_inserting, close_after_yanking, new_note_location,
+--                   template_handling, and uuid_type
+-- @param title string Title of the new note
 function M.on_create(opts, title)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
