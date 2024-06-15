@@ -2,6 +2,7 @@ local Job = require("plenary.job")
 
 local M = {}
 
+local vim = vim
 local hashtag_re =
     "(^|\\s|'|\")#[a-zA-ZÀ-ÿ\\p{Script=Han}]+[a-zA-ZÀ-ÿ0-9/\\-_\\p{Script=Han}]*"
 -- PCRE hashtag allows to remove the hex color codes from hastags

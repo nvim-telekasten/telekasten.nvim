@@ -1,7 +1,11 @@
--- local async = require("plenary.async")
-local scan = require("plenary.scandir")
-
 local M = {}
+package.loaded[...] = M
+
+local scan = require("plenary.scandir")
+local config = require("telekasten.config")
+local tkutils = require("telekasten.utils")
+
+local vim = vim
 
 local function file_exists(fn, file_list)
     return file_list[fn] ~= nil
@@ -137,6 +141,121 @@ function M.remove_alias(link)
         return string.sub(link, 0, split_index - 1)
     end
     return link
+end
+
+--- follow_url(url)
+-- Passes the given URL to the OS's tool for handling and opening URLs
+-- @param url string URL for an external resource
+function M.follow_url(url)
+    if config.options.follow_url_fallback then
+        local cmd =
+            string.gsub(config.options.follow_url_fallback, "{{url}}", url)
+        return vim.cmd(cmd)
+    end
+
+    -- we just leave it to the OS's handler to deal with what kind of URL it is
+    local function format_command(cmd)
+        return 'call jobstart(["'
+            .. cmd
+            .. '", "'
+            .. url
+            .. '"], {"detach": v:true})'
+    end
+
+    -- Choose OS-appropriate command and run it if possible
+    local command
+    if vim.fn.has("mac") == 1 then
+        command = format_command("open")
+        vim.cmd(command)
+    elseif vim.fn.has("unix") then
+        command = format_command("xdg-open")
+        vim.cmd(command)
+    else
+        print("Cannot open URLs on your operating system") -- TODO: Figure out how to do this on Windows
+    end
+end
+
+--- rename_update_links(oldfile, newname)
+-- Update links with name change if configured to
+-- @param oldfile table Pinfo table for the file having its name changed
+-- @param newname string New name for the note at oldfile
+function M.rename_update_links(oldfile, newname)
+    if config.options.rename_update_links == true then
+        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
+        -- Should use regex instead to ensure it is a proper link
+        local oldlink = "[[" .. oldfile.title
+        local newlink = "[[" .. newname
+
+        -- Save open buffers before looking for links to replace
+        if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
+            vim.ui.select({ "Yes (default)", "No" }, {
+                prompt = "Telekasten.nvim: "
+                    .. "Save all modified buffers before updating links?",
+            }, function(answer)
+                if answer ~= "No" then
+                    tkutils.save_all_mod_buffers()
+                end
+            end)
+        end
+
+        tkutils.recursive_substitution(config.options.home, oldlink, newlink)
+        tkutils.recursive_substitution(config.options.dailies, oldlink, newlink)
+        tkutils.recursive_substitution(
+            config.options.weeklies,
+            oldlink,
+            newlink
+        )
+    end
+end
+
+--- make_relative_path
+-- Return a relative path from the buffer to the image
+-- @param bufferpath string Path to the buffer's open file
+-- @param imagepath string Path to the desired image
+-- @param sep string Directory separator for the local OS file paths, e.g., \ on Windows and / on Linux
+-- @return string Relative path from the note open in the buffer to the given image at imagepath
+-- TODO: Verify the exact values passed as bufferpath and imagepath. Are they to files or to directories?
+function M.make_relative_path(bufferpath, imagepath, sep)
+    sep = sep or "/" -- TODO: This seems UNIX-centric. Consider using something from os or plenary to get OS's file sep
+
+    -- Split the buffer and image path into their dirs/files
+    local buffer_dirs = {}
+    for w in string.gmatch(bufferpath, "([^" .. sep .. "]+)") do
+        buffer_dirs[#buffer_dirs + 1] = w
+    end
+    local image_dirs = {}
+    for w in string.gmatch(imagepath, "([^" .. sep .. "]+)") do
+        image_dirs[#image_dirs + 1] = w
+    end
+
+    -- The parts of the dir list that match won't matter, so skip them
+    local i = 1
+    while i < #image_dirs and i < #buffer_dirs do
+        if image_dirs[i] ~= buffer_dirs[i] then
+            break
+        else
+            i = i + 1
+        end
+    end
+
+    -- Append ../ to walk up from the buffer location and the path downward
+    -- to the location of the image file in order to create a relative path
+    local relative_path = ""
+    while i <= #image_dirs or i <= #buffer_dirs do
+        if i <= #image_dirs then
+            if relative_path == "" then
+                relative_path = image_dirs[i]
+            else
+                relative_path = relative_path .. sep .. image_dirs[i]
+            end
+        end
+        if i <= #buffer_dirs - 1 then
+            relative_path = ".." .. sep .. relative_path
+        end
+        i = i + 1
+    end
+
+    return relative_path
 end
 
 return M

@@ -1,5 +1,6 @@
 -- The configuration setup is inspire from akinsho/bufferline.nvim
 --
+local vim = vim
 
 local M = {}
 

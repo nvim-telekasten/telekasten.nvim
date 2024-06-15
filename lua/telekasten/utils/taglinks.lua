@@ -1,3 +1,6 @@
+local config = require("telekasten.config")
+
+local vim = vim
 local M = {}
 
 M.is_tag_or_link_at = function(line, col, opts)
@@ -98,6 +101,17 @@ M.get_tag_at = function(line, col, opts)
     end
     -- we exhausted the line
     return line:sub(col, endcol)
+end
+
+--- check_for_link_or_tag
+-- Checks if the location under the cursor is a tag or link
+-- @return string "tag" if a tag, "link" if a link, nil otherwise
+-- @return number Column location of the target
+-- Move to utils/taglinks.lua?
+function M.check_for_link_or_tag()
+    local line = vim.api.nvim_get_current_line()
+    local col = vim.fn.col(".")
+    return M.is_tag_or_link_at(line, col, config.options)
 end
 
 -------------
