@@ -6,11 +6,17 @@ local M = {}
 
 ---The local class instance of the merged user's configuration this includes all
 ---default values and highlights filled out
+---@type Config
 local config = {}
 
 ---The class definition for the user configuration
+---@class Config
+---@field options VaultConfig
+---@field user {options: VaultConfig}
 local Config = {}
 
+---@param opts VaultConfig
+---@return Config
 function Config:new(opts)
     local o = { options = opts }
     assert(o, "User options must be passed in")
@@ -24,6 +30,8 @@ function Config:new(opts)
 end
 
 ---Combine user preferences with defaults preferring the user's own settings
+---@param defaults {options: VaultConfig}
+---@return Config
 function Config:merge(defaults)
     assert(
         defaults and type(defaults) == "table",
@@ -34,10 +42,11 @@ function Config:merge(defaults)
     return self
 end
 
---
--- Default setup. Ideally anyone should be able to start using Telekasten
--- directly without fiddling too much with the options. The only one of real
--- interest should be the path for the few relevant directories.
+--- Default setup. Ideally anyone should be able to start using Telekasten
+--- directly without fiddling too much with the options. The only one of real
+--- interest should be the path for the few relevant directories.
+---@param home string | nil
+---@return {options: VaultConfig}
 local function get_defaults(home)
     local _home = home or vim.fn.expand("~/zettelkasten") -- Default home directory
     local opts = {
@@ -97,6 +106,7 @@ local function get_defaults(home)
 end
 
 --- Merge user config with defaults
+---@return Config
 function M.apply()
     local defaults = get_defaults(config.options.home)
     config:merge(defaults)
@@ -110,7 +120,8 @@ function M.setup(c)
     M.apply()
 end
 
----Get the user's configuration or a key from it
+---Get the user's configuration
+---@return Config | nil
 function M.get()
     if config then
         return config

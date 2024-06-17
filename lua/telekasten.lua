@@ -1912,14 +1912,6 @@ local function Setup(cfg)
     config.options.media_extensions = config.options.media_extensions
 end
 
----Type in progress
----@class VaultConfig
----@field home string
-
----@class MultiVaultConfig
----@field vaults table<string, VaultConfig>
----@field default_vault? string
-
 --- _setup(cfg)
 -- Sets the available vaults and passes further configuration options to Setup
 ---@param cfg MultiVaultConfig | VaultConfig table of configuration values
