@@ -2,6 +2,7 @@
 --
 local vim = vim
 
+---@class M: Config
 local M = {}
 
 ---The local class instance of the merged user's configuration this includes all
