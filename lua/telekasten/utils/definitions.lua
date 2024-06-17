@@ -18,7 +18,7 @@
 ---@field dailies string
 ---@field weeklies string
 ---@field templates string
----@field image_subdir string|nil -- Should be deprecated gracefully and replaced by "images"
+---@field image_subdir string|nil Should be deprecated gracefully and replaced by "images"
 ---@field extension string
 ---@field new_note_filename string
 ---@field uuid_type string
@@ -47,6 +47,11 @@
 ---@field enable_create_new boolean
 ---@field clipboard_program string
 ---@field filter_extensions string[]
+---@field template_new_note string
+---@field template_new_daily string
+---@field template_new_weekly string
+---@field find_command string[]
+---@field rg_pcre boolean
 
 ---@class CalendarOpts
 ---@field weeknm number
