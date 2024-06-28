@@ -2,43 +2,48 @@
 --
 local vim = vim
 
+---@class M: Config
 local M = {}
 
 ---The local class instance of the merged user's configuration this includes all
 ---default values and highlights filled out
+---@type Config
 local config = {}
 
 ---The class definition for the user configuration
+---@class Config
+---@field options VaultConfig
+---@field user {options: VaultConfig}
 local Config = {}
 
+---Merges the user passed opts with defaults on instantiation
+---@param opts VaultConfig
+---@return Config
 function Config:new(opts)
     local o = { options = opts }
     assert(o, "User options must be passed in")
     self.__index = self
+
     -- save a copy of the user's preferences so we can reference exactly what they
     -- wanted after the config and defaults have been merged. Do this using a copy
     -- so that reference isn't unintentionally mutated
     self.user = vim.deepcopy(o)
     setmetatable(o, self)
-    return o
-end
-
----Combine user preferences with defaults preferring the user's own settings
-function Config:merge(defaults)
+    local defaults = Config:get_defaults(o.options.home)
     assert(
         defaults and type(defaults) == "table",
         "A valid config table must be passed to merge"
     )
-    self.options =
-        vim.tbl_deep_extend("force", defaults.options, self.options or {})
-    return self
+    o.options = vim.tbl_deep_extend("force", defaults.options, o.options or {})
+    return o
 end
 
---
--- Default setup. Ideally anyone should be able to start using Telekasten
--- directly without fiddling too much with the options. The only one of real
--- interest should be the path for the few relevant directories.
-local function get_defaults(home)
+--- Default setup. Ideally anyone should be able to start using Telekasten
+--- directly without fiddling too much with the options. The only one of real
+--- interest should be the path for the few relevant directories.
+---@param home string | nil
+---@return {options: VaultConfig}
+function Config:get_defaults(home)
     local _home = home or vim.fn.expand("~/zettelkasten") -- Default home directory
     local opts = {
         home = _home,
@@ -96,21 +101,15 @@ local function get_defaults(home)
     return { options = opts }
 end
 
---- Merge user config with defaults
-function M.apply()
-    local defaults = get_defaults(config.options.home)
-    config:merge(defaults)
-    return config
-end
-
 ---Keep track of a users config for use throughout the plugin as well as
 ---ensuring defaults are set.
+---@param c VaultConfig
 function M.setup(c)
     config = Config:new(c or {})
-    M.apply()
 end
 
----Get the user's configuration or a key from it
+---Get the user's configuration
+---@return Config | nil
 function M.get()
     if config then
         return config
