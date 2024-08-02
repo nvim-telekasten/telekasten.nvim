@@ -332,7 +332,7 @@ switch between them easily. Simply add data to the `vaults` table in the
 Added support for filtering files in the vault based on multiple extensions. This can be configured by assigning a table with one or more file extensions in the configuration. Example:
 
 ```lua
-filter_extensions = { ".qmd", ".md", ".rmd" }
+filter_extensions = { ".md", ".qmd", ".rmd", ".norg", ".org" }
 ```
 This allows more flexible and comprehensive file type management within the vault.
 
