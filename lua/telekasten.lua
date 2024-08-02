@@ -3024,6 +3024,39 @@ local function chdir(cfg)
     -- M.Cfg = vim.tbl_deep_extend("force", defaultConfig(new_home), cfg)
 end
 
+local function CreateNoteWithCustomExtension()
+    vim.ui.input(
+        { prompt = "Title with extension (e.g., note.txt): " },
+        function(input)
+            if not input or input == "" then
+                print("Input is empty or nil")
+                return
+            end
+
+            local title, extension = input:match("(.+)%.([^%.]+)$")
+            if not title or not extension then
+                print(
+                    "Invalid format. Please include a file extension (e.g., note.txt)."
+                )
+                return
+            end
+
+            local sanitized_title = title:gsub("[^%w%s-]", ""):gsub("%s+", "_")
+            local filename_with_extension = sanitized_title .. "." .. extension
+
+            -- Temporarily set the file extension to an empty string to avoid adding it
+            local original_extension = M.Cfg.extension
+            M.Cfg.extension = ""
+
+            -- Call the on_create function with the sanitized title and extension
+            on_create({}, filename_with_extension)
+
+            -- Restore the original extension
+            M.Cfg.extension = original_extension
+        end
+    )
+end
+
 M.find_notes = FindNotes
 M.find_daily_notes = FindDailyNotes
 M.search_notes = SearchNotes
@@ -3032,6 +3065,7 @@ M.follow_link = FollowLink
 M.setup = _setup
 M.goto_today = GotoToday
 M.new_note = CreateNote
+M.create_new_note_with_extension = CreateNoteWithCustomExtension
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
@@ -3063,6 +3097,11 @@ local TelekastenCmd = {
             { "follow link", "follow_link", M.follow_link },
             { "goto today", "goto_today", M.goto_today },
             { "new note", "new_note", M.new_note },
+            {
+                "new note with custom extension",
+                "create_new_note_with_extension",
+                M.create_new_note_with_extension,
+            },
             { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
             { "yank link to note", "yank_notelink", M.yank_notelink },
