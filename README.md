@@ -232,6 +232,7 @@ The following sub-commands are defined:
 - `follow_link` : Follow the link under the cursor
 - `goto_today` : Open today's daily note
 - `new_note` : Create a new note, prompts for title
+- `create_new_note_with_extension` : Create a new note with custom extension, prompts for title with extension
 - `goto_thisweek` : Open this week's weekly note
 - `find_weekly_notes` : Find weekly notes by title (calendar week)
 - `yank_notelink` : Yank a link to the currently open note
@@ -326,6 +327,14 @@ execution of a function to your specific need.
 Telekasten allows the user to have completely separated note collections and
 switch between them easily. Simply add data to the `vaults` table in the
     configuration and configure each vault as you wish.
+
+#### Files with different extensions in a vault
+Added support for filtering files in the vault based on multiple extensions. This can be configured by assigning a table with one or more file extensions in the configuration. Example:
+
+```lua
+filter_extensions = { ".qmd", ".md", ".rmd" }
+```
+This allows more flexible and comprehensive file type management within the vault.
 
 ### Link notation
 
