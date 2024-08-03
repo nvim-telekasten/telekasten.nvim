@@ -898,7 +898,15 @@ local function find_files_sorted(opts)
     local scan_opts = { search_pattern = search_pattern, depth = search_depth }
 
     local file_list = scan.scan_dir(opts.cwd, scan_opts)
-    local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
+    -- local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
+    if M.Cfg.filter_extensions and type(M.Cfg.filter_extensions) == "table" then
+        -- Append the extension to the existing filter_extensions
+        table.insert(M.Cfg.filter_extensions, extension)
+    else
+        -- Initialize filter_extensions with the extension
+        M.Cfg.filter_extensions = { extension }
+    end
+
     file_list = filter_filetypes(file_list, filter_extensions)
     local sort_option = opts.sort or "filename"
     if sort_option == "modified" then
@@ -2939,7 +2947,14 @@ local function Setup(cfg)
     end
 
     -- setup extensions to filter for
-    M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
+    -- M.Cfg.filter_extensions = cfg.filter_extensions or { M.Cfg.extension }
+    if M.Cfg.filter_extensions and type(M.Cfg.filter_extensions) == "table" then
+        -- Append the extension to the existing filter_extensions
+        table.insert(M.Cfg.filter_extensions, extension)
+    else
+        -- Initialize filter_extensions with the extension
+        M.Cfg.filter_extensions = { extension }
+    end
 
     -- provide fake filenames for template loading to fail silently if template is configured off
     M.Cfg.template_new_note = M.Cfg.template_new_note or "none"
