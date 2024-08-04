@@ -268,7 +268,14 @@ telekasten.setup({opts})
         Filename extension of your markdown note files.
 
         Default: '.md'
+                                   *telekasten.settings.filter_extensions*
+    filter_extensions: ~
+        Table with the filename extensions of your markdown note files.
+        You can use several markdown files like:
+        '{ ".norg", ".org", ".md", ".rmd", ".qmd" }'
 
+        Default: '{".md}'
+        
                                    *telekasten.settings.new_note_filename*
     new_note_filename: ~
         Configures the filenames of newly created notes. See |uuid_sep|
@@ -596,6 +603,15 @@ telekasten.new_templated_note()~
   opened immediately.
 
   See also:~
+      - |telekasten.template_files|
+                                *telekasten.create_new_note_with_extension()*
+telekasten.create_new_note_with_extension()~
+  Promts for a title and creates a new note which should inclue the extension
+  for the file by the `new_note` template, then shows it in Telescope.
+
+  See also:~
+      - |telekasten.settings.template_new_note|
+      - |telekasten.templates|
       - |telekasten.template_files|
                                                     *telekasten.find_notes()*
 telekasten.find_notes({opts})~
