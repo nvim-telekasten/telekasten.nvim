@@ -512,7 +512,7 @@ local function create_note_from_template(
 
     -- now write the output file, substituting vars line by line
     local file_dir = filepath:match("(.*/)") or ""
-    check_dir_and_ask(file_dir, "Create weekly dir", function(dir_succeed)
+    check_dir_and_ask(file_dir, "Notes", function(dir_succeed)
         if dir_succeed == false then
             return
         end
