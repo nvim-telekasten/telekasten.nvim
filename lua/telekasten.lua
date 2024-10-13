@@ -73,6 +73,8 @@ local function defaultConfig(home)
         uuid_sep = "-",
         -- if not nil, replaces any spaces in the title when it is used in filename generation
         filename_space_subst = nil,
+        -- if true, make the filename lowercase
+        filename_small_case = false,
         -- following a link to a non-existing note will create it
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
@@ -178,6 +180,10 @@ end
 local function generate_note_filename(uuid, title)
     if M.Cfg.filename_space_subst ~= nil then
         title = title:gsub(" ", M.Cfg.filename_space_subst)
+    end
+
+    if M.cfg.filename_small_case then
+        title = string.lower(title)
     end
 
     local pp = Path:new(title)

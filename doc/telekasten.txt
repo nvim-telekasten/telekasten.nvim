@@ -309,6 +309,19 @@ telekasten.setup({opts})
 
         Default: `nil`
 
+                                 *telekasten.settings.filename_small_case*
+    filename_small_case: ~
+        When the note title is used within the filename, i.e.
+        |new_note_filename| contains 'title', the tile will be 
+        made lowercase.
+
+        e.g. if set to true, '20230103-My New Note Title.md' would instead
+        become '20230103-my new note title.md'
+
+        If set to `false`, no substitution will occur.
+
+        Default: `false`
+
                                     *telekasten.settings.image_link_style*
     image_link_style: ~
         Style of links to insert when pasting an image.
