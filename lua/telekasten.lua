@@ -182,7 +182,7 @@ local function generate_note_filename(uuid, title)
         title = title:gsub(" ", M.Cfg.filename_space_subst)
     end
 
-    if M.cfg.filename_small_case then
+    if M.Cfg.filename_small_case then
         title = string.lower(title)
     end
 
