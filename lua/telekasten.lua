@@ -1610,7 +1610,20 @@ end
 local function RenameNote()
     local oldfile = Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
 
-    fileutils.prompt_title(M.Cfg.extension, oldfile.title, function(newname)
+    local oldtitle = oldfile.title
+    local curuuid = ""
+    local escapedsep = M.Cfg.uuid_sep:gsub("[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%1")
+
+    if M.Cfg.new_note_filename == "uuid-title" then
+        curuuid, oldtitle =
+            oldfile.title:match("^(.-)" .. escapedsep .. "(.+)$")
+    elseif M.Cfg.new_note_filename == "title-uuid" then
+        oldtitle, curuuid =
+            oldfile.title:match("^(.+)" .. escapedsep .. "(.-)$")
+    end
+
+    fileutils.prompt_title(M.Cfg.extension, oldtitle, function(newname)
+        newname = generate_note_filename(curuuid, newname)
         local newpath = newname:match("(.*/)") or ""
         newpath = M.Cfg.home .. "/" .. newpath
 
