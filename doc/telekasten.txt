@@ -35,7 +35,7 @@ CONTENTS
         3.3 Templates ................ |telekasten.templates|
         3.4 Calendar ................. |telekasten.calendar|
         3.5 Picker mappings .......... |telekasten.picker_mappings|
-        3.6 Mutliple home directories. |telekasten.switch_vaults|
+        3.6 Multiple home directories. |telekasten.switch_vaults|
     4. Suggested mappings ............ |telekasten.mappings|
     5. FAQ ........................... |telekasten.faq|
         5.1 Windows .................. |telekasten.windows|
@@ -592,7 +592,7 @@ parameters:
 
                                                       *telekasten.new_note()*
 telekasten.new_note()~
-  Promts for a title and creates a new note by the `new_note` template, then
+  Prompts for a title and creates a new note by the `new_note` template, then
   shows it in Telescope.
 
   See also:~
@@ -602,7 +602,7 @@ telekasten.new_note()~
 
                                             *telekasten.new_templated_note()*
 telekasten.new_templated_note()~
-  Promts for a title and then uses Telescope for choosing a template. When a
+  Prompts for a title and then uses Telescope for choosing a template. When a
   template is selected, a new note is created with it and opened.
 
   Should the note already exist before running `new_templated_note()`, it is
@@ -857,7 +857,7 @@ Optionally, notes can live in specific sub-directories:
 
 Note that notes linked to with headings or paragraph IDs **will not be created
 automatically**. Non-existing notes will be ignored in this case, a global
-telescope search wil be performed instead.
+telescope search will be performed instead.
 
 Media links~
 Use these for images, PDF files, videos. If telescope-media-files is installed,
@@ -1065,7 +1065,7 @@ the following mappings apply:
     selected image.
 
 --------------------------------------------------------------------------------
-Section 3.6 Mutliple home directories               *telekasten.switch_vaults*
+Section 3.6 Multiple home directories               *telekasten.switch_vaults*
 
 You can have multiple home directories setup in telekasten. The configuration
 for each vault is stored as a map in telekasten. You can use `switch_vaults

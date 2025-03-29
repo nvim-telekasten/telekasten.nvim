@@ -150,7 +150,7 @@ local function defaultConfig(home)
         -- "catimg-previewer" if you have catimg installed
         -- "viu-previewer" if you have viu installed
         media_previewer = "telescope-media-files",
-        -- files which will be aviable in insert and preview images list
+        -- files which will be available in insert and preview images list
         media_extensions = {
             ".png",
             ".jpg",
