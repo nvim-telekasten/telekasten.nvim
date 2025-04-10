@@ -7,6 +7,10 @@
 
 </div>
 
+
+This is a fork for development.
+
+
 A Neovim (lua) plugin for working with a text-based, markdown
 [zettelkasten](https://takesmartnotes.com/) / wiki and mixing it with a journal,
 based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
