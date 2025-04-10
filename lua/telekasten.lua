@@ -3057,7 +3057,8 @@ M.find_weekly_notes = FindWeeklyNotes
 M.yank_notelink = YankLink
 M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
-M.show_calendar = ShowCalendar
+-- disable the calendar feature
+-- M.show_calendar = ShowCalendar
 M.CalendarSignDay = CalendarSignDay
 M.CalendarAction = CalendarAction
 M.paste_img_and_link = imgFromClipboard
@@ -3092,7 +3093,8 @@ local TelekastenCmd = {
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar", "show_calendar", M.show_calendar },
+			-- disable the calendar feature
+            -- { "show calendar", "show_calendar", M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
