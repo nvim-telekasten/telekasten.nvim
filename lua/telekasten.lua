@@ -30,7 +30,7 @@ local vim = vim
 -- ----------------------------------------------------------------------------
 -- DEFAULT CONFIG
 -- ----------------------------------------------------------------------------
-local _home = vim.fn.expand("~/zettelkasten")
+local _home = vim.fn.expand("~/sync/brainstore/zettelkasten")
 local M = {}
 local function defaultConfig(home)
     if home == nil then
