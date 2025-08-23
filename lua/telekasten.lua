@@ -480,7 +480,11 @@ local function imgFromClipboard()
             vim.fn.system("rm " .. png)
             vim.api.nvim_err_writeln(
                 string.format(
-                    "Unable to write image %s.\nIs there an image on the clipboard?\nSee also issue 131",
+                    "Unable to write image %s.\n"
+                        .. "Is there an image on the clipboard?\n"
+                        .. "Have you set clipboard_program to your preferred paste command? "
+                        .. "(see :help telekasten.configuration)\n"
+                        .. "See also issue 131",
                     png
                 )
             )
