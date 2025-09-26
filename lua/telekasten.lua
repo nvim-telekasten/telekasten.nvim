@@ -282,32 +282,55 @@ local function recursive_substitution(dir, old, new)
             return
         end
 
-        if vim.fn.executable("sed") == 0 then
-            vim.api.nvim_err_write("Sed not installed!\n")
-            return
+        -- Use Lua-based file processing instead of external tools
+        local files = scan.scan_dir(dir, {
+            hidden = false,
+            add_dirs = false,
+            depth = 100, -- reasonable depth limit
+        })
+
+        for _, file in ipairs(files) do
+            -- Only process markdown files
+            if file:match("%.md$") then
+                local success, content = pcall(vim.fn.readfile, file)
+                if success and content then
+                    local modified = false
+                    local new_content = {}
+                    
+                    for _, line in ipairs(content) do
+                        local new_line = line
+                        -- Handle different link formats:
+                        -- [[oldtitle]] -> [[newtitle]]
+                        -- [[oldtitle#heading]] -> [[newtitle#heading]]
+                        -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
+                        -- [[oldtitle|alias]] -> [[newtitle|alias]]
+                        -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
+                        
+                        -- Pattern to match [[oldtitle]] and variations
+                        local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
+                        local replacement = "[[" .. new .. "%1]]"
+                        
+                        local new_line_updated = new_line:gsub(pattern, replacement)
+                        if new_line_updated ~= new_line then
+                            modified = true
+                        end
+                        table.insert(new_content, new_line_updated)
+                    end
+                    
+                    -- Write back the modified content if changes were made
+                    if modified then
+                        local write_success = pcall(vim.fn.writefile, new_content, file)
+                        if write_success then
+                            print("Updated links in: " .. file)
+                        else
+                            print("Error writing to: " .. file)
+                        end
+                    end
+                else
+                    print("Error reading file: " .. file)
+                end
+            end
         end
-
-        old = tkutils.grep_escape(old)
-        new = tkutils.grep_escape(new)
-
-        local sedcommand = "sed -i"
-        if vim.fn.has("mac") == 1 then
-            sedcommand = "sed -i ''"
-        end
-
-        -- 's|\(\[\[foo\)\([]#|\]\)|\[\[MYTEST\2|g'
-        local replace_cmd = "rg -0 -l -t markdown '"
-            .. old
-            .. "' "
-            .. dir
-            .. " | xargs -0 "
-            .. sedcommand
-            .. " 's|\\("
-            .. old
-            .. "\\)\\([]#|]\\)|"
-            .. new
-            .. "\\2|g' >/dev/null 2>&1"
-        os.execute(replace_cmd)
     end)
 end
 
