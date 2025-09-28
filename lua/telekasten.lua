@@ -277,37 +277,66 @@ local function make_config_path_absolute(path)
 end
 
 local function recursive_substitution(dir, old, new)
+    print("Searching for links to '" .. old .. "' in directory: " .. dir)
+    
     global_dir_check(function(dir_check)
         if not dir_check then
+            print("Directory check failed for: " .. dir)
             return
         end
 
-        if vim.fn.executable("sed") == 0 then
-            vim.api.nvim_err_write("Sed not installed!\n")
-            return
+        -- Use Lua-based file processing instead of external tools
+        local files = scan.scan_dir(dir, {
+            hidden = false,
+            add_dirs = false,
+            depth = 100, -- reasonable depth limit
+        })
+
+        print("Found " .. #files .. " files to check in " .. dir)
+
+        for _, file in ipairs(files) do
+            -- Only process markdown files
+            if file:match("%.md$") then
+                local success, content = pcall(vim.fn.readfile, file)
+                if success and content then
+                    local modified = false
+                    local new_content = {}
+                    
+                    for _, line in ipairs(content) do
+                        local new_line = line
+                        -- Handle different link formats:
+                        -- [[oldtitle]] -> [[newtitle]]
+                        -- [[oldtitle#heading]] -> [[newtitle#heading]]
+                        -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
+                        -- [[oldtitle|alias]] -> [[newtitle|alias]]
+                        -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
+                        
+                        -- Pattern to match [[oldtitle]] and variations
+                        local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
+                        local replacement = "[[" .. new .. "%1]]"
+                        
+                        local new_line_updated = new_line:gsub(pattern, replacement)
+                        if new_line_updated ~= new_line then
+                            modified = true
+                            print("Found link to update: " .. line .. " -> " .. new_line_updated)
+                        end
+                        table.insert(new_content, new_line_updated)
+                    end
+                    
+                    -- Write back the modified content if changes were made
+                    if modified then
+                        local write_success = pcall(vim.fn.writefile, new_content, file)
+                        if write_success then
+                            print("Updated links in: " .. file)
+                        else
+                            print("Error writing to: " .. file)
+                        end
+                    end
+                else
+                    print("Error reading file: " .. file)
+                end
+            end
         end
-
-        old = tkutils.grep_escape(old)
-        new = tkutils.grep_escape(new)
-
-        local sedcommand = "sed -i"
-        if vim.fn.has("mac") == 1 then
-            sedcommand = "sed -i ''"
-        end
-
-        -- 's|\(\[\[foo\)\([]#|\]\)|\[\[MYTEST\2|g'
-        local replace_cmd = "rg -0 -l -t markdown '"
-            .. old
-            .. "' "
-            .. dir
-            .. " | xargs -0 "
-            .. sedcommand
-            .. " 's|\\("
-            .. old
-            .. "\\)\\([]#|]\\)|"
-            .. new
-            .. "\\2|g' >/dev/null 2>&1"
-        os.execute(replace_cmd)
     end)
 end
 
@@ -386,8 +415,8 @@ local function imgFromClipboard()
             local image_path = _image_path:gsub("file://", "")
             if
                 vim.fn
-                    .system("file --mime-type -b " .. image_path)
-                    :gsub("%s+", "")
+                .system("file --mime-type -b " .. image_path)
+                :gsub("%s+", "")
                 == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
@@ -404,7 +433,7 @@ local function imgFromClipboard()
         paste_command["osascript"] = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -419,8 +448,8 @@ local function imgFromClipboard()
             if vim.fn.executable(M.Cfg.clipboard_program) ~= 1 then
                 vim.api.nvim_err_write(
                     "The clipboard program specified [`"
-                        .. M.cfg.clipboard_program
-                        .. "`] is not executable or not in your $PATH\n"
+                    .. M.cfg.clipboard_program
+                    .. "`] is not executable or not in your $PATH\n"
                 )
             end
             get_paste_command = paste_command[M.Cfg.clipboard_program]
@@ -1578,11 +1607,8 @@ end
 
 local function rename_update_links(oldfile, newname)
     if M.Cfg.rename_update_links == true then
-        -- Only look for the first part of the link, so we do not touch to #heading or #^paragraph
-        -- Should use regex instead to ensure it is a proper link
-        local oldlink = "[[" .. oldfile.title
-        local newlink = "[[" .. newname
-
+        print("Updating links from '" .. oldfile.title .. "' to '" .. newname .. "'")
+        
         -- Save open buffers before looking for links to replace
         if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             vim.ui.select({ "Yes (default)", "No" }, {
@@ -1595,9 +1621,12 @@ local function rename_update_links(oldfile, newname)
             end)
         end
 
-        recursive_substitution(M.Cfg.home, oldlink, newlink)
-        recursive_substitution(M.Cfg.dailies, oldlink, newlink)
-        recursive_substitution(M.Cfg.weeklies, oldlink, newlink)
+        -- Update links in all directories
+        recursive_substitution(M.Cfg.home, oldfile.title, newname)
+        recursive_substitution(M.Cfg.dailies, oldfile.title, newname)
+        recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
+        
+        print("Link update completed!")
     end
 end
 
@@ -1643,13 +1672,29 @@ local function RenameNote()
             return
         end
 
-        -- Savas newfile, delete buffer of old one and remove old file
+        -- Save newfile, delete buffer of old one and remove old file
         if newname ~= "" and newname ~= oldfile.title then
             check_dir_and_ask(newpath, "Renamed file", function(success)
                 if not success then
                     return
                 end
 
+                -- Update the current buffer's content to reflect the new title
+                local current_content = vim.fn.getline(1, "$")
+                local updated_content = {}
+                
+                for _, line in ipairs(current_content) do
+                    -- Update frontmatter title field
+                    if line:match("^title:") then
+                        table.insert(updated_content, "title: " .. newname)
+                    else
+                        table.insert(updated_content, line)
+                    end
+                end
+                
+                -- Write the updated content to the current buffer
+                vim.fn.setline(1, updated_content)
+                
                 local oldTitle = oldfile.title:gsub(" ", "\\ ")
                 vim.cmd(
                     "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
@@ -2926,10 +2971,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                        .. k
-                        .. "`   ->   `"
-                        .. tostring(v)
-                        .. "`"
+                    .. k
+                    .. "`   ->   `"
+                    .. tostring(v)
+                    .. "`"
                 )
             end
         end
@@ -2983,10 +3028,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                    .. M.Cfg.home
-                    .. "/*"
-                    .. M.Cfg.extension
-                    .. " set ft=telekasten"
+                .. M.Cfg.home
+                .. "/*"
+                .. M.Cfg.extension
+                .. " set ft=telekasten"
             )
         end
     end
@@ -3075,41 +3120,41 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes", "find_notes", M.find_notes },
-            { "find daily notes", "find_daily_notes", M.find_daily_notes },
-            { "search in notes", "search_notes", M.search_notes },
-            { "insert link", "insert_link", M.insert_link },
-            { "follow link", "follow_link", M.follow_link },
-            { "goto today", "goto_today", M.goto_today },
-            { "new note", "new_note", M.new_note },
-            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
+            { "find notes",        "find_notes",        M.find_notes },
+            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
+            { "search in notes",   "search_notes",      M.search_notes },
+            { "insert link",       "insert_link",       M.insert_link },
+            { "follow link",       "follow_link",       M.follow_link },
+            { "goto today",        "goto_today",        M.goto_today },
+            { "new note",          "new_note",          M.new_note },
+            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink", M.yank_notelink },
-            { "rename note", "rename_note", M.rename_note },
+            { "yank link to note", "yank_notelink",     M.yank_notelink },
+            { "rename note",       "rename_note",       M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar", "show_calendar", M.show_calendar },
+            { "show calendar",     "show_calendar",  M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo", "toggle_todo", M.toggle_todo },
-            { "show backlinks", "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends", M.find_friends },
+            { "toggle todo",       "toggle_todo",    M.toggle_todo },
+            { "show backlinks",    "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends",   M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img", M.preview_img },
-            { "browse media", "browse_media", M.browse_media },
-            { "panel", "panel", M.panel },
-            { "show tags", "show_tags", M.show_tags },
-            { "switch vault", "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img",  M.preview_img },
+            { "browse media",               "browse_media", M.browse_media },
+            { "panel",                      "panel",        M.panel },
+            { "show tags",                  "show_tags",    M.show_tags },
+            { "switch vault",               "switch_vault", M.switch_vault },
         }
     end,
 }
