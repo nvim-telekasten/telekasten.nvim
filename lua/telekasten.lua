@@ -1,17 +1,4 @@
-local builtin = require("telescope.builtin")
-local actions = require("telescope.actions")
-local action_state = require("telescope.actions.state")
-local action_set = require("telescope.actions.set")
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local conf = require("telescope.config").values
-local scan = require("plenary.scandir")
-local utils = require("telescope.utils")
-local previewers = require("telescope.previewers")
-local make_entry = require("telescope.make_entry")
-local entry_display = require("telescope.pickers.entry_display")
-local sorters = require("telescope.sorters")
-local themes = require("telescope.themes")
+local picker = require("telekasten.picker")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
 local taglinks = require("telekasten.utils.taglinks")
@@ -278,7 +265,7 @@ end
 
 local function recursive_substitution(dir, old, new)
     print("Searching for links to '" .. old .. "' in directory: " .. dir)
-    
+
     global_dir_check(function(dir_check)
         if not dir_check then
             print("Directory check failed for: " .. dir)
@@ -301,7 +288,7 @@ local function recursive_substitution(dir, old, new)
                 if success and content then
                     local modified = false
                     local new_content = {}
-                    
+
                     for _, line in ipairs(content) do
                         local new_line = line
                         -- Handle different link formats:
@@ -310,22 +297,31 @@ local function recursive_substitution(dir, old, new)
                         -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
                         -- [[oldtitle|alias]] -> [[newtitle|alias]]
                         -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
-                        
+
                         -- Pattern to match [[oldtitle]] and variations
-                        local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
+                        local pattern = "%[%["
+                            .. vim.pesc(old)
+                            .. "([^%]]*)%]%]"
                         local replacement = "[[" .. new .. "%1]]"
-                        
-                        local new_line_updated = new_line:gsub(pattern, replacement)
+
+                        local new_line_updated =
+                            new_line:gsub(pattern, replacement)
                         if new_line_updated ~= new_line then
                             modified = true
-                            print("Found link to update: " .. line .. " -> " .. new_line_updated)
+                            print(
+                                "Found link to update: "
+                                    .. line
+                                    .. " -> "
+                                    .. new_line_updated
+                            )
                         end
                         table.insert(new_content, new_line_updated)
                     end
-                    
+
                     -- Write back the modified content if changes were made
                     if modified then
-                        local write_success = pcall(vim.fn.writefile, new_content, file)
+                        local write_success =
+                            pcall(vim.fn.writefile, new_content, file)
                         if write_success then
                             print("Updated links in: " .. file)
                         else
@@ -415,8 +411,8 @@ local function imgFromClipboard()
             local image_path = _image_path:gsub("file://", "")
             if
                 vim.fn
-                .system("file --mime-type -b " .. image_path)
-                :gsub("%s+", "")
+                    .system("file --mime-type -b " .. image_path)
+                    :gsub("%s+", "")
                 == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
@@ -433,7 +429,7 @@ local function imgFromClipboard()
         paste_command["osascript"] = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -448,8 +444,8 @@ local function imgFromClipboard()
             if vim.fn.executable(M.Cfg.clipboard_program) ~= 1 then
                 vim.api.nvim_err_write(
                     "The clipboard program specified [`"
-                    .. M.cfg.clipboard_program
-                    .. "`] is not executable or not in your $PATH\n"
+                        .. M.cfg.clipboard_program
+                        .. "`] is not executable or not in your $PATH\n"
                 )
             end
             get_paste_command = paste_command[M.Cfg.clipboard_program]
@@ -931,168 +927,7 @@ local picker_actions = {}
 --     - optionally previews media (pdf, images, mp4, webm)
 --         - this requires the telescope-media-files.nvim extension
 local function find_files_sorted(opts)
-    opts = opts or {}
-    local search_pattern = opts.search_pattern or nil
-    local search_depth = opts.search_depth or nil
-    local scan_opts = { search_pattern = search_pattern, depth = search_depth }
-
-    local file_list = scan.scan_dir(opts.cwd, scan_opts)
-    local filter_extensions = opts.filter_extensions or M.Cfg.filter_extensions
-    file_list = filter_filetypes(file_list, filter_extensions)
-    local sort_option = opts.sort or "filename"
-    if sort_option == "modified" then
-        table.sort(file_list, function(a, b)
-            return vim.fn.getftime(a) > vim.fn.getftime(b)
-        end)
-    else
-        table.sort(file_list, function(a, b)
-            return a > b
-        end)
-    end
-
-    local counts = nil
-    if opts.show_link_counts then
-        counts = linkutils.generate_backlink_map(M.Cfg)
-    end
-
-    -- display with devicons
-    local function iconic_display(display_entry)
-        local display_opts = {
-            path_display = function(_, e)
-                return e:gsub(tkutils.escape(opts.cwd .. "/"), "")
-            end,
-        }
-
-        local hl_group
-        local display = utils.transform_path(display_opts, display_entry.value)
-
-        display, hl_group =
-            utils.transform_devicons(display_entry.value, display, false)
-
-        if hl_group then
-            return display, { { { 1, 3 }, hl_group } }
-        else
-            return display
-        end
-    end
-
-    -- for media_files
-    local popup_opts = {}
-    opts.get_preview_window = function()
-        return popup_opts.preview
-    end
-
-    -- local width = config.width
-    --     or config.layout_config.width
-    --     or config.layout_config[config.layout_strategy].width
-    --     or vim.o.columns
-    -- local telescope_win_width
-    -- if width > 1 then
-    --     telescope_win_width = width
-    -- else
-    --     telescope_win_width = math.floor(vim.o.columns * width)
-    -- end
-    local displayer = entry_display.create({
-        separator = "",
-        items = {
-            { width = 4 },
-            { width = 4 },
-            { remaining = true },
-        },
-    })
-
-    local function make_display(entry)
-        local fn = entry.value
-        local nlinks = counts.link_counts[fn] or 0
-        local nbacks = counts.backlink_counts[fn] or 0
-
-        if opts.show_link_counts then
-            local display, hl = iconic_display(entry)
-
-            return displayer({
-                {
-                    "L" .. tostring(nlinks),
-                    function()
-                        return {
-                            { { 0, 1 }, "tkTagSep" },
-                            { { 1, 3 }, "tkTag" },
-                        }
-                    end,
-                },
-                {
-                    "B" .. tostring(nbacks),
-                    function()
-                        return {
-                            { { 0, 1 }, "tkTagSep" },
-                            { { 1, 3 }, "DevIconMd" },
-                        }
-                    end,
-                },
-                {
-                    display,
-                    function()
-                        return hl
-                    end,
-                },
-            })
-        else
-            return iconic_display(entry)
-        end
-    end
-
-    local function entry_maker(entry)
-        local iconic_entry = {}
-        iconic_entry.value = entry
-        iconic_entry.path = entry
-        iconic_entry.ordinal = entry
-        if opts.show_link_counts then
-            iconic_entry.display = make_display
-        else
-            iconic_entry.display = iconic_display
-        end
-        return iconic_entry
-    end
-
-    local previewer = conf.file_previewer(opts)
-    if opts.preview_type == "media" then
-        previewer = media_preview.new(opts)
-    end
-
-    opts.attach_mappings = opts.attach_mappings
-        or function(_, _)
-            actions.select_default:replace(picker_actions.select_default)
-        end
-
-    local picker = pickers.new(opts, {
-        finder = finders.new_table({
-            results = file_list,
-            entry_maker = entry_maker,
-        }),
-        sorter = conf.generic_sorter(opts),
-        previewer = previewer,
-    })
-
-    -- local oc = picker.finder.close
-    --
-    -- picker.finder.close = function()
-    --     print('on close')
-    --     print(vim.inspect(picker:get_selection()))
-    --     -- unfortunately, no way to tell if the selection was confirmed or
-    --     -- canceled out
-    --     oc()
-    --     -- alternative: attach default mappings for <ESC> and <C-c>
-    --     --       if anyone quits with q!, it's their fault
-    -- end
-
-    -- for media_files:
-    local line_count = vim.o.lines - vim.o.cmdheight
-    if vim.o.laststatus ~= 0 then
-        line_count = line_count - 1
-    end
-
-    popup_opts = picker:get_window_options(vim.o.columns, line_count)
-
-    picker:find()
+    return picker.find_files(opts)
 end
 
 picker_actions.post_open = function()
@@ -1105,9 +940,11 @@ picker_actions.post_open = function()
 end
 
 picker_actions.select_default = function(prompt_bufnr)
-    local ret = action_set.select(prompt_bufnr, "default")
-    picker_actions.post_open()
-    return ret
+    local action = picker.actions.select_default(function(bufnr)
+        -- custom behavior
+        picker_actions.post_open()
+    end)
+    return action(prompt_bufnr)
 end
 
 function picker_actions.close(opts)
@@ -1611,8 +1448,14 @@ end
 
 local function rename_update_links(oldfile, newname)
     if M.Cfg.rename_update_links == true then
-        print("Updating links from '" .. oldfile.title .. "' to '" .. newname .. "'")
-        
+        print(
+            "Updating links from '"
+                .. oldfile.title
+                .. "' to '"
+                .. newname
+                .. "'"
+        )
+
         -- Save open buffers before looking for links to replace
         if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             vim.ui.select({ "Yes (default)", "No" }, {
@@ -1629,7 +1472,7 @@ local function rename_update_links(oldfile, newname)
         recursive_substitution(M.Cfg.home, oldfile.title, newname)
         recursive_substitution(M.Cfg.dailies, oldfile.title, newname)
         recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
-        
+
         print("Link update completed!")
     end
 end
@@ -1686,7 +1529,7 @@ local function RenameNote()
                 -- Update the current buffer's content to reflect the new title
                 local current_content = vim.fn.getline(1, "$")
                 local updated_content = {}
-                
+
                 for _, line in ipairs(current_content) do
                     -- Update frontmatter title field
                     if line:match("^title:") then
@@ -1695,10 +1538,10 @@ local function RenameNote()
                         table.insert(updated_content, line)
                     end
                 end
-                
+
                 -- Write the updated content to the current buffer
                 vim.fn.setline(1, updated_content)
-                
+
                 local oldTitle = oldfile.title:gsub(" ", "\\ ")
                 vim.cmd(
                     "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
@@ -1826,53 +1669,39 @@ end
 -- Select from notes
 --
 local function FindNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or M.Cfg.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or M.Cfg.close_after_yanking
-
-    global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local cwd = M.Cfg.home
-        local find_command = M.Cfg.find_command
-        local sort = M.Cfg.sort
-        local attach_mappings = function(_, map)
-            actions.select_default:replace(picker_actions.select_default)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
-            if M.Cfg.enable_create_new then
-                map("i", "<c-n>", picker_actions.create_new(opts))
-                map("n", "<c-n>", picker_actions.create_new(opts))
-            end
-            return true
-        end
-
-        if opts.with_live_grep then
-            builtin.live_grep({
-                prompt_title = "Find notes by live grep",
-                cwd = cwd,
-                find_command = find_command,
-                attach_mappings = attach_mappings,
-                sort = sort,
-            })
-        else
-            find_files_sorted({
-                prompt_title = "Find notes by name",
-                cwd = cwd,
-                find_command = find_command,
-                attach_mappings = attach_mappings,
-                sort = sort,
-            })
-        end
-    end)
+    if opts.with_live_grep then
+        picker.live_grep({
+            prompt_title = "Find notes by live grep",
+            cwd = M.Cfg.home,
+            attach_mappings = function(actions_obj, map)
+                map(
+                    "i",
+                    "<cr>",
+                    picker.actions.select_default(picker_actions.post_open)
+                )
+                map(
+                    "i",
+                    "<c-y>",
+                    picker.actions.yank_selection(function(entry)
+                        local pinfo = Pinfo:new({
+                            filepath = entry.filename or entry.value,
+                        })
+                        return "[[" .. pinfo.title .. "]]"
+                    end)
+                )
+                return true
+            end,
+        })
+    else
+        picker.find_files({
+            prompt_title = "Find notes by name",
+            cwd = M.Cfg.home,
+            attach_mappings = function(actions_obj, map)
+                -- same mappings
+                return true
+            end,
+        })
+    end
 end
 
 --
@@ -2846,100 +2675,57 @@ local function ToggleTodo(opts)
 end
 
 local function FindAllTags(opts)
-    opts = opts or {}
-    local i = opts.i
-    opts.cwd = M.Cfg.home
-    opts.tag_notation = M.Cfg.tag_notation
-    local templateDir = Path:new(M.Cfg.templates):make_relative(M.Cfg.home)
-    opts.templateDir = templateDir
-    opts.rg_pcre = M.Cfg.rg_pcre
+    local tag_map = tagutils.do_find_all_tags(opts)
+    local taglist = {}
 
-    global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
+    for k, v in pairs(tag_map) do
+        taglist[#taglist + 1] = { tag = k, details = v }
+    end
 
-        local tag_map = tagutils.do_find_all_tags(opts)
-        local taglist = {}
+    -- Apply theme
+    local theme_opts = {}
+    if M.Cfg.show_tags_theme == "ivy" then
+        theme_opts = picker.themes.ivy({
+            layout_config = {
+                height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
+            },
+        })
+    end
 
-        local max_tag_len = 0
-        for k, v in pairs(tag_map) do
-            taglist[#taglist + 1] = { tag = k, details = v }
-            if #k > max_tag_len then
-                max_tag_len = #k
-            end
-        end
-
-        if M.Cfg.show_tags_theme == "get_cursor" then
-            opts = themes.get_cursor({
-                layout_config = {
-                    height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
-                },
-            })
-        elseif M.Cfg.show_tags_theme == "ivy" then
-            opts = themes.get_ivy({
-                layout_config = {
-                    prompt_position = "top",
-                    height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
-                },
-            })
-        else
-            opts = themes.get_dropdown({
-                layout_config = {
-                    prompt_position = "top",
-                    height = math.min(math.floor(vim.o.lines * 0.8), #taglist),
-                },
-            })
-        end
-        -- re-apply
-        opts.cwd = M.Cfg.home
-        opts.tag_notation = M.Cfg.tag_notation
-        opts.i = i
-        pickers
-            .new(opts, {
-                prompt_title = "Tags",
-                finder = finders.new_table({
-                    results = taglist,
-                    entry_maker = function(entry)
-                        return {
-                            value = entry,
-                            -- display = entry.tag .. ' \t (' .. #entry.details .. ' matches)',
-                            display = string.format(
-                                "%" .. max_tag_len .. "s ... (%3d matches)",
-                                entry.tag,
-                                #entry.details
-                            ),
-                            ordinal = entry.tag,
-                        }
-                    end,
-                }),
-                sorter = conf.generic_sorter(opts),
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
-                        -- actions for insert tag, default action: search for tag
-                        local selection =
-                            action_state.get_selected_entry().value.tag
-                        local follow_opts = {
-                            follow_tag = selection,
-                            show_link_counts = false,
-                            templateDir = templateDir,
-                        }
-                        actions._close(prompt_bufnr, false)
-                        vim.schedule(function()
-                            FollowLink(follow_opts)
-                        end)
-                    end)
-                    map("i", "<c-y>", picker_actions.yank_tag(opts))
-                    map("i", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-y>", picker_actions.yank_tag(opts))
-                    map("n", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
-            })
-            :find()
-    end)
+    picker.custom_picker(vim.tbl_extend("force", theme_opts, {
+        prompt_title = "Tags",
+        results = taglist,
+        theme = M.Cfg.show_tags_theme,
+        entry_maker = function(entry)
+            return {
+                value = entry,
+                display = string.format(
+                    "%s ... (%3d matches)",
+                    entry.tag,
+                    #entry.details
+                ),
+                ordinal = entry.tag,
+            }
+        end,
+        attach_mappings = function(actions_obj, map)
+            map(
+                "i",
+                "<cr>",
+                picker.actions.select_default(function(bufnr)
+                    local selection = picker.actions.get_selection()
+                    FollowLink({ follow_tag = selection.value.tag })
+                end)
+            )
+            map(
+                "i",
+                "<c-y>",
+                picker.actions.yank_selection(function(entry)
+                    return entry.value.tag
+                end)
+            )
+            return true
+        end,
+    }))
 end
 
 -- Setup(cfg)
@@ -2949,6 +2735,9 @@ end
 local function Setup(cfg)
     cfg = cfg or {}
     defaultConfig(cfg.home)
+    local picker_backend = cfg.picker or "telescope"
+    local picker_opts = cfg.picker_opts or {}
+    picker.setup(picker_backend, picker_opts)
     local debug = cfg.debug
     for k, v in pairs(cfg) do
         -- merge everything but calendar opts
@@ -2961,10 +2750,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                    .. k
-                    .. "`   ->   `"
-                    .. tostring(v)
-                    .. "`"
+                        .. k
+                        .. "`   ->   `"
+                        .. tostring(v)
+                        .. "`"
                 )
             end
         end
@@ -3018,10 +2807,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                .. M.Cfg.home
-                .. "/*"
-                .. M.Cfg.extension
-                .. " set ft=telekasten"
+                    .. M.Cfg.home
+                    .. "/*"
+                    .. M.Cfg.extension
+                    .. " set ft=telekasten"
             )
         end
     end
@@ -3110,41 +2899,41 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes",        "find_notes",        M.find_notes },
-            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
-            { "search in notes",   "search_notes",      M.search_notes },
-            { "insert link",       "insert_link",       M.insert_link },
-            { "follow link",       "follow_link",       M.follow_link },
-            { "goto today",        "goto_today",        M.goto_today },
-            { "new note",          "new_note",          M.new_note },
-            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
+            { "find notes", "find_notes", M.find_notes },
+            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            { "search in notes", "search_notes", M.search_notes },
+            { "insert link", "insert_link", M.insert_link },
+            { "follow link", "follow_link", M.follow_link },
+            { "goto today", "goto_today", M.goto_today },
+            { "new note", "new_note", M.new_note },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink",     M.yank_notelink },
-            { "rename note",       "rename_note",       M.rename_note },
+            { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar",     "show_calendar",  M.show_calendar },
+            { "show calendar", "show_calendar", M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo",       "toggle_todo",    M.toggle_todo },
-            { "show backlinks",    "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends",   M.find_friends },
+            { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "show backlinks", "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends", M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img",  M.preview_img },
-            { "browse media",               "browse_media", M.browse_media },
-            { "panel",                      "panel",        M.panel },
-            { "show tags",                  "show_tags",    M.show_tags },
-            { "switch vault",               "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img", M.preview_img },
+            { "browse media", "browse_media", M.browse_media },
+            { "panel", "panel", M.panel },
+            { "show tags", "show_tags", M.show_tags },
+            { "switch vault", "switch_vault", M.switch_vault },
         }
     end,
 }
