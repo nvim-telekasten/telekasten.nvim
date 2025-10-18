@@ -1,6 +1,7 @@
 local picker = require("telekasten.picker")
 local debug_utils = require("plenary.debug_utils")
 local filetype = require("plenary.filetype")
+local scan = require("plenary.scandir")
 local taglinks = require("telekasten.utils.taglinks")
 local tagutils = require("telekasten.utils.tags")
 local linkutils = require("telekasten.utils.links")
