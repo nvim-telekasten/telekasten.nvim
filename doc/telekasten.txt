@@ -28,6 +28,7 @@ CONTENTS
     1. Setup ......................... |telekasten.setup|
         1.1 Requirements ..............|telekasten.requirements|
         1.2 Configuration .............|telekasten.configuration|
+        1.3 Picker Backends ...........|telekasten.picker_backends|
     2. Highlights .................... |telekasten.highlights|
     3. Usage ......................... |telekasten.usage|
         3.1 Link Notation ............ |telekasten.link_notation|
@@ -126,6 +127,9 @@ telekasten.setup({opts})
 
       -- Command palette theme: dropdown (window) or ivy (bottom panel)
       command_palette_theme = "ivy",
+
+      -- Picker backend: 'telescope', 'fzf', or 'snacks'
+      picker = "telescope",
 
       -- Tag list theme:
         -- get_cursor (small tag list at cursor)
@@ -469,6 +473,42 @@ telekasten.setup({opts})
 
         Default: `true`
 
+                                              *telekasten.settings.picker*
+    picker:~
+        Picker backend to use for file and note selection. Telekasten supports
+        three picker backends through a unified abstraction layer.
+
+        Valid options are:
+        - `'telescope'` .. use telescope.nvim (default, most features)
+        - `'fzf'` .. use fzf-lua (fast, lightweight)
+        - `'snacks'` .. use snacks.nvim (modern, good performance)
+
+        Default: 'telescope'
+
+        Example configurations:
+        >
+        -- Using telescope (default)
+        require('telekasten').setup({
+            home = '~/zettelkasten',
+            picker = 'telescope',  -- or omit this line
+        })
+
+        -- Using fzf-lua
+        require('telekasten').setup({
+            home = '~/zettelkasten',
+            picker = 'fzf',
+        })
+
+        -- Using snacks.nvim
+        require('telekasten').setup({
+            home = '~/zettelkasten',
+            picker = 'snacks',
+        })
+<
+
+        See also:~
+            - |telekasten.picker_backends|
+
                                        *telekasten.settings.media_previewer*
     media_previewer:~
         Previewer used for viewing media / image files. There are three
@@ -538,6 +578,152 @@ telekasten.setup({opts})
         Default: 'left-fit'
 
 --------------------------------------------------------------------------------
+Section 1.3: Picker Backends                        *telekasten.picker_backends*
+
+Telekasten supports three picker backends through a unified abstraction layer.
+All core functionality (finding notes, following links, inserting links, etc.)
+works identically across all three backends.
+
+                                                   *telekasten.picker.telescope*
+Telescope (default):~
+    The default picker backend with the most features and widest support.
+
+    Requirements:
+    - nvim-telescope/telescope.nvim
+    - nvim-lua/plenary.nvim
+
+    Features:
+    - Full support for all telekasten functionality
+    - Media file preview (with telescope-media-files.nvim)
+    - Custom entry display formatting
+    - Devicons support
+    - Multiple themes (dropdown, ivy, cursor)
+
+    Installation example (using lazy.nvim):
+    >
+    {
+        'renerocksai/telekasten.nvim',
+        dependencies = {
+            'nvim-telescope/telescope.nvim',
+            'nvim-lua/plenary.nvim',
+        },
+        config = function()
+            require('telekasten').setup({
+                home = vim.fn.expand('~/zettelkasten'),
+                -- picker = 'telescope' is the default
+            })
+        end
+    }
+<
+
+                                                        *telekasten.picker.fzf*
+FZF-lua:~
+    A fast and lightweight alternative picker backend.
+
+    Requirements:
+    - ibhagwan/fzf-lua
+    - nvim-lua/plenary.nvim
+
+    Features:
+    - Fast fuzzy finding
+    - Multiple themes (dropdown, ivy, cursor)
+    - Live grep support
+    - Media preview (requires chafa)
+
+    Installation example (using lazy.nvim):
+    >
+    {
+        'renerocksai/telekasten.nvim',
+        dependencies = {
+            'ibhagwan/fzf-lua',
+            'nvim-lua/plenary.nvim',
+        },
+        config = function()
+            require('telekasten').setup({
+                home = vim.fn.expand('~/zettelkasten'),
+                picker = 'fzf',
+            })
+        end
+    }
+<
+
+                                                     *telekasten.picker.snacks*
+Snacks:~
+    A modern picker backend with good performance.
+
+    Requirements:
+    - folke/snacks.nvim
+    - nvim-lua/plenary.nvim
+
+    Features:
+    - Modern interface
+    - Good performance
+    - Multiple themes (dropdown, ivy, cursor)
+    - Live grep support
+
+    Installation example (using lazy.nvim):
+    >
+    {
+        'renerocksai/telekasten.nvim',
+        dependencies = {
+            'folke/snacks.nvim',
+            'nvim-lua/plenary.nvim',
+        },
+        config = function()
+            require('telekasten').setup({
+                home = vim.fn.expand('~/zettelkasten'),
+                picker = 'snacks',
+            })
+        end
+    }
+<
+
+                                                  *telekasten.picker.comparison*
+Feature Comparison:~
+
+    +---------------------+------------+----------+----------+
+    | Feature             | Telescope  | FZF-lua  | Snacks   |
+    +---------------------+------------+----------+----------+
+    | File finding        | ✓          | ✓        | ✓        |
+    | Live grep           | ✓          | ✓        | ✓        |
+    | Link insertion      | ✓          | ✓        | ✓        |
+    | Link following      | ✓          | ✓        | ✓        |
+    | Media preview       | ✓          | ✓*       | ✗        |
+    | Custom themes       | ✓          | ✓        | ✓        |
+    | Devicons            | ✓          | ✓        | ✗        |
+    | Link counts         | ✓          | ✓        | ✓        |
+    +---------------------+------------+----------+----------+
+    * Requires chafa for media preview in FZF-lua
+
+All three pickers provide the same core functionality for note management.
+Choose based on your preference, performance requirements, and existing setup.
+
+                                              *telekasten.picker.switching*
+Switching Pickers:~
+
+    You can switch between pickers at any time by changing the `picker`
+    setting in your configuration:
+    >
+    require('telekasten').setup({
+        home = '~/zettelkasten',
+        picker = 'snacks',  -- change to 'telescope' or 'fzf'
+    })
+<
+
+    Notes:
+    - Switching pickers requires the new picker plugin to be installed
+    - All your notes and configurations remain unchanged
+    - Keymappings and commands work identically across all pickers
+
+                                           *telekasten.picker.backward_compat*
+Backward Compatibility:~
+
+    The picker abstraction layer is fully backward compatible:
+    - Existing configurations continue to work unchanged
+    - Default remains telescope if no picker is specified
+    - No breaking changes to the API
+
+================================================================================
 Section 2: Highlights                                    *telekasten.highlights*
 
 Telekasten.nvim allows you to color your `[[links]]` by providing a few syntax
@@ -1152,7 +1338,7 @@ Still, to avoid the most common Windows issue:
 
 
 ================================================================================
-Section 5: Credits                                          *telekasten.credits*
+Section 6: Credits                                          *telekasten.credits*
 
 Credits go to:
 * {Conni2461} on GitHub for the awesome pull request and support!
