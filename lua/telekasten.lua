@@ -11,6 +11,9 @@ local Path = require("plenary.path")
 local tkpickers = require("telekasten.pickers")
 local tkutils = require("telekasten.utils")
 
+-- ADD THIS LINE:
+local utils = tkutils -- Use telekasten's utils, not telescope's
+
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
 
@@ -863,54 +866,54 @@ local function filter_filetypes(flist, ftypes)
     return new_fl
 end
 
-local sourced_file = debug_utils.sourced_filepath()
-M.base_directory = vim.fn.fnamemodify(sourced_file, ":h:h:h")
-local media_files_base_directory = M.base_directory
-    .. "/telescope-media-files.nvim"
-local defaulter = utils.make_default_callable
-local media_preview = defaulter(function(opts)
-    local preview_cmd = ""
-    if M.Cfg.media_previewer == "telescope-media-files" then
-        preview_cmd = media_files_base_directory .. "/scripts/vimg"
-    end
-
-    if M.Cfg.media_previewer == "catimg-previewer" then
-        preview_cmd = M.base_directory
-            .. "/telekasten.nvim/scripts/catimg-previewer"
-    end
-
-    if vim.startswith(M.Cfg.media_previewer, "viu-previewer") then
-        preview_cmd = M.base_directory
-            .. "/telekasten.nvim/scripts/"
-            .. M.Cfg.media_previewer
-    end
-
-    if vim.fn.executable(preview_cmd) == 0 then
-        print("Previewer not found: " .. preview_cmd)
-        return conf.file_previewer(opts)
-    end
-    return previewers.new_termopen_previewer({
-        get_command = opts.get_command
-            or function(entry)
-                local tmp_table = vim.split(entry.value, "\t")
-                local preview = opts.get_preview_window()
-                opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
-                    or vim.loop.cwd()
-                if vim.tbl_isempty(tmp_table) then
-                    return { "echo", "" }
-                end
-                print(tmp_table[1])
-                return {
-                    preview_cmd,
-                    tmp_table[1],
-                    preview.col,
-                    preview.line + 1,
-                    preview.width,
-                    preview.height,
-                }
-            end,
-    })
-end, {})
+-- local sourced_file = debug_utils.sourced_filepath()
+-- M.base_directory = vim.fn.fnamemodify(sourced_file, ":h:h:h")
+-- local media_files_base_directory = M.base_directory
+--     .. "/telescope-media-files.nvim"
+-- local defaulter = utils.make_default_callable
+-- local media_preview = defaulter(function(opts)
+--     local preview_cmd = ""
+--     if M.Cfg.media_previewer == "telescope-media-files" then
+--         preview_cmd = media_files_base_directory .. "/scripts/vimg"
+--     end
+--
+--     if M.Cfg.media_previewer == "catimg-previewer" then
+--         preview_cmd = M.base_directory
+--             .. "/telekasten.nvim/scripts/catimg-previewer"
+--     end
+--
+--     if vim.startswith(M.Cfg.media_previewer, "viu-previewer") then
+--         preview_cmd = M.base_directory
+--             .. "/telekasten.nvim/scripts/"
+--             .. M.Cfg.media_previewer
+--     end
+--
+--     if vim.fn.executable(preview_cmd) == 0 then
+--         print("Previewer not found: " .. preview_cmd)
+--         return conf.file_previewer(opts)
+--     end
+--     return previewers.new_termopen_previewer({
+--         get_command = opts.get_command
+--             or function(entry)
+--                 local tmp_table = vim.split(entry.value, "\t")
+--                 local preview = opts.get_preview_window()
+--                 opts.cwd = opts.cwd and vim.fn.expand(opts.cwd)
+--                     or vim.loop.cwd()
+--                 if vim.tbl_isempty(tmp_table) then
+--                     return { "echo", "" }
+--                 end
+--                 print(tmp_table[1])
+--                 return {
+--                     preview_cmd,
+--                     tmp_table[1],
+--                     preview.col,
+--                     preview.line + 1,
+--                     preview.width,
+--                     preview.height,
+--                 }
+--             end,
+--     })
+-- end, {})
 
 -- note picker actions
 local picker_actions = {}
@@ -1472,7 +1475,7 @@ local function GotoDate(opts)
 
     local fname = M.Cfg.dailies .. "/" .. word .. M.Cfg.extension
     local fexists = fileutils.file_exists(fname)
-    local function picker()
+    local function open_picker()
         if opts.journal_auto_open then
             if opts.calendar == true then
                 -- ensure that the calendar window is not improperly overwritten
@@ -1486,7 +1489,7 @@ local function GotoDate(opts)
                 default_text = word,
                 find_command = M.Cfg.find_command,
                 attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
+                    map({ "i", "n" }, "<cr>", function()
                         picker.actions.close()(prompt_bufnr)
 
                         -- open the new note
@@ -1524,13 +1527,13 @@ local function GotoDate(opts)
             function()
                 opts.erase = true
                 opts.erase_file = fname
-                picker()
+                open_picker()
             end
         )
         return
     end
 
-    picker()
+    open_picker()
 end
 
 --
@@ -1574,7 +1577,7 @@ local function FindNotes(opts)
         end
 
         local attach_mappings = function(_, map)
-            map("i", "<cr>", picker_actions.select_default)
+            map({ "i", "n" }, "<cr>", picker_actions.select_default)
             map("n", "<cr>", picker_actions.select_default)
             map("i", "<c-y>", picker_actions.yank_link(opts))
             map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -1626,7 +1629,7 @@ local function InsertImgLink(opts)
             preview_type = "media",
             media_previewer = M.Cfg.media_previewer,
             attach_mappings = function(prompt_bufnr, map)
-                map("i", "<cr>", function()
+                map({ "i", "n" }, "<cr>", function()
                     picker.actions.close()(prompt_bufnr)
                     local selection = picker.actions.get_selection()
                     local fn = selection.value or selection.filename
@@ -1684,7 +1687,7 @@ local function SearchNotes(opts)
             default_text = opts.default_text or vim.fn.expand("<cword>"),
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
-                map("i", "<cr>", picker_actions.select_default)
+                map({ "i", "n" }, "<cr>", picker_actions.select_default)
                 map("n", "<cr>", picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
                 map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -1730,7 +1733,7 @@ local function ShowBacklinks(opts)
             default_text = "\\[\\[" .. escaped_title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
-                map("i", "<cr>", picker_actions.select_default)
+                map({ "i", "n" }, "<cr>", picker_actions.select_default)
                 map("n", "<cr>", picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
                 map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -1783,7 +1786,7 @@ local function on_create_with_template(opts, title)
         cwd = M.Cfg.templates,
         find_command = M.Cfg.find_command,
         attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
+            map({ "i", "n" }, "<cr>", function()
                 picker.actions.close()(prompt_bufnr)
                 -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
                 local template = picker.actions.get_selected_entry().value
@@ -1851,14 +1854,14 @@ local function on_create(opts, title)
     })
     local fname = pinfo.filepath
 
-    local function picker()
+    local function open_picker()
         find_files_sorted({
             prompt_title = "Created note...",
             cwd = pinfo.root_dir,
             default_text = generate_note_filename(uuid, title),
             find_command = M.Cfg.find_command,
             attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
+                map({ "i", "n" }, "<cr>", picker_actions.select_default)
                 map("i", "<c-y>", picker_actions.yank_link(opts))
                 map("i", "<c-i>", picker_actions.paste_link(opts))
                 map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -1880,13 +1883,13 @@ local function on_create(opts, title)
             function()
                 opts.erase = true
                 opts.erase_file = fname
-                picker()
+                open_picker()
             end
         )
         return
     end
 
-    picker()
+    open_picker()
 end
 
 local function CreateNote(opts)
@@ -2016,7 +2019,7 @@ local function FollowLink(opts)
                 end
             end
 
-            local function picker()
+            local function open_picker()
                 if fexists == true then
                     if opts.calendar == true then
                         vim.cmd("wincmd w")
@@ -2029,7 +2032,11 @@ local function FollowLink(opts)
                         default_text = title,
                         find_command = M.Cfg.find_command,
                         attach_mappings = function(_, map)
-                            map("i", "<cr>", picker_actions.create_new(opts))
+                            map(
+                                { "i", "n" },
+                                "<cr>",
+                                picker_actions.create_new(opts)
+                            )
                             map("n", "<cr>", picker_actions.create_new(opts))
                             map("i", "<c-y>", picker_actions.yank_link(opts))
                             map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -2053,13 +2060,13 @@ local function FollowLink(opts)
                     function()
                         opts.erase = true
                         opts.erase_file = fname
-                        picker()
+                        open_picker()
                     end
                 )
                 return
             end
 
-            picker()
+            open_picker()
         else
             -- heading, paragraph, or tag search
             local prompt = title
@@ -2090,7 +2097,7 @@ local function FollowLink(opts)
                 search_dirs = #filename_part > 0 and { filename_part }
                     or { cwd },
                 attach_mappings = function(_, map)
-                    map("i", "<cr>", picker_actions.select_default)
+                    map({ "i", "n" }, "<cr>", picker_actions.select_default)
                     map("n", "<cr>", picker_actions.select_default)
                     map("i", "<c-y>", picker_actions.yank_link(opts))
                     map("i", "<c-i>", picker_actions.paste_link(opts))
@@ -2129,7 +2136,7 @@ local function GotoThisWeek(opts)
         local title = dinfo.isoweek
         local fname = M.Cfg.weeklies .. "/" .. title .. M.Cfg.extension
         local fexists = fileutils.file_exists(fname)
-        local function picker()
+        local function open_picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
                     -- ensure that the calendar window is not improperly overwritten
@@ -2143,9 +2150,7 @@ local function GotoThisWeek(opts)
                     default_text = title,
                     find_command = M.Cfg.find_command,
                     attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
+                        map({ "i", "n" }, "<cr>", picker_actions.select_default)
                         map("i", "<c-y>", picker_actions.yank_link(opts))
                         map("i", "<c-i>", picker_actions.paste_link(opts))
                         map("n", "<c-y>", picker_actions.yank_link(opts))
@@ -2174,13 +2179,13 @@ local function GotoThisWeek(opts)
                 function()
                     opts.erase = true
                     opts.erase_file = fname
-                    picker()
+                    open_picker()
                 end
             )
             return
         end
 
-        picker()
+        open_picker()
     end)
 end
 
@@ -2606,14 +2611,7 @@ TelekastenCmd.command = function(subcommand)
                 }
             end,
             attach_mappings = function(prompt_bufnr, map)
-                map("i", "<cr>", function()
-                    picker.actions.close()(prompt_bufnr)
-                    local selection = picker.actions.get_selection()
-                    if selection and selection.value then
-                        selection.value[3]()
-                    end
-                end)
-                map("n", "<cr>", function()
+                map({ "i", "n" }, "<cr>", function()
                     picker.actions.close()(prompt_bufnr)
                     local selection = picker.actions.get_selection()
                     if selection and selection.value then
