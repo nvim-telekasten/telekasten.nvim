@@ -50,6 +50,7 @@ local function defaultConfig(home)
         -- dir names for special notes (absolute path or subdir name)
         dailies = home,
         weeklies = home,
+        monthlies = home,
         templates = home,
         -- image (sub)dir for pasting
         -- dir name (absolute path or subdir name)
@@ -79,12 +80,14 @@ local function defaultConfig(home)
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
         weeklies_create_nonexisting = true,
+        monthlies_create_nonexisting = true,
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
         -- templates for new notes
         -- template_new_note = home .. "/" .. "templates/new_note.md",
         -- template_new_daily = home .. "/" .. "templates/daily_tk.md",
         -- template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
+        -- template_new_monthly = home .. "/" .. "templates/monthly_tk.md",
 
         -- image link style
         -- wiki:     ![[image name]]
@@ -174,6 +177,7 @@ local function defaultConfig(home)
         normal = M.Cfg.template_new_note,
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
+        monthly = M.Cfg.template_new_monthly,
     }
 end
 
@@ -254,9 +258,11 @@ local function global_dir_check(callback)
     check(M.Cfg.home, "home", function()
         check(M.Cfg.dailies, "dailies", function()
             check(M.Cfg.weeklies, "weeklies", function()
-                check(M.Cfg.templates, "templates", function()
-                    -- Note the `callback` in this last function call
-                    check(M.Cfg.image_subdir, "images", callback)
+                check(M.Cfg.monthlies, "monthlies", function()
+                    check(M.Cfg.templates, "templates", function()
+                        -- Note the `callback` in this last function call
+                        check(M.Cfg.image_subdir, "images", callback)
+                    end)
                 end)
             end)
         end)
@@ -278,7 +284,7 @@ end
 
 local function recursive_substitution(dir, old, new)
     print("Searching for links to '" .. old .. "' in directory: " .. dir)
-    
+
     global_dir_check(function(dir_check)
         if not dir_check then
             print("Directory check failed for: " .. dir)
@@ -301,7 +307,7 @@ local function recursive_substitution(dir, old, new)
                 if success and content then
                     local modified = false
                     local new_content = {}
-                    
+
                     for _, line in ipairs(content) do
                         local new_line = line
                         -- Handle different link formats:
@@ -310,22 +316,31 @@ local function recursive_substitution(dir, old, new)
                         -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
                         -- [[oldtitle|alias]] -> [[newtitle|alias]]
                         -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
-                        
+
                         -- Pattern to match [[oldtitle]] and variations
-                        local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
+                        local pattern = "%[%["
+                            .. vim.pesc(old)
+                            .. "([^%]]*)%]%]"
                         local replacement = "[[" .. new .. "%1]]"
-                        
-                        local new_line_updated = new_line:gsub(pattern, replacement)
+
+                        local new_line_updated =
+                            new_line:gsub(pattern, replacement)
                         if new_line_updated ~= new_line then
                             modified = true
-                            print("Found link to update: " .. line .. " -> " .. new_line_updated)
+                            print(
+                                "Found link to update: "
+                                    .. line
+                                    .. " -> "
+                                    .. new_line_updated
+                            )
                         end
                         table.insert(new_content, new_line_updated)
                     end
-                    
+
                     -- Write back the modified content if changes were made
                     if modified then
-                        local write_success = pcall(vim.fn.writefile, new_content, file)
+                        local write_success =
+                            pcall(vim.fn.writefile, new_content, file)
                         if write_success then
                             print("Updated links in: " .. file)
                         else
@@ -415,8 +430,8 @@ local function imgFromClipboard()
             local image_path = _image_path:gsub("file://", "")
             if
                 vim.fn
-                .system("file --mime-type -b " .. image_path)
-                :gsub("%s+", "")
+                    .system("file --mime-type -b " .. image_path)
+                    :gsub("%s+", "")
                 == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
@@ -433,7 +448,7 @@ local function imgFromClipboard()
         paste_command["osascript"] = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -448,8 +463,8 @@ local function imgFromClipboard()
             if vim.fn.executable(M.Cfg.clipboard_program) ~= 1 then
                 vim.api.nvim_err_write(
                     "The clipboard program specified [`"
-                    .. M.cfg.clipboard_program
-                    .. "`] is not executable or not in your $PATH\n"
+                        .. M.cfg.clipboard_program
+                        .. "`] is not executable or not in your $PATH\n"
                 )
             end
             get_paste_command = paste_command[M.Cfg.clipboard_program]
@@ -584,7 +599,7 @@ end
 ---    - filepath : full path, identical to p
 ---    - root_dir : the root dir (home, dailies, ...)
 ---    - sub_dir : subdir if present, relative to root_dir
----    - is_daily_or_weekly : bool
+---    - is_periodic : bool
 ---    - is_daily : bool
 ---    - is_weekly : bool
 ---    - template : suggested template based on opts
@@ -595,9 +610,10 @@ local Pinfo = {
     filepath = "",
     root_dir = "",
     sub_dir = "",
-    is_daily_or_weekly = false,
+    is_periodic = false,
     is_daily = false,
     is_weekly = false,
+    is_monthly = false,
     template = "",
     calendar_info = nil,
 }
@@ -626,9 +642,10 @@ function Pinfo:resolve_path(p, opts)
     self.fexists = fileutils.file_exists(p)
     self.filepath = p
     self.root_dir = M.Cfg.home
-    self.is_daily_or_weekly = false
+    self.is_periodic = false
     self.is_daily = false
     self.is_weekly = false
+    self.is_monthly = false
 
     -- strip all dirs to get filename
     local pp = Path:new(p)
@@ -643,15 +660,22 @@ function Pinfo:resolve_path(p, opts)
         self.root_dir = M.Cfg.dailies
         -- TODO: parse "title" into calendarinfo like in resolve_link
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        self.is_daily_or_weekly = true
+        self.is_periodic = true
         self.is_daily = true
     end
     if vim.startswith(p, M.Cfg.weeklies) then
         -- TODO: parse "title" into calendarinfo like in resolve_link
         -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
         self.root_dir = M.Cfg.weeklies
-        self.is_daily_or_weekly = true
+        self.is_periodic = true
         self.is_weekly = true
+    end
+    if vim.startswith(p, M.Cfg.monthlies) then
+        -- TODO: parse "title" into calendarinfo like in resolve_link
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        self.root_dir = M.Cfg.monthlies
+        self.is_periodic = true
+        self.is_monthly = true
     end
 
     -- now work out subdir relative to root
@@ -667,12 +691,14 @@ function Pinfo:resolve_path(p, opts)
     return self
 end
 
-local function check_if_daily_or_weekly(title)
+local function check_if_periodic(title)
     local daily_match = "^(%d%d%d%d)-(%d%d)-(%d%d)$"
     local weekly_match = "^(%d%d%d%d)-W(%d%d)$"
+    local monthly_match = "^(%d%d%d%d)-(%d%d)$"
 
     local is_daily = false
     local is_weekly = false
+    local is_monthly = false
     local dateinfo =
         dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday) -- sane default
 
@@ -705,11 +731,27 @@ local function check_if_daily_or_weekly(title)
             )
         end
     end
-    return is_daily, is_weekly, dateinfo
+
+    start, _, year, month = title:find(monthly_match)
+    if start ~= nil then
+        if tonumber(month) > 0 and tonumber(month) < 13 then
+            is_monthly = true
+            dateinfo.year = tonumber(year)
+            dateinfo.month = tonumber(month)
+            -- Minimal Day anchor to avoid any calculation errors
+            dateinfo.day = 1
+            dateinfo = dateutils.calculate_dates(
+                dateinfo,
+                M.Cfg.calendar_opts.calendar_monday
+            )
+        end
+    end
+    return is_daily, is_weekly, is_monthly, dateinfo
 end
 
 function Pinfo:resolve_link(title, opts)
     opts = opts or {}
+    opts.monthlies = opts.monthlies or M.Cfg.monthlies
     opts.weeklies = opts.weeklies or M.Cfg.weeklies
     opts.dailies = opts.dailies or M.Cfg.dailies
     opts.home = opts.home or M.Cfg.home
@@ -722,12 +764,26 @@ function Pinfo:resolve_link(title, opts)
     self.filename = title .. opts.extension
     self.filename = self.filename:gsub("^%./", "") -- strip potential leading ./
     self.root_dir = opts.home
-    self.is_daily_or_weekly = false
+    self.is_periodic = false
     self.is_daily = false
     self.is_weekly = false
+    self.is_monthly = false
     self.template = nil
     self.calendar_info = nil
 
+    if
+        opts.monthlies
+        and fileutils.file_exists(opts.monthlies .. "/" .. self.filename)
+    then
+        -- TODO: parse "title" into calendarinfo like below
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
+        self.filepath = opts.monthlies .. "/" .. self.filename
+        self.fexists = true
+        self.root_dir = opts.monthlies
+        self.is_periodic = true
+        self.is_monthly = true
+    end
     if
         opts.weeklies
         and fileutils.file_exists(opts.weeklies .. "/" .. self.filename)
@@ -738,7 +794,7 @@ function Pinfo:resolve_link(title, opts)
         self.filepath = opts.weeklies .. "/" .. self.filename
         self.fexists = true
         self.root_dir = opts.weeklies
-        self.is_daily_or_weekly = true
+        self.is_periodic = true
         self.is_weekly = true
     end
     if
@@ -751,7 +807,7 @@ function Pinfo:resolve_link(title, opts)
         self.filepath = opts.dailies .. "/" .. self.filename
         self.fexists = true
         self.root_dir = opts.dailies
-        self.is_daily_or_weekly = true
+        self.is_periodic = true
         self.is_daily = true
     end
     if fileutils.file_exists(opts.home .. "/" .. self.filename) then
@@ -779,21 +835,26 @@ function Pinfo:resolve_link(title, opts)
     if self.fexists == false then
         -- TODO: if we're not smart, we also shouldn't need to try to set the calendar info..?
         --       I bet someone will want the info in there, so let's put it in if possible
-        _, _, self.calendar_info = check_if_daily_or_weekly(self.title) -- will set today as default, so leave in!
+        _, _, _, self.calendar_info = check_if_periodic(self.title) -- will set today as default, so leave in!
 
         if opts.new_note_location == "smart" then
             self.filepath = opts.home .. "/" .. self.filename -- default
-            self.is_daily, self.is_weekly, self.calendar_info =
-                check_if_daily_or_weekly(self.title)
+            self.is_daily, self.is_weekly, self.is_monthly, self.calendar_info =
+                check_if_periodic(self.title)
             if self.is_daily == true then
                 self.root_dir = opts.dailies
                 self.filepath = opts.dailies .. "/" .. self.filename
-                self.is_daily_or_weekly = true
+                self.is_periodic = true
             end
             if self.is_weekly == true then
                 self.root_dir = opts.weeklies
                 self.filepath = opts.weeklies .. "/" .. self.filename
-                self.is_daily_or_weekly = true
+                self.is_periodic = true
+            end
+            if self.is_monthly == true then
+                self.root_dir = opts.monthlies
+                self.filepath = opts.monthlies .. "/" .. self.filename
+                self.is_periodic = true
             end
         elseif opts.new_note_location == "same_as_current" then
             local cwd = vim.fn.expand("%:p")
@@ -842,6 +903,8 @@ function Pinfo:resolve_link(title, opts)
             self.template = M.note_type_templates.daily
         elseif self.is_weekly then
             self.template = M.note_type_templates.weekly
+        elseif self.is_monthly then
+            self.template = M.note_type_templates.monthly
         else
             self.template = M.note_type_templates.normal
         end
@@ -1282,7 +1345,7 @@ end
 -- FindWeeklyNotes:
 -- ---------------
 --
--- Select from daily notes
+-- Select from weekly notes
 --
 local function FindWeeklyNotes(opts)
     opts = opts or {}
@@ -1349,6 +1412,76 @@ local function FindWeeklyNotes(opts)
 end
 
 --
+-- FindMonthlyNotes:
+-- ---------------
+--
+-- Select from monthly notes
+--
+--
+local function FindMonthlyNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
+    global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local title = os.date(dateutils.dateformats.month_ym)
+        local fname = M.Cfg.monthlies .. "/" .. title .. M.Cfg.extension
+        local fexists = fileutils.file_exists(fname)
+        local function picker()
+            find_files_sorted({
+                prompt_title = "Find monthly note",
+                cwd = M.Cfg.monthlies,
+                find_command = M.Cfg.find_command,
+                search_pattern = "%d%d%d%d%-%d%d"
+                    .. vim.pesc(M.Cfg.extension)
+                    .. "$",
+                search_depth = 1,
+                attach_mappings = function(_, map)
+                    actions.select_default:replace(
+                        picker_actions.select_default
+                    )
+                    map("i", "<c-y>", picker_actions.yank_link(opts))
+                    map("i", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-y>", picker_actions.yank_link(opts))
+                    map("n", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-c>", picker_actions.close(opts))
+                    map("n", "<esc>", picker_actions.close(opts))
+                    return true
+                end,
+                sort = M.Cfg.sort,
+            })
+        end
+        if
+            (fexists ~= true)
+            and (
+                (opts.monthlies_create_nonexisting == true)
+                or M.Cfg.monthlies_create_nonexisting == true
+            )
+        then
+            create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.monthly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
 -- InsertLink:
 -- -----------
 --
@@ -1611,8 +1744,14 @@ end
 
 local function rename_update_links(oldfile, newname)
     if M.Cfg.rename_update_links == true then
-        print("Updating links from '" .. oldfile.title .. "' to '" .. newname .. "'")
-        
+        print(
+            "Updating links from '"
+                .. oldfile.title
+                .. "' to '"
+                .. newname
+                .. "'"
+        )
+
         -- Save open buffers before looking for links to replace
         if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             vim.ui.select({ "Yes (default)", "No" }, {
@@ -1629,7 +1768,8 @@ local function rename_update_links(oldfile, newname)
         recursive_substitution(M.Cfg.home, oldfile.title, newname)
         recursive_substitution(M.Cfg.dailies, oldfile.title, newname)
         recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
-        
+        recursive_substitution(M.Cfg.monthlies, oldfile.title, newname)
+
         print("Link update completed!")
     end
 end
@@ -1686,7 +1826,7 @@ local function RenameNote()
                 -- Update the current buffer's content to reflect the new title
                 local current_content = vim.fn.getline(1, "$")
                 local updated_content = {}
-                
+
                 for _, line in ipairs(current_content) do
                     -- Update frontmatter title field
                     if line:match("^title:") then
@@ -1695,10 +1835,10 @@ local function RenameNote()
                         table.insert(updated_content, line)
                     end
                 end
-                
+
                 -- Write the updated content to the current buffer
                 vim.fn.setline(1, updated_content)
-                
+
                 local oldTitle = oldfile.title:gsub(" ", "\\ ")
                 vim.cmd(
                     "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
@@ -2703,6 +2843,84 @@ local function GotoThisWeek(opts)
 end
 
 --
+-- GotoThisMonth:
+-- -------------
+--
+-- find this month's monthly note and create it if necessary.
+--
+local function GotoThisMonth(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
+
+    global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local dinfo =
+            dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
+        local title = dinfo.month_ym
+        local fname = M.Cfg.monthlies .. "/" .. title .. M.Cfg.extension
+        local fexists = fileutils.file_exists(fname)
+        local function picker()
+            if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
+                vim.cmd("e " .. fname)
+            else
+                find_files_sorted({
+                    prompt_title = "Goto this month:",
+                    cwd = M.Cfg.monthlies,
+                    default_text = title,
+                    find_command = M.Cfg.find_command,
+                    attach_mappings = function(_, map)
+                        actions.select_default:replace(
+                            picker_actions.select_default
+                        )
+                        map("i", "<c-y>", picker_actions.yank_link(opts))
+                        map("i", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-y>", picker_actions.yank_link(opts))
+                        map("n", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-c>", picker_actions.close(opts))
+                        map("n", "<esc>", picker_actions.close(opts))
+                        return true
+                    end,
+                })
+            end
+        end
+
+        if
+            (fexists ~= true)
+            and (
+                (opts.monthlies_create_nonexisting == true)
+                or M.Cfg.monthlies_create_nonexisting == true
+            )
+        then
+            create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.monthly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+
+        picker()
+    end)
+end
+--
 -- Calendar Stuff
 -- --------------
 
@@ -2961,10 +3179,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                    .. k
-                    .. "`   ->   `"
-                    .. tostring(v)
-                    .. "`"
+                        .. k
+                        .. "`   ->   `"
+                        .. tostring(v)
+                        .. "`"
                 )
             end
         end
@@ -2999,12 +3217,14 @@ local function Setup(cfg)
     M.Cfg.template_new_note = M.Cfg.template_new_note or "none"
     M.Cfg.template_new_daily = M.Cfg.template_new_daily or "none"
     M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or "none"
+    M.Cfg.template_new_monthly = M.Cfg.template_new_monthly or "none"
 
     -- refresh templates
     M.note_type_templates = {
         normal = M.Cfg.template_new_note,
         daily = M.Cfg.template_new_daily,
         weekly = M.Cfg.template_new_weekly,
+        monthly = M.Cfg.template_new_monthly,
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
@@ -3018,10 +3238,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                .. M.Cfg.home
-                .. "/*"
-                .. M.Cfg.extension
-                .. " set ft=telekasten"
+                    .. M.Cfg.home
+                    .. "/*"
+                    .. M.Cfg.extension
+                    .. " set ft=telekasten"
             )
         end
     end
@@ -3036,6 +3256,7 @@ local function Setup(cfg)
     M.Cfg.image_subdir = make_config_path_absolute(M.Cfg.image_subdir)
     M.Cfg.dailies = make_config_path_absolute(M.Cfg.dailies)
     M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
+    M.Cfg.monthlies = make_config_path_absolute(M.Cfg.monthlies)
     M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
 
     -- Check if ripgrep is compiled with --pcre
@@ -3088,6 +3309,8 @@ M.goto_today = GotoToday
 M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
+M.goto_thismonth = GotoThisMonth
+M.find_monthly_notes = FindMonthlyNotes
 M.yank_notelink = YankLink
 M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
@@ -3110,41 +3333,47 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes",        "find_notes",        M.find_notes },
-            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
-            { "search in notes",   "search_notes",      M.search_notes },
-            { "insert link",       "insert_link",       M.insert_link },
-            { "follow link",       "follow_link",       M.follow_link },
-            { "goto today",        "goto_today",        M.goto_today },
-            { "new note",          "new_note",          M.new_note },
-            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
+            { "find notes", "find_notes", M.find_notes },
+            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            { "search in notes", "search_notes", M.search_notes },
+            { "insert link", "insert_link", M.insert_link },
+            { "follow link", "follow_link", M.follow_link },
+            { "goto today", "goto_today", M.goto_today },
+            { "new note", "new_note", M.new_note },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink",     M.yank_notelink },
-            { "rename note",       "rename_note",       M.rename_note },
+            { "goto thismonth", "goto_thismonth", M.goto_thismonth },
+            {
+                "find monthly notes",
+                "find_monthly_notes",
+                M.find_monthly_notes,
+            },
+            { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar",     "show_calendar",  M.show_calendar },
+            { "show calendar", "show_calendar", M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo",       "toggle_todo",    M.toggle_todo },
-            { "show backlinks",    "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends",   M.find_friends },
+            { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "show backlinks", "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends", M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img",  M.preview_img },
-            { "browse media",               "browse_media", M.browse_media },
-            { "panel",                      "panel",        M.panel },
-            { "show tags",                  "show_tags",    M.show_tags },
-            { "switch vault",               "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img", M.preview_img },
+            { "browse media", "browse_media", M.browse_media },
+            { "panel", "panel", M.panel },
+            { "show tags", "show_tags", M.show_tags },
+            { "switch vault", "switch_vault", M.switch_vault },
         }
     end,
 }

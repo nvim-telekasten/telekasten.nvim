@@ -120,6 +120,8 @@ M.dateformats = {
     date = "%Y-%m-%d",
     week = "%V",
     isoweek = "%Y-W%V",
+    month_ym = "%Y-%m",
+    month_name = "%B",
     time24 = "%H:%M:%S",
     time12 = "%I:%M:%S %p",
 }
@@ -166,6 +168,41 @@ function M.calculate_dates(date, calendar_monday)
     dates.date = os.date(df.date, time)
     dates.prevday = os.date(df.date, time - oneday)
     dates.nextday = os.date(df.date, time + oneday)
+
+    local cur_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+    local prev_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month - 1,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+    local next_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month + 1,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+
+    dates.month_ym = os.date(df.month_ym, cur_first_month)
+    dates.prev_month_ym = os.date(df.month_ym, prev_first_month)
+    dates.next_month_ym = os.date(df.month_ym, next_first_month)
+    dates.month_name = os.date(df.month_name, cur_first_month)
+    dates.prev_month_name = os.date(df.month_name, prev_first_month)
+    dates.next_month_name = os.date(df.month_name, next_first_month)
+    dates.first_of_month = os.date("%Y-%m-01", cur_first_month)
+    dates.last_of_month = os.date("%Y-%m-%d", next_first_month - oneday)
+
     dates.week = os.date(df.week, time)
     dates.prevweek = os.date(df.week, time - oneweek)
     dates.nextweek = os.date(df.week, time + oneweek)

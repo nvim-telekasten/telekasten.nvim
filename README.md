@@ -14,7 +14,7 @@ based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 #### Highlights
 
 - Find notes by name, #tag or by searching within note text
-- Find daily, weekly notes by date
+- Find daily, weekly, and monthly notes by date
 - **Vaults**: Support for multiple separate note collections
 - Place and follow links to your notes or create new ones, with templates
 - Find notes that link back to your notes
@@ -234,6 +234,8 @@ The following sub-commands are defined:
 - `new_note` : Create a new note, prompts for title
 - `goto_thisweek` : Open this week's weekly note
 - `find_weekly_notes` : Find weekly notes by title (calendar week)
+- `goto_thismonth` : Open this month's monthly note
+- `find_monthly_notes` : Find monthly notes by title
 - `yank_notelink` : Yank a link to the currently open note
 - `new_templated_note` : create a new note by template, prompts for title and template
 - `show_calendar` : Show the calendar
@@ -437,6 +439,8 @@ Currently, the following things are hardcoded:
   `2021-11-21.md`)
 - the file naming format for weekly note files: `YYYY-Www.ext` (e.g.
   `2021-W46.md`)
+- the file naming format for monthly note files: `YYYY-MM.ext` (e.g. 
+  `2021-11`)
 - the file naming format for pasted images: `pasted_img_YYYYMMDDhhmmss.png`
   (e.g. `pasted_img_20211126041108.png`)
 

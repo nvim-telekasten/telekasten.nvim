@@ -1,14 +1,14 @@
 ================================================================================
                                                                *telekasten.nvim*
 
-Telekasten.nvim is a plugin that lets you work with on or multiple folders of
+Telekasten.nvim is a plugin that lets you work with one or multiple folders of
 Markdown files and use them as a 'Zettelkasten' or a wiki plus journal.
 
-Find notes by name, daily and weekly notes by date, search within all notes,
+Find notes by name, periodic notes by date, search within all notes,
 place and follow links to your notes or create new ones, with templates.
-Current daily and weekly notes can be created if not present when searching
-for dailies or weeklies. Following a link to a non-existing note can also
-create the missing note (optional).
+Periodic Notes consist of daily, weekly, and monthly notes. Current 
+periodic notes can be created if not present when searching for periodic notes.
+Following a link to a non-existing note can also create the missing note (optional).
 
 Telekasten can optionally plug into `calendar-vim`: Selecting a day in the
 calendar will open up a telescope search with preview that lets you open the
@@ -48,6 +48,7 @@ Please Note:~
 Currently, the following file naming conventions are hard-coded:
 - daily note files : `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
 - weekly note files: `YYYY-Www.ext`   (e.g. `2021-W46.md`)
+- monthly note files: `YYYY-MM.ext` (e.g. `2021-11.md`)
 
 
 ================================================================================
@@ -68,16 +69,18 @@ telekasten.setup({opts})
     require("telekasten").setup({
 
       -- Main paths
-      home = '/path/to/directory',        -- path to main notes folder
+      home = '/path/to/directory',          -- path to main notes folder
       dailies = '/path/to/directory',       -- path to daily notes
       weeklies = '/path/to/directory',      -- path to weekly notes
-      templates = '/path/to/directory',   -- path to templates
+      monthlies = '/path/to/directory',     -- path to monthly notes
+      templates = '/path/to/directory',     -- path to templates
 
       -- Specific note templates
         -- set to `nil` or do not specify if you do not want a template
       template_new_note = '/path/to/file',    -- template for new notes
       template_new_daily = '/path/to/file',   -- template for new daily notes
       template_new_weekly = '/path/to/file',  -- template for new weekly notes
+      template_new_monthly = '/path/to/file', -- template for new monthly notes
 
       -- Image subdir for pasting
         -- subdir name
@@ -102,6 +105,7 @@ telekasten.setup({opts})
       follow_creates_nonexisting = true,    -- create non-existing on follow
       dailies_create_nonexisting = true,    -- create non-existing dailies
       weeklies_create_nonexisting = true,   -- create non-existing weeklies
+      monthlies_create_nonexisting = true,  -- create non-existing monthlies
 
       -- skip telescope prompt for goto_today and goto_thisweek
       journal_auto_open = false,
@@ -248,6 +252,13 @@ telekasten.setup({opts})
 
         Default: 'vim.fn.expand("~/zettelkasten")'
 
+                                              *telekasten.settings.monthlies*
+    monthlies: ~
+        Path to your monthly notes, to separate them from 'normal' notes.
+        Accepts absolute path or sub-directory name.
+
+        Default: 'vim.fn.expand("~/zettelkasten")'
+
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
@@ -365,6 +376,14 @@ telekasten.setup({opts})
 
         Default: true
 
+                         *telekasten.settings.monthlies_create_nonexisting*
+    monthlies_create_nonexisting: ~
+        Flag that determines whether this month's note should always be
+        created if not present. Also, whether monthly notes should be created
+        when opening them via the calendar.
+
+        Default: true
+
                          *telekasten.settings.journal_auto_open*
     journal_auto_open: ~
         Flag that determines whether the telescope picker should be used when
@@ -397,8 +416,16 @@ telekasten.setup({opts})
         Default: `nil`
         Example: `'vim.fn.expand("~/zettelkasten/templates/weekly.md")'`
 
+                                *telekasten.settings.template_new_monthly*
+    template_new_monthly: ~
+        Markdown template for new monthly notes. Set to `nil` if you don't
+        want a template.
+
+        Default: `nil`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/monthly.md")'`
+
                                       *telekasten.settings.install_syntax*
-    install_syntax:~
+    install_syntax: ~
         If `true`, telekasten's syntax for links, tags, etc. will be used for
         markdown files, also in telescope previewers. Your configured markdown
         syntax will be inherited, though.
@@ -406,7 +433,7 @@ telekasten.setup({opts})
         Default: `true`
 
                                         *telekasten.settings.tag_notation*
-    tag_notation:~
+    tag_notation: ~
         The tag style you want to use.
 
         Valid options are:
@@ -420,13 +447,13 @@ telekasten.setup({opts})
         See |telekasten.tag_notation| for more information.
 
                                     *telekasten.settings.subdirs_in_links*
-    subdirs_in_links:~
+    subdirs_in_links: ~
         Include subdirs (if applicable) in generated (yanked, inserted) links.
 
         Default: `true`
 
                                    *telekasten.settings.template_handling*
-    template_handling:~
+    template_handling: ~
         Strategy for telekasten to pick a template when a new note is created
         via `new_note()`, or by `follow_link()` to a non-existing note.
 
@@ -441,7 +468,7 @@ telekasten.setup({opts})
         Default: `smart`
 
                                    *telekasten.settings.new_note_location*
-    new_note_location:~
+    new_note_location: ~
         Path handling for `new_note()`, `new_templated_note()`, `follow_link()`
         to non-existing note.
 
@@ -463,14 +490,14 @@ telekasten.setup({opts})
         Default: `smart`
 
                                    *telekasten.settings.rename_update_links*
-    rename_update_links:~
+    rename_update_links: ~
         If `true`, telekasten will automatically update the links after a file
         has been renamed.
 
         Default: `true`
 
                                        *telekasten.settings.media_previewer*
-    media_previewer:~
+    media_previewer: ~
         Previewer used for viewing media / image files. There are three
         options:
         - `'telescope-media-files'` : use the telescope-media-files.nvim
@@ -483,7 +510,7 @@ telekasten.setup({opts})
         Default: `telescope-media-files`
 
                                     *telekasten.settings.follow_url_fallback*
-    follow_url_fallback:~
+    follow_url_fallback: ~
         A customizable fallback handler for urls.
         When it set to nil, Telekasten will use `xdg-open` or `open`
 
@@ -591,136 +618,173 @@ Telekasten.nvim is used by calling the following lua functions without
 parameters:
 
                                                       *telekasten.new_note()*
-telekasten.new_note()~
+telekasten.new_note() ~
   Prompts for a title and creates a new note by the `new_note` template, then
   shows it in Telescope.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.template_new_note|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                             *telekasten.new_templated_note()*
-telekasten.new_templated_note()~
+telekasten.new_templated_note() ~
   Prompts for a title and then uses Telescope for choosing a template. When a
   template is selected, a new note is created with it and opened.
 
   Should the note already exist before running `new_templated_note()`, it is
   opened immediately.
 
-  See also:~
+  See also: ~
       - |telekasten.template_files|
                                                     *telekasten.find_notes()*
-telekasten.find_notes({opts})~
+telekasten.find_notes({opts}) ~
   Opens a Telescope file finder and lets you pick a note by title (file name).
 
   Valid keys for {opts}
 
-  with_live_grep:~
+  with_live_grep: ~
     If `true`, it will use live_grep picker and you can search file by file contents.
 
     Default: `nil`
 
                                               *telekasten.find_daily_notes()*
-telekasten.find_daily_notes()~
+telekasten.find_daily_notes() ~
   Find daily notes by date, via Telescope. File names are sorted by file name,
   most recent file first.
 
   If today's daily note is not present, will be created if
   `dailies_create_nonexisting` is set to `true`.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.dailies_create_nonexisting|
 
   New daily notes are created with the template specified in the
   `template_new_daily` setting.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.template_new_daily|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                                     *telekasten.goto_today()*
-telekasten.goto_today()~
+telekasten.goto_today() ~
   Pops up a Telescope finder with today's daily note pre-selected.
 
   If today's daily note is not present, will be created if
   `dailies_create_nonexisting` is set to `true`.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.dailies_create_nonexisting|
 
   New daily notes are created with the template specified in the
   `template_new_daily` setting.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.template_new_daily|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                              *telekasten.find_weekly_notes()*
-telekasten.find_weekly_notes()~
+telekasten.find_weekly_notes() ~
   Find weekly notes by week, via Telescope. File names are sorted by file
   name, most recent file first.
 
   If this week's daily note is not present, will be created if
   `weeklies_create_nonexisting` is set to `true`.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.weeklies_create_nonexisting|
 
   New weekly notes are created with the template specified in the
   `template_new_weekly` setting.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.template_new_weekly|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                                   *telekasten.goto_thisweek()*
-telekasten.goto_thisweek()~
+telekasten.goto_thisweek() ~
   Pops up a Telescope finder with this week's daily note pre-selected.
 
   If this week's daily note is not present, will be created if
   `weeklies_create_nonexisting` is set to `true`.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.weeklies_create_nonexisting|
 
   New weekly notes are created with the template specified in the
   `template_new_weekly` setting.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.template_new_weekly|
       - |telekasten.templates|
       - |telekasten.template_files|
 
+                                             *telekasten.find_monthly_notes()*
+telekasten.find_monthly_notes() ~
+  Find monthly notes by month, via Telescope. File names are sorted by file
+  name, most recent file first.
+
+  If this month's daily note is not present, will be created if
+  `monthlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.monthlies_create_nonexisting|
+
+  New monthly notes are created with the template specified in the
+  `template_new_monthly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_monthly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
+                                                  *telekasten.goto_thismonth()*
+telekasten.goto_thismonth() ~
+  Pops up a Telescope finder with this month's daily note pre-selected.
+
+  If this month's daily note is not present, will be created if
+  `monthlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.monthlies_create_nonexisting|
+
+  New monthly notes are created with the template specified in the
+  `template_new_monthly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_monthly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
                                                   *telekasten.search_notes()*
-telekasten.search_notes()~
+telekasten.search_notes() ~
   Search through all notes via Telescope live grep, initialized with the word
   under the cursor.
 
                                                    *telekasten.insert_link()*
-telekasten.insert_link({opts})~
+telekasten.insert_link({opts}) ~
   Select a note by title (file name), via Telescope, and place a `[[link]]` at
   the current cursor position.
 
   Valid keys for {opts}
 
-  i:~
+  i: ~
     If `true`, it will enter input mode by pressing the <a> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
     |telekasten.mappings|.
 
     Default: `nil`
 
-  with_live_grep:~
+  with_live_grep: ~
     If `true`, it will use live_grep picker and you can search file by file contents.
 
     Default: `nil`
 
                                                    *telekasten.follow_link()*
-telekasten.follow_link()~
+telekasten.follow_link() ~
   Take the text between the brackets of a link pointing to a linked note, or
   of a tag and open a Telescope file finder with it.
 
@@ -728,17 +792,17 @@ telekasten.follow_link()~
   `follow_creates_nonexisting` is set to `true`, a new note will be created
   using the `new_note` template before invoking Telescope.
 
-  See also:~
+  See also: ~
       - |telekasten.settings.follow_creates_nonexisting|
       - |telekasten.settings.template_new_note|
       - |telekasten.template_files|
 
                                                  *telekasten.yank_notelink()*
-telekasten.yank_notelink()~
+telekasten.yank_notelink() ~
   Yank a link to the current note, ready to paste.
 
                                                  *telekasten.show_calendar()*
-telekasten.show_calendar()~
+telekasten.show_calendar() ~
   Opens up the calendar in a properly-sized vertical split at the very right,
   showing the previous, current, and next month.
 
@@ -746,7 +810,7 @@ telekasten.show_calendar()~
       - |telekasten.calendar|
 
                                                    *telekasten.toggle_todo()*
-telekasten.toggle_todo({opts})~
+telekasten.toggle_todo({opts}) ~
   Turns a line into a `- [ ] ` todo line, or toggle between `- [ ]`, `- [x]`,
   and `-` .
 
@@ -757,33 +821,33 @@ telekasten.toggle_todo({opts})~
 
   Valid keys for {opts}
 
-  i:~
+  i: ~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     when being used in a simple `inoremap` key mapping like shown in
     |telekasten.mappings|.
 
     Default: `nil`
-  v:~
+  v: ~
     If `true`, it will look for a visual range to toggle.
 
-  onlyTodo:
+  onlyTodo: ~
     If true, it will avoid circling back to a regular list - when toggle_todo
     is called on - [x] items.
 
-    Default: nil
+    Default: `nil`
 
 
                                                 *telekasten.show_backlinks()*
-telekasten.show_backlinks()~
+telekasten.show_backlinks() ~
   Opens a telescope search for notes that `[[link]]` back to the current note.
 
                                                   *telekasten.find_friends()*
-telekasten.find_friends()~
+telekasten.find_friends() ~
   Opens a telescope search for notes that also `[[link]]` to the link under the
   cursor.
 
                                                *telekasten.insert_img_link()*
-telekasten.insert_img_link({opts})~
+telekasten.insert_img_link({opts}) ~
   Opens a telescope search for all media (PDFs, images, videos (MP4, webm)) and
   places a markdown image link to the picked one at the cursor position.
 
@@ -793,7 +857,7 @@ telekasten.insert_img_link({opts})~
 
   Valid keys for {opts}
 
-  i:~
+  i: ~
     If `true`, it will enter input mode by pressing the <A> key. This is useful
     for being able to continue typing after the link has been inserted.
     See also: |telekasten.mappings|
@@ -801,7 +865,7 @@ telekasten.insert_img_link({opts})~
     Default: `nil`
 
                                                    *telekasten.preview_img()*
-telekasten.preview_img()~
+telekasten.preview_img() ~
   Uses the `telescope-media-files.nvim` extension to preview the image / media
   file under the cursor of a markdown image link: `![](path/to/img.png)`. The
   cursor must be between `(the two parenthesis)`.
@@ -810,7 +874,7 @@ telekasten.preview_img()~
     This requires the `telescope-media-files.nvim` plugin to be installed.
 
                                                   *telekasten.browse_media()*
-telekasten.browse_media()~
+telekasten.browse_media() ~
   Uses the `telescope-media-files.nvim` extension to preview the image / media
   file under the cursor.
 
@@ -822,7 +886,7 @@ Section 3.1: Link notation                            *telekasten.link_notation*
 
 The following links are supported:
 
-Note links~
+Note links ~
 
 `[[A cool title]]`  ................. links to the note named 'A cool title'
 
@@ -859,7 +923,7 @@ Note that notes linked to with headings or paragraph IDs **will not be created
 automatically**. Non-existing notes will be ignored in this case, a global
 telescope search will be performed instead.
 
-Media links~
+Media links ~
 Use these for images, PDF files, videos. If telescope-media-files is installed,
 these can be previewed.
 
@@ -882,7 +946,7 @@ Telekasten supports the following tag notations:
   ---
 <
 
-Tag syntax:~
+Tag syntax: ~
   Spaces are not allowed in tags. So, to differentiate two or more words in a
   tag, use one of the following formats:
 
@@ -926,15 +990,19 @@ you jump to today's or this week's note, or when you typed a
 
 The specific templates and settings used are:
 
-  For daily notes:~
+  For daily notes: ~
     - |telekasten.settings.template_new_daily|
     - |telekasten.settings.dailies_create_nonexisting|
 
-  For weekly notes:~
+  For weekly notes: ~
     - |telekasten.settings.template_new_weekly|
     - |telekasten.settings.weeklies_create_nonexisting|
 
-  For all other notes:~
+  For monthly notes: ~
+    - |telekasten.settings.template_new_monthly|
+    - |telekasten.settings.monthlies_create_nonexisting|
+
+  For all other notes: ~
     - |telekasten.settings.template_new_note|
     - |telekasten.settings.follow_creates_nonexisting|
 
@@ -951,49 +1019,59 @@ note:
 | `find_daily_notes()`               | today's daily note             |
 | `goto_thisweek()`                  | this week's weekly note        |
 | `find_weekly_notes()`              | this week's weekly note        |
+| `goto_thismonth()`                 | this month's monthly note      |
+| `find_monthly_notes()`             | this month's monthly note      |
 | `follow_link()`                    | new note                       |
 | `new_note()`                       | new note                       |
 | `new_templated_note()`             | new note                       |
 +----------------------------------+--------------------------------+
 
                                                    *telekasten.template_files*
-Template Files~
+Template Files ~
 
-The options `template_new_note`, `template_new_daily`, and
-`template_new_weekly` are used to specify the paths to template text files
-that are used for creating new notes.
+The options `template_new_note`, `template_new_daily`, `template_new_weekly`
+and `template_new_monthly` are used to specify the paths to template text 
+files that are used for creating new notes.
 
 The following substitutions will be made during new note creation:
 
-+-----------------+-----------------------+-----------------------------+
-| specifier       |                       |                             |
-| in template     | expands to            | example                     |
-+-----------------+-----------------------+-----------------------------+
-| `{{title}}`       | the title of the note       | My new note                 |
-| `{{shorttitle}}`  | the short title of the note | dir/dir/My Note -> My Note  |
-| `{{uuid}}`        | UUID of the note            | 202201271129                |
-| `{{date}}`        | date in iso format          | 2021-11-21                  |
-| `{{time24}}`      | time with 24 hour clock     | 19:12:23                    |
-| `{{time12}}`      | time with 12 hour clock     | 07:12:23 PM                 |
-| `{{prevday}}`     | previous day, iso           | 2021-11-20                  |
-| `{{nextday}}`     | next day, iso               | 2021-11-22                  |
-| `{{hdate}}`       | date in long format         | Sunday, November 21st, 2021 |
-| `{{rfc3339}}`     | date in RFC3339 format      | 2021-11-21T14:30Z+01:00     |
-| `{{week}}`        | week of the year            | 46                          |
-| `{{prevweek}}`    | previous week               | 45                          |
-| `{{nextweek}}`    | next week                   | 47                          |
-| `{{isoweek}}`     | week in iso format          | 2021-46                     |
-| `{{isoprevweek}}` | last week, iso              | 2021-45                     |
-| `{{isonextweek}}` | next week, iso              | 2021-47                     |
-| `{{year}}`        | year                        | 2021                        |
-| `{{monday}}`      | Monday, iso                 | 2021-11-15                  |
-| `{{tuesday}}`     | Tuesday, iso                | 2021-11-16                  |
-| `{{wednesday}}`   | Wednesday, iso              | 2021-11-17                  |
-| `{{thursday}}`    | Thursday, iso               | 2021-11-18                  |
-| `{{friday}}`      | Friday, iso                 | 2021-11-19                  |
-| `{{saturday}}`    | Saturday, iso               | 2021-11-20                  |
-| `{{sunday}}`      | Sunday, iso (see note)      | 2021-11-21                  |
-+-----------------+-----------------------+-----------------------------+
++---------------------+-------------------------------+-----------------------------+
+| specifier           |                               |                             |
+| in template         |   expands to                  | example                     |
++---------------------+-------------------------------+-----------------------------+
+| `{{title}}`           | the title of the note         | My new note                 |
+| `{{shorttitle}}`      | the short title of the note   | dir/dir/My Note -> My Note  |
+| `{{uuid}}`            | UUID of the note              | 202201271129                |
+| `{{date}}`            | date in iso format            | 2021-11-21                  |
+| `{{time24}}`          | time with 24 hour clock       | 19:12:23                    |
+| `{{time12}}`          | time with 12 hour clock       | 07:12:23 PM                 |
+| `{{prevday}}`         | previous day, iso             | 2021-11-20                  |
+| `{{nextday}}`         | next day, iso                 | 2021-11-22                  |
+| `{{hdate}}`           | date in long format           | Sunday, November 21st, 2021 |
+| `{{rfc3339}}`         | date in RFC3339 format        | 2021-11-21T14:30Z+01:00     |
+| `{{week}}`            | week of the year              | 46                          |
+| `{{prevweek}}`        | previous week                 | 45                          |
+| `{{nextweek}}`        | next week                     | 47                          |
+| `{{isoweek}}`         | week in iso format            | 2021-46                     |
+| `{{isoprevweek}}`     | last week, iso                | 2021-45                     |
+| `{{isonextweek}}`     | next week, iso                | 2021-47                     |
+| `{{month_ym}}`        | current month in iso format   | 2021-11                     |
+| `{{prev_month_ym}}`   | previous month in iso format  | 2021-10                     |
+| `{{next_month_ym}}`   | next month in iso format      | 2021-12                     |
+| `{{month_name}}`      | current month's name          | November                    |
+| `{{prev_month_name}}` | previous month's name         | October                     |
+| `{{next_month_name}}` | next month's name             | December                    |
+| `{{first_of_month}}`  | current month's first day     | 2021-10-01                  |
+| `{{last_of_month}}`   | current month's last day      | 2021-10-31                  |
+| `{{year}}`            | year                          | 2021                        |
+| `{{monday}}`          | Monday, iso                   | 2021-11-15                  |
+| `{{tuesday}}`         | Tuesday, iso                  | 2021-11-16                  |
+| `{{wednesday}}`       | Wednesday, iso                | 2021-11-17                  |
+| `{{thursday}}`        | Thursday, iso                 | 2021-11-18                  |
+| `{{friday}}`          | Friday, iso                   | 2021-11-19                  |
+| `{{saturday}}`        | Saturday, iso                 | 2021-11-20                  |
+| `{{sunday}}`          | Sunday, iso (see note)        | 2021-11-21                  |
++---------------------+-------------------------------+-----------------------------+
 Note: Sunday is adjusted to match the user's `calendar_monday` preference.
 
 As an example, this is my template for new notes:
@@ -1159,7 +1237,7 @@ Credits go to:
 * {NeoVim} and its awesome community
 * {Telescope.nvim} and its awesome community
 * {ThePrimeagen} and {TJ} aka {teej_dv} aka {TJDeVries} of twitch
-  (and vimconf and ...) fame for being awesome and inspiring!
+  (and vimconf and ...) fam for being awesome and inspiring!
 
 
  vim:tw=78:ts=8:ft=help:norl:
