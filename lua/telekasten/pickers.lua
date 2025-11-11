@@ -1,44 +1,44 @@
--- lua/telekasten/pickers.lua
--- Updated to use picker abstraction
-
 local M = {}
 
-local picker = require("telekasten.picker")
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
 
 -- Pick between the various configured vaults
 function M.vaults(telekasten, opts)
     opts = opts or {}
     local vaults = telekasten.vaults
     local _vaults = {}
-
     for k, v in pairs(vaults) do
         table.insert(_vaults, { k, v })
     end
-
-    picker.custom_picker({
-        prompt_title = "Vaults",
-        results = _vaults,
-        entry_maker = function(entry)
-            return {
-                value = entry,
-                display = entry[1],
-                ordinal = entry[1],
-            }
-        end,
-        attach_mappings = function(prompt_bufnr, map)
-            map("i", "<cr>", function()
-                local selection = picker.actions.get_selection()
-                picker.actions.close()(prompt_bufnr)
-                telekasten.chdir(selection.value[2])
-            end)
-            map("n", "<cr>", function()
-                local selection = picker.actions.get_selection()
-                picker.actions.close()(prompt_bufnr)
-                telekasten.chdir(selection.value[2])
-            end)
-            return true
-        end,
-    })
+    pickers
+        .new(opts, {
+            prompt_title = "Vaults",
+            finder = finders.new_table({
+                results = _vaults,
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        display = entry[1],
+                        ordinal = entry[1],
+                    }
+                end,
+            }),
+            sorter = conf.generic_sorter(opts),
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    -- print(vim.inspect(selection))
+                    telekasten.chdir(selection.value[2])
+                end)
+                return true
+            end,
+        })
+        :find()
 end
 
 return M
