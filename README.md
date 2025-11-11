@@ -192,6 +192,8 @@ greatly improve the note-taking experience.
   markdown previewer
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc):
   generate a table of contents for your markdown documents
+- [md_toc](https://github.com/D3alWyth1T/md_toc):
+  generate a table of contents for your markdown documents, better support for neovim/packer integration
 - [synctodo](https://github.com/cnshsliu/synctodo): bash script to sync todos
   among Telekasten, Mac and iPhone reminders.
 - [telescope-all-recent](https://github.com/prochri/telescope-all-recent.nvim):
