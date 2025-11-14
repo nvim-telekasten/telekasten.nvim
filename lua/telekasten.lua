@@ -79,6 +79,8 @@ local function defaultConfig(home)
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
         weeklies_create_nonexisting = true,
+        -- allow following links to files outside the current vault (absolute paths)
+        external_link_follow = true,
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
         -- templates for new notes
@@ -278,7 +280,7 @@ end
 
 local function recursive_substitution(dir, old, new)
     print("Searching for links to '" .. old .. "' in directory: " .. dir)
-    
+
     global_dir_check(function(dir_check)
         if not dir_check then
             print("Directory check failed for: " .. dir)
@@ -301,7 +303,7 @@ local function recursive_substitution(dir, old, new)
                 if success and content then
                     local modified = false
                     local new_content = {}
-                    
+
                     for _, line in ipairs(content) do
                         local new_line = line
                         -- Handle different link formats:
@@ -310,22 +312,31 @@ local function recursive_substitution(dir, old, new)
                         -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
                         -- [[oldtitle|alias]] -> [[newtitle|alias]]
                         -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
-                        
+
                         -- Pattern to match [[oldtitle]] and variations
-                        local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
+                        local pattern = "%[%["
+                            .. vim.pesc(old)
+                            .. "([^%]]*)%]%]"
                         local replacement = "[[" .. new .. "%1]]"
-                        
-                        local new_line_updated = new_line:gsub(pattern, replacement)
+
+                        local new_line_updated =
+                            new_line:gsub(pattern, replacement)
                         if new_line_updated ~= new_line then
                             modified = true
-                            print("Found link to update: " .. line .. " -> " .. new_line_updated)
+                            print(
+                                "Found link to update: "
+                                    .. line
+                                    .. " -> "
+                                    .. new_line_updated
+                            )
                         end
                         table.insert(new_content, new_line_updated)
                     end
-                    
+
                     -- Write back the modified content if changes were made
                     if modified then
-                        local write_success = pcall(vim.fn.writefile, new_content, file)
+                        local write_success =
+                            pcall(vim.fn.writefile, new_content, file)
                         if write_success then
                             print("Updated links in: " .. file)
                         else
@@ -415,8 +426,8 @@ local function imgFromClipboard()
             local image_path = _image_path:gsub("file://", "")
             if
                 vim.fn
-                .system("file --mime-type -b " .. image_path)
-                :gsub("%s+", "")
+                    .system("file --mime-type -b " .. image_path)
+                    :gsub("%s+", "")
                 == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
@@ -433,7 +444,7 @@ local function imgFromClipboard()
         paste_command["osascript"] = function(dir, filename)
             return string.format(
                 'osascript -e "tell application \\"System Events\\" to write (the clipboard as «class PNGf») to '
-                .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
+                    .. '(make new file at folder \\"%s\\" with properties {name:\\"%s\\"})"',
                 dir,
                 filename
             )
@@ -448,8 +459,8 @@ local function imgFromClipboard()
             if vim.fn.executable(M.Cfg.clipboard_program) ~= 1 then
                 vim.api.nvim_err_write(
                     "The clipboard program specified [`"
-                    .. M.cfg.clipboard_program
-                    .. "`] is not executable or not in your $PATH\n"
+                        .. M.cfg.clipboard_program
+                        .. "`] is not executable or not in your $PATH\n"
                 )
             end
             get_paste_command = paste_command[M.Cfg.clipboard_program]
@@ -716,6 +727,35 @@ function Pinfo:resolve_link(title, opts)
     opts.extension = opts.extension or M.Cfg.extension
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
+
+    -- Handle absolute path links (external files)
+    if opts.is_absolute_path and opts.absolute_path_title then
+        -- Expand ~ to home directory
+        local expanded = vim.fn.expand(opts.absolute_path_title)
+
+        -- Add extension if not present
+        if
+            not expanded:match("%.md$")
+            and not expanded:match(opts.extension .. "$")
+        then
+            expanded = expanded .. opts.extension
+        end
+
+        -- Set the path information
+        self.filepath = expanded
+        self.fexists = fileutils.file_exists(expanded)
+        self.filename = vim.fn.fnamemodify(expanded, ":t")
+        self.title = self.filename:gsub(opts.extension, "")
+        self.root_dir = vim.fn.fnamemodify(expanded, ":h")
+        self.is_daily_or_weekly = false
+        self.is_daily = false
+        self.is_weekly = false
+        self.template = nil
+        self.calendar_info = nil
+        self.sub_dir = ""
+
+        return self
+    end
 
     self.fexists = false
     self.title = title
@@ -1151,11 +1191,31 @@ function picker_actions.paste_link(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        local pinfo = Pinfo:new({
-            filepath = selection.filename or selection.value,
-            opts,
-        })
-        local title = "[[" .. pinfo.title .. "]]"
+        local filepath = selection.filename or selection.value
+
+        -- Check if file is external to current vault (auto-detect)
+        local is_external = M.Cfg.external_link_follow
+            and not vim.startswith(filepath, M.Cfg.home)
+
+        local title
+        if is_external then
+            -- Use absolute path format for external files
+            -- Remove extension and replace home directory with ~
+            local link_path = filepath:gsub(M.Cfg.extension .. "$", "")
+            local home = vim.fn.expand("~")
+            if vim.startswith(link_path, home) then
+                link_path = "~" .. link_path:sub(#home + 1)
+            end
+            title = "[[" .. link_path .. "]]"
+        else
+            -- Standard link within current vault
+            local pinfo = Pinfo:new({
+                filepath = filepath,
+                opts,
+            })
+            title = "[[" .. pinfo.title .. "]]"
+        end
+
         vim.api.nvim_put({ title }, "", true, true)
         if opts.insert_after_inserting or opts.i then
             vim.api.nvim_feedkeys("A", "m", false)
@@ -1171,11 +1231,31 @@ function picker_actions.yank_link(opts)
             actions.close(prompt_bufnr)
         end
         local selection = action_state.get_selected_entry()
-        local pinfo = Pinfo:new({
-            filepath = selection.filename or selection.value,
-            opts,
-        })
-        local title = "[[" .. pinfo.title .. "]]"
+        local filepath = selection.filename or selection.value
+
+        -- Check if file is external to current vault (auto-detect)
+        local is_external = M.Cfg.external_link_follow
+            and not vim.startswith(filepath, M.Cfg.home)
+
+        local title
+        if is_external then
+            -- Use absolute path format for external files
+            -- Remove extension and replace home directory with ~
+            local link_path = filepath:gsub(M.Cfg.extension .. "$", "")
+            local home = vim.fn.expand("~")
+            if vim.startswith(link_path, home) then
+                link_path = "~" .. link_path:sub(#home + 1)
+            end
+            title = "[[" .. link_path .. "]]"
+        else
+            -- Standard link within current vault
+            local pinfo = Pinfo:new({
+                filepath = filepath,
+                opts,
+            })
+            title = "[[" .. pinfo.title .. "]]"
+        end
+
         vim.fn.setreg('"', title)
         print("yanked " .. title)
     end
@@ -1611,8 +1691,14 @@ end
 
 local function rename_update_links(oldfile, newname)
     if M.Cfg.rename_update_links == true then
-        print("Updating links from '" .. oldfile.title .. "' to '" .. newname .. "'")
-        
+        print(
+            "Updating links from '"
+                .. oldfile.title
+                .. "' to '"
+                .. newname
+                .. "'"
+        )
+
         -- Save open buffers before looking for links to replace
         if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             vim.ui.select({ "Yes (default)", "No" }, {
@@ -1629,7 +1715,7 @@ local function rename_update_links(oldfile, newname)
         recursive_substitution(M.Cfg.home, oldfile.title, newname)
         recursive_substitution(M.Cfg.dailies, oldfile.title, newname)
         recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
-        
+
         print("Link update completed!")
     end
 end
@@ -1686,7 +1772,7 @@ local function RenameNote()
                 -- Update the current buffer's content to reflect the new title
                 local current_content = vim.fn.getline(1, "$")
                 local updated_content = {}
-                
+
                 for _, line in ipairs(current_content) do
                     -- Update frontmatter title field
                     if line:match("^title:") then
@@ -1695,10 +1781,10 @@ local function RenameNote()
                         table.insert(updated_content, line)
                     end
                 end
-                
+
                 -- Write the updated content to the current buffer
                 vim.fn.setline(1, updated_content)
-                
+
                 local oldTitle = oldfile.title:gsub(" ", "\\ ")
                 vim.cmd(
                     "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
@@ -2223,6 +2309,36 @@ local function FollowLink(opts)
                 title = title:gsub("^(%[)(.+)(%])$", "%2")
                 title = title:gsub("%s*\n", " ")
                 title = linkutils.remove_alias(title)
+
+                -- Check if this is an absolute path link (external file)
+                if
+                    M.Cfg.external_link_follow
+                    and (
+                        title:match("^~/")
+                        or title:match("^/")
+                        or title:match("^%a:")
+                    )
+                then
+                    -- This is an absolute path link to an external file
+                    vim.fn.setreg('"0', saved_reg)
+
+                    -- Handle absolute path immediately
+                    local external_opts = vim.tbl_extend("force", opts, {
+                        is_absolute_path = true,
+                        absolute_path_title = title,
+                        title = title,
+                    })
+                    local pinfo = Pinfo:new(external_opts)
+
+                    if pinfo.fexists then
+                        -- File exists, open it
+                        vim.cmd("e " .. vim.fn.fnameescape(pinfo.filepath))
+                    else
+                        -- File doesn't exist (read-only mode for external files)
+                        print("External file not found: " .. pinfo.filepath)
+                    end
+                    return
+                end
             else
                 -- we are in an external [link]
                 vim.cmd("normal yi)")
@@ -2961,10 +3077,10 @@ local function Setup(cfg)
             if debug then
                 print(
                     "Setup() setting `"
-                    .. k
-                    .. "`   ->   `"
-                    .. tostring(v)
-                    .. "`"
+                        .. k
+                        .. "`   ->   `"
+                        .. tostring(v)
+                        .. "`"
                 )
             end
         end
@@ -3018,10 +3134,10 @@ local function Setup(cfg)
         if M.Cfg.auto_set_filetype then
             vim.cmd(
                 "au BufEnter "
-                .. M.Cfg.home
-                .. "/*"
-                .. M.Cfg.extension
-                .. " set ft=telekasten"
+                    .. M.Cfg.home
+                    .. "/*"
+                    .. M.Cfg.extension
+                    .. " set ft=telekasten"
             )
         end
     end
@@ -3110,41 +3226,41 @@ M.chdir = chdir
 local TelekastenCmd = {
     commands = function()
         return {
-            { "find notes",        "find_notes",        M.find_notes },
-            { "find daily notes",  "find_daily_notes",  M.find_daily_notes },
-            { "search in notes",   "search_notes",      M.search_notes },
-            { "insert link",       "insert_link",       M.insert_link },
-            { "follow link",       "follow_link",       M.follow_link },
-            { "goto today",        "goto_today",        M.goto_today },
-            { "new note",          "new_note",          M.new_note },
-            { "goto thisweek",     "goto_thisweek",     M.goto_thisweek },
+            { "find notes", "find_notes", M.find_notes },
+            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            { "search in notes", "search_notes", M.search_notes },
+            { "insert link", "insert_link", M.insert_link },
+            { "follow link", "follow_link", M.follow_link },
+            { "goto today", "goto_today", M.goto_today },
+            { "new note", "new_note", M.new_note },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "yank link to note", "yank_notelink",     M.yank_notelink },
-            { "rename note",       "rename_note",       M.rename_note },
+            { "yank link to note", "yank_notelink", M.yank_notelink },
+            { "rename note", "rename_note", M.rename_note },
             {
                 "new templated note",
                 "new_templated_note",
                 M.new_templated_note,
             },
-            { "show calendar",     "show_calendar",  M.show_calendar },
+            { "show calendar", "show_calendar", M.show_calendar },
             {
                 "paste image from clipboard",
                 "paste_img_and_link",
                 M.paste_img_and_link,
             },
-            { "toggle todo",       "toggle_todo",    M.toggle_todo },
-            { "show backlinks",    "show_backlinks", M.show_backlinks },
-            { "find friend notes", "find_friends",   M.find_friends },
+            { "toggle todo", "toggle_todo", M.toggle_todo },
+            { "show backlinks", "show_backlinks", M.show_backlinks },
+            { "find friend notes", "find_friends", M.find_friends },
             {
                 "browse images, insert link",
                 "insert_img_link",
                 M.insert_img_link,
             },
-            { "preview image under cursor", "preview_img",  M.preview_img },
-            { "browse media",               "browse_media", M.browse_media },
-            { "panel",                      "panel",        M.panel },
-            { "show tags",                  "show_tags",    M.show_tags },
-            { "switch vault",               "switch_vault", M.switch_vault },
+            { "preview image under cursor", "preview_img", M.preview_img },
+            { "browse media", "browse_media", M.browse_media },
+            { "panel", "panel", M.panel },
+            { "show tags", "show_tags", M.show_tags },
+            { "switch vault", "switch_vault", M.switch_vault },
         }
     end,
 }
