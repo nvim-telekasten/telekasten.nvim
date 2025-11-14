@@ -26,8 +26,8 @@ CONTENTS
 
     0. Note file naming .............. |telekasten.note_naming|
     1. Setup ......................... |telekasten.setup|
-        1.1 Requirements ..............|telekasten.requirements|
-        1.2 Configuration .............|telekasten.configuration|
+        1.1 Requirements ............. |telekasten.requirements|
+        1.2 Configuration ............ |telekasten.configuration|
     2. Highlights .................... |telekasten.highlights|
     3. Usage ......................... |telekasten.usage|
         3.1 Link Notation ............ |telekasten.link_notation|
@@ -754,7 +754,7 @@ telekasten.find_monthly_notes() ~
   Find monthly notes by month, via Telescope. File names are sorted by file
   name, most recent file first.
 
-  If this month's daily note is not present, will be created if
+  If this month's monthly note is not present, will be created if
   `monthlies_create_nonexisting` is set to `true`.
 
   See also: ~
@@ -772,7 +772,7 @@ telekasten.find_monthly_notes() ~
 telekasten.goto_thismonth() ~
   Pops up a Telescope finder with this month's daily note pre-selected.
 
-  If this month's daily note is not present, will be created if
+  If this month's monthly note is not present, will be created if
   `monthlies_create_nonexisting` is set to `true`.
 
   See also: ~
