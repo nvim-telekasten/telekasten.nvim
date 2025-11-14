@@ -6,7 +6,7 @@ Markdown files and use them as a 'Zettelkasten' or a wiki plus journal.
 
 Find notes by name, periodic notes by date, search within all notes,
 place and follow links to your notes or create new ones, with templates.
-Periodic Notes consist of daily, weekly, and monthly notes. Current 
+Periodic Notes consist of daily, weekly, monthly, and quarterly notes. Current 
 periodic notes can be created if not present when searching for periodic notes.
 Following a link to a non-existing note can also create the missing note (optional).
 
@@ -49,6 +49,7 @@ Currently, the following file naming conventions are hard-coded:
 - daily note files : `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
 - weekly note files: `YYYY-Www.ext`   (e.g. `2021-W46.md`)
 - monthly note files: `YYYY-MM.ext` (e.g. `2021-11.md`)
+- quarterly note files: `YYYY-[Q]Q.ext` (e.g. `2021-Q4.md`)
 
 
 ================================================================================
@@ -73,14 +74,16 @@ telekasten.setup({opts})
       dailies = '/path/to/directory',       -- path to daily notes
       weeklies = '/path/to/directory',      -- path to weekly notes
       monthlies = '/path/to/directory',     -- path to monthly notes
+      quarterlies = '/path/to/directory',   -- path to quarterly notes
       templates = '/path/to/directory',     -- path to templates
 
       -- Specific note templates
         -- set to `nil` or do not specify if you do not want a template
-      template_new_note = '/path/to/file',    -- template for new notes
-      template_new_daily = '/path/to/file',   -- template for new daily notes
-      template_new_weekly = '/path/to/file',  -- template for new weekly notes
-      template_new_monthly = '/path/to/file', -- template for new monthly notes
+      template_new_note = '/path/to/file',      -- template for new notes
+      template_new_daily = '/path/to/file',     -- template for new daily notes
+      template_new_weekly = '/path/to/file',    -- template for new weekly notes
+      template_new_monthly = '/path/to/file',   -- template for new monthly notes
+      template_new_quarterly = '/path/to/file', -- template for new quarterly notes
 
       -- Image subdir for pasting
         -- subdir name
@@ -102,10 +105,11 @@ telekasten.setup({opts})
       uuid_sep = "-",
 
       -- Flags for creating non-existing notes
-      follow_creates_nonexisting = true,    -- create non-existing on follow
-      dailies_create_nonexisting = true,    -- create non-existing dailies
-      weeklies_create_nonexisting = true,   -- create non-existing weeklies
-      monthlies_create_nonexisting = true,  -- create non-existing monthlies
+      follow_creates_nonexisting = true,     -- create non-existing on follow
+      dailies_create_nonexisting = true,     -- create non-existing dailies
+      weeklies_create_nonexisting = true,    -- create non-existing weeklies
+      monthlies_create_nonexisting = true,   -- create non-existing monthlies
+      quarterlies_create_nonexisting = true, -- create non-existing quarterlies
 
       -- skip telescope prompt for goto_today and goto_thisweek
       journal_auto_open = false,
@@ -259,6 +263,13 @@ telekasten.setup({opts})
 
         Default: 'vim.fn.expand("~/zettelkasten")'
 
+                                            *telekasten.settings.quarterlies*
+    quarterlies: ~
+        Path to your quarterly notes, to separate them from 'normal' notes.
+        Accepts absolute path or sub-directory name.
+
+        Default: 'vim.fn.expand("~/zettelkasten")'
+
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
@@ -384,6 +395,14 @@ telekasten.setup({opts})
 
         Default: true
 
+                       *telekasten.settings.quarterlies_create_nonexisting*
+    quarterlies_create_nonexisting: ~
+        Flag that determines whether this quarter's note should always be
+        created if not present. Also, whether quarterly notes should be created
+        when opening them via the calendar.
+
+        Default: true
+
                          *telekasten.settings.journal_auto_open*
     journal_auto_open: ~
         Flag that determines whether the telescope picker should be used when
@@ -423,6 +442,14 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `'vim.fn.expand("~/zettelkasten/templates/monthly.md")'`
+
+                              *telekasten.settings.template_new_quarterly*
+    template_new_quarterly: ~
+        Markdown template for new quarterly notes. Set to `nil` if you don't
+        want a template.
+
+        Default: `nil`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/quarterly.md")'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax: ~
@@ -759,6 +786,43 @@ telekasten.goto_thismonth() ~
       - |telekasten.templates|
       - |telekasten.template_files|
 
+                                             *telekasten.find_quarterly_notes()*
+telekasten.find_quarterly_notes() ~
+  Find quarterly notes by quarter, via Telescope. File names are sorted by file
+  name, most recent file first.
+
+  If this quarter's quarterly note is not present, will be created if
+  `quarterlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.quarterlies_create_nonexisting|
+
+  New quarterly notes are created with the template specified in the
+  `template_new_quarterly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_quarterly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
+                                                  *telekasten.goto_thisquarter()*
+telekasten.goto_thisquarter() ~
+  Pops up a Telescope finder with this quarter's quarterly note pre-selected.
+
+  If this quarter's quarterly note is not present, will be created if
+  `quarterlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.quarterlies_create_nonexisting|
+
+  New quarterly notes are created with the template specified in the
+  `template_new_quarterly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_quarterly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
                                                   *telekasten.search_notes()*
 telekasten.search_notes() ~
   Search through all notes via Telescope live grep, initialized with the word
@@ -1002,6 +1066,10 @@ The specific templates and settings used are:
     - |telekasten.settings.template_new_monthly|
     - |telekasten.settings.monthlies_create_nonexisting|
 
+  For quarterly notes: ~
+    - |telekasten.settings.template_new_quarterly|
+    - |telekasten.settings.quarterlies_create_nonexisting|
+
   For all other notes: ~
     - |telekasten.settings.template_new_note|
     - |telekasten.settings.follow_creates_nonexisting|
@@ -1021,6 +1089,8 @@ note:
 | `find_weekly_notes()`              | this week's weekly note        |
 | `goto_thismonth()`                 | this month's monthly note      |
 | `find_monthly_notes()`             | this month's monthly note      |
+| `goto_thisquarter()`               | this quarter's quarterly note  |
+| `find_quarterly_notes()`           | this quarter's quarterly note  |
 | `follow_link()`                    | new note                       |
 | `new_note()`                       | new note                       |
 | `new_templated_note()`             | new note                       |
@@ -1029,49 +1099,55 @@ note:
                                                    *telekasten.template_files*
 Template Files ~
 
-The options `template_new_note`, `template_new_daily`, `template_new_weekly`
-and `template_new_monthly` are used to specify the paths to template text 
-files that are used for creating new notes.
+The options `template_new_note`, `template_new_daily`, `template_new_weekly`,
+`template_new_monthly`, and `template_new_quarterly` are used to specify the paths to
+template text files that are used for creating new notes.
 
 The following substitutions will be made during new note creation:
 
-+---------------------+-------------------------------+-----------------------------+
-| specifier           |                               |                             |
-| in template         |   expands to                  | example                     |
-+---------------------+-------------------------------+-----------------------------+
-| `{{title}}`           | the title of the note         | My new note                 |
-| `{{shorttitle}}`      | the short title of the note   | dir/dir/My Note -> My Note  |
-| `{{uuid}}`            | UUID of the note              | 202201271129                |
-| `{{date}}`            | date in iso format            | 2021-11-21                  |
-| `{{time24}}`          | time with 24 hour clock       | 19:12:23                    |
-| `{{time12}}`          | time with 12 hour clock       | 07:12:23 PM                 |
-| `{{prevday}}`         | previous day, iso             | 2021-11-20                  |
-| `{{nextday}}`         | next day, iso                 | 2021-11-22                  |
-| `{{hdate}}`           | date in long format           | Sunday, November 21st, 2021 |
-| `{{rfc3339}}`         | date in RFC3339 format        | 2021-11-21T14:30Z+01:00     |
-| `{{week}}`            | week of the year              | 46                          |
-| `{{prevweek}}`        | previous week                 | 45                          |
-| `{{nextweek}}`        | next week                     | 47                          |
-| `{{isoweek}}`         | week in iso format            | 2021-46                     |
-| `{{isoprevweek}}`     | last week, iso                | 2021-45                     |
-| `{{isonextweek}}`     | next week, iso                | 2021-47                     |
-| `{{month_ym}}`        | current month in iso format   | 2021-11                     |
-| `{{prev_month_ym}}`   | previous month in iso format  | 2021-10                     |
-| `{{next_month_ym}}`   | next month in iso format      | 2021-12                     |
-| `{{month_name}}`      | current month's name          | November                    |
-| `{{prev_month_name}}` | previous month's name         | October                     |
-| `{{next_month_name}}` | next month's name             | December                    |
-| `{{first_of_month}}`  | current month's first day     | 2021-10-01                  |
-| `{{last_of_month}}`   | current month's last day      | 2021-10-31                  |
-| `{{year}}`            | year                          | 2021                        |
-| `{{monday}}`          | Monday, iso                   | 2021-11-15                  |
-| `{{tuesday}}`         | Tuesday, iso                  | 2021-11-16                  |
-| `{{wednesday}}`       | Wednesday, iso                | 2021-11-17                  |
-| `{{thursday}}`        | Thursday, iso                 | 2021-11-18                  |
-| `{{friday}}`          | Friday, iso                   | 2021-11-19                  |
-| `{{saturday}}`        | Saturday, iso                 | 2021-11-20                  |
-| `{{sunday}}`          | Sunday, iso (see note)        | 2021-11-21                  |
-+---------------------+-------------------------------+-----------------------------+
++----------------------+---------------------------------+-----------------------------+
+| specifier            |                                 |                             |
+| in template          | expands to                      | example                     |
++----------------------+---------------------------------+-----------------------------+
+| `{{title}}`            | the title of the note           | My new note                 |
+| `{{shorttitle}}`       | the short title of the note     | dir/dir/My Note -> My Note  |
+| `{{uuid}}`             | UUID of the note                | 202201271129                |
+| `{{date}}`             | date in iso format              | 2021-11-21                  |
+| `{{time24}}`           | time with 24 hour clock         | 19:12:23                    |
+| `{{time12}}`           | time with 12 hour clock         | 07:12:23 PM                 |
+| `{{prevday}}`          | previous day, iso               | 2021-11-20                  |
+| `{{nextday}}`          | next day, iso                   | 2021-11-22                  |
+| `{{hdate}}`            | date in long format             | Sunday, November 21st, 2021 |
+| `{{rfc3339}}`          | date in RFC3339 format          | 2021-11-21T14:30Z+01:00     |
+| `{{week}}`             | week of the year                | 46                          |
+| `{{prevweek}}`         | previous week                   | 45                          |
+| `{{nextweek}}`         | next week                       | 47                          |
+| `{{isoweek}}`          | week in iso format              | 2021-46                     |
+| `{{isoprevweek}}`      | last week, iso                  | 2021-45                     |
+| `{{isonextweek}}`      | next week, iso                  | 2021-47                     |
+| `{{month_ym}}`         | current month in iso format     | 2021-11                     |
+| `{{prev_month_ym}}`    | previous month in iso format    | 2021-10                     |
+| `{{next_month_ym}}`    | next month in iso format        | 2021-12                     |
+| `{{month_name}}`       | current month's name            | November                    |
+| `{{prev_month_name}}`  | previous month's name           | October                     |
+| `{{next_month_name}}`  | next month's name               | December                    |
+| `{{first_of_month}}`   | current month's first day       | 2021-10-01                  |
+| `{{last_of_month}}`    | current month's last day        | 2021-10-31                  |
+| `{{quarter}}`          | current quarter                 | 4                           |
+| `{{quarter_yq}}`       | current quarter (year-quarter)  | 2021-Q4                     |
+| `{{prev_quarter}}`     | previous quarter (year-quarter) | 2021-Q3                     |
+| `{{next_quarter}}`     | next quarter (year-quarter)     | 2022-Q1                     |
+| `{{first_of_quarter}}` | current quarter's first day     | 2021-10-01                  |
+| `{{last_of_quarter}}`  | current quarter's last day      | 2021-12-31                  |
+| `{{year}}`             | year                            | 2021                        |
+| `{{monday}}`           | Monday, iso                     | 2021-11-15                  |
+| `{{tuesday}}`          | Tuesday, iso                    | 2021-11-16                  |
+| `{{wednesday}}`        | Wednesday, iso                  | 2021-11-17                  |
+| `{{thursday}}`         | Thursday, iso                   | 2021-11-18                  |
+| `{{friday}}`           | Friday, iso                     | 2021-11-19                  |
+| `{{saturday}}`         | Saturday, iso                   | 2021-11-20                  |
+| `{{sunday}}`           | Sunday, iso (see note)          | 2021-11-21                  |
++----------------------+---------------------------------+-----------------------------+
 Note: Sunday is adjusted to match the user's `calendar_monday` preference.
 
 As an example, this is my template for new notes:
