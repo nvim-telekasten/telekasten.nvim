@@ -1568,7 +1568,7 @@ local function FindQuarterlyNotes(opts)
                 prompt_title = "Find quarterly note",
                 cwd = M.Cfg.quarterlies,
                 find_command = M.Cfg.find_command,
-                search_pattern = "%d%d%d%d-Q[1-4]" .. vim.pesc(M.Cfg.extension) .. "$",
+                search_pattern = "%d%d%d%d%-Q[1-4]" .. vim.pesc(M.Cfg.extension) .. "$",
                 search_depth = 1,
                 attach_mappings = function(_, map)
                     actions.select_default:replace(
