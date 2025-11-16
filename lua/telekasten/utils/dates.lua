@@ -134,6 +134,7 @@ M.dateformats = {
     month_ym = "%Y-%m",
     month_name = "%B",
     quarter_yq = "%04d-Q%d",
+    year = "%Y",
     time24 = "%H:%M:%S",
     time12 = "%I:%M:%S %p",
 }
@@ -155,6 +156,8 @@ function M.calculate_dates(date, calendar_monday)
     end
 
     dates.year = dinfo.year
+    dates.prev_year = string.format("%04d", dinfo.year - 1)
+    dates.next_year = string.format("%04d", dinfo.year + 1)
     dates.month = dinfo.month
     dates.day = dinfo.day
     dates.hdate = daymap[wday]

@@ -6,9 +6,10 @@ Markdown files and use them as a 'Zettelkasten' or a wiki plus journal.
 
 Find notes by name, periodic notes by date, search within all notes,
 place and follow links to your notes or create new ones, with templates.
-Periodic Notes consist of daily, weekly, monthly, and quarterly notes. Current 
-periodic notes can be created if not present when searching for periodic notes.
-Following a link to a non-existing note can also create the missing note (optional).
+Periodic Notes consist of daily, weekly, monthly, quarterly, and yearly notes.
+Current periodic notes can be created if not present when searching for periodic 
+notes. Following a link to a non-existing note can also create the missing 
+note (optional).
 
 Telekasten can optionally plug into `calendar-vim`: Selecting a day in the
 calendar will open up a telescope search with preview that lets you open the
@@ -75,6 +76,7 @@ telekasten.setup({opts})
       weeklies = '/path/to/directory',      -- path to weekly notes
       monthlies = '/path/to/directory',     -- path to monthly notes
       quarterlies = '/path/to/directory',   -- path to quarterly notes
+      yearlies = '/path/to/directory',      -- path to yearly notes
       templates = '/path/to/directory',     -- path to templates
 
       -- Specific note templates
@@ -84,6 +86,7 @@ telekasten.setup({opts})
       template_new_weekly = '/path/to/file',    -- template for new weekly notes
       template_new_monthly = '/path/to/file',   -- template for new monthly notes
       template_new_quarterly = '/path/to/file', -- template for new quarterly notes
+      template_new_yearly = '/path/to/file',    -- template for new yearly notes
 
       -- Image subdir for pasting
         -- subdir name
@@ -110,6 +113,7 @@ telekasten.setup({opts})
       weeklies_create_nonexisting = true,    -- create non-existing weeklies
       monthlies_create_nonexisting = true,   -- create non-existing monthlies
       quarterlies_create_nonexisting = true, -- create non-existing quarterlies
+      yearlies_create_nonexisting = true,    -- create non-existing yearlies
 
       -- skip telescope prompt for goto_today and goto_thisweek
       journal_auto_open = false,
@@ -270,6 +274,13 @@ telekasten.setup({opts})
 
         Default: 'vim.fn.expand("~/zettelkasten")'
 
+                                            *telekasten.settings.yearlies*
+    yearlies: ~
+        Path to your yearly notes, to separate them from 'normal' notes.
+        Accepts absolute path or sub-directory name.
+
+        Default: 'vim.fn.expand("~/zettelkasten")'
+
                                            *telekasten.settings.templates*
     templates: ~
         Path to your note templates.
@@ -403,6 +414,14 @@ telekasten.setup({opts})
 
         Default: true
 
+                       *telekasten.settings.yearlies_create_nonexisting*
+    yearlies_create_nonexisting: ~
+        Flag that determines whether this year's note should always be
+        created if not present. Also, whether yearly notes should be created
+        when opening them via the calendar.
+
+        Default: true
+
                          *telekasten.settings.journal_auto_open*
     journal_auto_open: ~
         Flag that determines whether the telescope picker should be used when
@@ -450,6 +469,14 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `'vim.fn.expand("~/zettelkasten/templates/quarterly.md")'`
+
+                              *telekasten.settings.template_new_yearly*
+    template_new_yearly: ~
+        Markdown template for new yearly notes. Set to `nil` if you don't
+        want a template.
+
+        Default: `nil`
+        Example: `'vim.fn.expand("~/zettelkasten/templates/yearly.md")'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax: ~
@@ -823,6 +850,43 @@ telekasten.goto_thisquarter() ~
       - |telekasten.templates|
       - |telekasten.template_files|
 
+                                             *telekasten.find_yearly_notes()*
+telekasten.find_yearly_notes() ~
+  Find yearly notes by year, via Telescope. File names are sorted by file
+  name, most recent file first.
+
+  If this year's yearly note is not present, will be created if
+  `yearlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.yearlies_create_nonexisting|
+
+  New yearly notes are created with the template specified in the
+  `template_new_yearly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_yearly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
+                                                  *telekasten.goto_thisyear()*
+telekasten.goto_thisyear() ~
+  Pops up a Telescope finder with this year's yearly note pre-selected.
+
+  If this year's yearly note is not present, will be created if
+  `yearlies_create_nonexisting` is set to `true`.
+
+  See also: ~
+      - |telekasten.settings.yearlies_create_nonexisting|
+
+  New yearly notes are created with the template specified in the
+  `template_new_yearly` setting.
+
+  See also: ~
+      - |telekasten.settings.template_new_yearly|
+      - |telekasten.templates|
+      - |telekasten.template_files|
+
                                                   *telekasten.search_notes()*
 telekasten.search_notes() ~
   Search through all notes via Telescope live grep, initialized with the word
@@ -1070,6 +1134,10 @@ The specific templates and settings used are:
     - |telekasten.settings.template_new_quarterly|
     - |telekasten.settings.quarterlies_create_nonexisting|
 
+  For yearly notes: ~
+    - |telekasten.settings.template_new_yearly|
+    - |telekasten.settings.yearlies_create_nonexisting|
+
   For all other notes: ~
     - |telekasten.settings.template_new_note|
     - |telekasten.settings.follow_creates_nonexisting|
@@ -1091,6 +1159,8 @@ note:
 | `find_monthly_notes()`             | this month's monthly note      |
 | `goto_thisquarter()`               | this quarter's quarterly note  |
 | `find_quarterly_notes()`           | this quarter's quarterly note  |
+| `goto_thisyear()`                  | this year's yearly note        |
+| `find_yearly_notes()`              | this year's yearly note        |
 | `follow_link()`                    | new note                       |
 | `new_note()`                       | new note                       |
 | `new_templated_note()`             | new note                       |
@@ -1140,6 +1210,8 @@ The following substitutions will be made during new note creation:
 | `{{first_of_quarter}}` | current quarter's first day     | 2021-10-01                  |
 | `{{last_of_quarter}}`  | current quarter's last day      | 2021-12-31                  |
 | `{{year}}`             | year                            | 2021                        |
+| `{{prev_year}}`        | previous year                   | 2020                        |
+| `{{next_year}}`        | next year                       | 2022                        |
 | `{{monday}}`           | Monday, iso                     | 2021-11-15                  |
 | `{{tuesday}}`          | Tuesday, iso                    | 2021-11-16                  |
 | `{{wednesday}}`        | Wednesday, iso                  | 2021-11-17                  |

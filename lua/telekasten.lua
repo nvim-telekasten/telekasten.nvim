@@ -52,6 +52,7 @@ local function defaultConfig(home)
         weeklies = home,
         monthlies = home,
         quarterlies = home,
+        yearlies = home,
         templates = home,
         -- image (sub)dir for pasting
         -- dir name (absolute path or subdir name)
@@ -83,6 +84,7 @@ local function defaultConfig(home)
         weeklies_create_nonexisting = true,
         monthlies_create_nonexisting = true,
         quarterlies_create_nonexisting = true,
+        yearlies_create_nonexisting = true,
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
         -- templates for new notes
@@ -91,6 +93,7 @@ local function defaultConfig(home)
         -- template_new_weekly = home .. "/" .. "templates/weekly_tk.md",
         -- template_new_monthly = home .. "/" .. "templates/monthly_tk.md",
         -- template_new_quarterly = home .. "/" .. "templates/quarterly_tk.md"
+        -- template_new_yearly = home .. "/" .. "templates/yearly_tk.md"
 
         -- image link style
         -- wiki:     ![[image name]]
@@ -182,6 +185,7 @@ local function defaultConfig(home)
         weekly = M.Cfg.template_new_weekly,
         monthly = M.Cfg.template_new_monthly,
         quarterly = M.Cfg.template_new_quarterly,
+        yearly = M.Cfg.template_new_yearly,
     }
 end
 
@@ -264,9 +268,11 @@ local function global_dir_check(callback)
             check(M.Cfg.weeklies, "weeklies", function()
                 check(M.Cfg.monthlies, "monthlies", function()
                     check(M.Cfg.quarterlies, "quarterlies", function()
-                        check(M.Cfg.templates, "templates", function()
-                            -- Note the `callback` in this last function call
-                            check(M.Cfg.image_subdir, "images", callback)
+                        check(M.Cfg.yearlies, "yearlies", function()
+                            check(M.Cfg.templates, "templates", function()
+                                -- Note the `callback` in this last function call
+                                check(M.Cfg.image_subdir, "images", callback)
+                            end)
                         end)
                     end)
                 end)
@@ -621,6 +627,7 @@ local Pinfo = {
     is_weekly = false,
     is_monthly = false,
     is_quarterly = false,
+    is_yearly = false,
     template = "",
     calendar_info = nil,
 }
@@ -654,6 +661,7 @@ function Pinfo:resolve_path(p, opts)
     self.is_weekly = false
     self.is_monthly = false
     self.is_quarterly = false
+    self.is_yearly = false
 
     -- strip all dirs to get filename
     local pp = Path:new(p)
@@ -692,6 +700,13 @@ function Pinfo:resolve_path(p, opts)
         self.is_periodic = true
         self.is_quarterly = true
     end
+    if vim.startswith(p, M.Cfg.yearlies) then
+        -- TODO: parse "title" into calendarinfo like in resolve_link
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        self.root_dir = M.Cfg.yearlies
+        self.is_periodic = true
+        self.is_yearly = true
+    end
 
     -- now work out subdir relative to root
     self.sub_dir = p:gsub(tkutils.escape(self.root_dir .. "/"), "")
@@ -711,11 +726,13 @@ local function check_if_periodic(title)
     local weekly_match = "^(%d%d%d%d)-W(%d%d)$"
     local monthly_match = "^(%d%d%d%d)-(%d%d)$"
     local quarterly_match = "^(%d%d%d%d)-Q([1-4])$"
+    local yearly_match = "^(%d%d%d%d)$"
 
     local is_daily = false
     local is_weekly = false
     local is_monthly = false
     local is_quarterly = false
+    local is_yearly = false
     local dateinfo =
         dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday) -- sane default
 
@@ -781,11 +798,24 @@ local function check_if_periodic(title)
         end
     end
 
-    return is_daily, is_weekly, is_monthly, is_quarterly, dateinfo
+    start, _, year = title:find(yearly_match)
+    if start ~= nil then
+        is_yearly = true
+        dateinfo.year = tonumber(year)
+        dateinfo.month = 1
+        dateinfo.day = 1
+        dateinfo = dateutils.calculate_dates(
+            dateinfo,
+            M.Cfg.calendar_opts.calendar_monday
+        )
+    end
+
+    return is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dateinfo
 end
 
 function Pinfo:resolve_link(title, opts)
     opts = opts or {}
+    opts.yearlies = opts.yearlies or M.Cfg.yearlies
     opts.quarterlies = opts.quarterlies or M.Cfg.quarterlies
     opts.monthlies = opts.monthlies or M.Cfg.monthlies
     opts.weeklies = opts.weeklies or M.Cfg.weeklies
@@ -805,9 +835,23 @@ function Pinfo:resolve_link(title, opts)
     self.is_weekly = false
     self.is_monthly = false
     self.is_quarterly = false
+    self.is_yearly = false
     self.template = nil
     self.calendar_info = nil
 
+    if
+        opts.yearlies
+        and fileutils.file_exists(opts.yearlies .. "/" .. self.filename)
+    then
+        -- TODO: parse "title" into calendarinfo like below
+        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
+        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
+        self.filepath = opts.yearlies .. "/" .. self.filename
+        self.fexists = true
+        self.root_dir = opts.yearlies
+        self.is_periodic = true
+        self.is_yearly = true
+    end
     if
         opts.quarterlies
         and fileutils.file_exists(opts.quarterlies .. "/" .. self.filename)
@@ -885,11 +929,11 @@ function Pinfo:resolve_link(title, opts)
     if self.fexists == false then
         -- TODO: if we're not smart, we also shouldn't need to try to set the calendar info..?
         --       I bet someone will want the info in there, so let's put it in if possible
-        _, _, _, _, self.calendar_info = check_if_periodic(self.title) -- will set today as default, so leave in!
+        _, _, _, _, _, self.calendar_info = check_if_periodic(self.title) -- will set today as default, so leave in!
 
         if opts.new_note_location == "smart" then
             self.filepath = opts.home .. "/" .. self.filename -- default
-            self.is_daily, self.is_weekly, self.is_monthly, self.is_quarterly, self.calendar_info =
+            self.is_daily, self.is_weekly, self.is_monthly, self.is_quarterly, self.is_yearly, self.calendar_info =
                 check_if_periodic(self.title)
             if self.is_daily == true then
                 self.root_dir = opts.dailies
@@ -909,6 +953,11 @@ function Pinfo:resolve_link(title, opts)
             if self.is_quarterly == true then
                 self.root_dir = opts.quarterlies
                 self.filepath = opts.quarterlies .. "/" .. self.filename
+                self.is_periodic = true
+            end
+            if self.is_yearly == true then
+                self.root_dir = opts.yearlies
+                self.filepath = opts.yearlies .. "/" .. self.filename
                 self.is_periodic = true
             end
         elseif opts.new_note_location == "same_as_current" then
@@ -962,6 +1011,8 @@ function Pinfo:resolve_link(title, opts)
             self.template = M.note_type_templates.monthly
         elseif self.is_quarterly then
             self.template = M.note_type_templates.quarterly
+        elseif self.is_yearly then
+            self.template = M.note_type_templates.yearly
         else
             self.template = M.note_type_templates.normal
         end
@@ -1610,6 +1661,77 @@ local function FindQuarterlyNotes(opts)
     end)
 end
 
+--
+-- FindYearlyNotes:
+-- ---------------
+--
+-- Select from yearly notes
+--
+--
+local function FindYearlyNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+
+    global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local title = os.date(dateutils.dateformats.year)
+        local fname = M.Cfg.yearlies .. "/" .. title .. M.Cfg.extension
+        local fexists = fileutils.file_exists(fname)
+        local function picker()
+            find_files_sorted({
+                prompt_title = "Find yearly note",
+                cwd = M.Cfg.yearlies,
+                find_command = M.Cfg.find_command,
+                search_pattern = "%d%d%d%d"
+                    .. vim.pesc(M.Cfg.extension)
+                    .. "$",
+                search_depth = 1,
+                attach_mappings = function(_, map)
+                    actions.select_default:replace(
+                        picker_actions.select_default
+                    )
+                    map("i", "<c-y>", picker_actions.yank_link(opts))
+                    map("i", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-y>", picker_actions.yank_link(opts))
+                    map("n", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-c>", picker_actions.close(opts))
+                    map("n", "<esc>", picker_actions.close(opts))
+                    return true
+                end,
+                sort = M.Cfg.sort,
+            })
+        end
+        if
+            (fexists ~= true)
+            and (
+                (opts.yearlies_create_nonexisting == true)
+                or M.Cfg.yearlies_create_nonexisting == true
+            )
+        then
+            create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.yearly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
 -- InsertLink:
 -- -----------
 --
@@ -1898,6 +2020,7 @@ local function rename_update_links(oldfile, newname)
         recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
         recursive_substitution(M.Cfg.monthlies, oldfile.title, newname)
         recursive_substitution(M.Cfg.quarterlies, oldfile.title, newname)
+        recursive_substitution(M.Cfg.yearlies, oldfile.title, newname)
 
         print("Link update completed!")
     end
@@ -3131,6 +3254,85 @@ local function GotoThisQuarter(opts)
 end
 
 --
+-- GotoThisYear:
+-- -------------
+--
+-- find this year's yearly note and create it if necessary.
+--
+local function GotoThisYear(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or M.Cfg.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or M.Cfg.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open or M.Cfg.journal_auto_open
+
+    global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local dinfo =
+            dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
+        local title = dinfo.year
+        local fname = M.Cfg.yearlies .. "/" .. title .. M.Cfg.extension
+        local fexists = fileutils.file_exists(fname)
+        local function picker()
+            if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
+                vim.cmd("e " .. fname)
+            else
+                find_files_sorted({
+                    prompt_title = "Goto this year:",
+                    cwd = M.Cfg.yearlies,
+                    default_text = title,
+                    find_command = M.Cfg.find_command,
+                    attach_mappings = function(_, map)
+                        actions.select_default:replace(
+                            picker_actions.select_default
+                        )
+                        map("i", "<c-y>", picker_actions.yank_link(opts))
+                        map("i", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-y>", picker_actions.yank_link(opts))
+                        map("n", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-c>", picker_actions.close(opts))
+                        map("n", "<esc>", picker_actions.close(opts))
+                        return true
+                    end,
+                })
+            end
+        end
+
+        if
+            (fexists ~= true)
+            and (
+                (opts.yearlies_create_nonexisting == true)
+                or M.Cfg.yearlies_create_nonexisting == true
+            )
+        then
+            create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.yearly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+
+        picker()
+    end)
+end
+
+--
 -- Calendar Stuff
 -- --------------
 
@@ -3429,6 +3631,7 @@ local function Setup(cfg)
     M.Cfg.template_new_weekly = M.Cfg.template_new_weekly or "none"
     M.Cfg.template_new_monthly = M.Cfg.template_new_monthly or "none"
     M.Cfg.template_new_quarterly = M.Cfg.template_new_quarterly or "none"
+    M.Cfg.template_new_yearly = M.Cfg.template_new_yearly or "none"
 
     -- refresh templates
     M.note_type_templates = {
@@ -3437,6 +3640,7 @@ local function Setup(cfg)
         weekly = M.Cfg.template_new_weekly,
         monthly = M.Cfg.template_new_monthly,
         quarterly = M.Cfg.template_new_quarterly,
+        yearly = M.Cfg.template_new_yearly,
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
@@ -3470,6 +3674,7 @@ local function Setup(cfg)
     M.Cfg.weeklies = make_config_path_absolute(M.Cfg.weeklies)
     M.Cfg.monthlies = make_config_path_absolute(M.Cfg.monthlies)
     M.Cfg.quarterlies = make_config_path_absolute(M.Cfg.quarterlies)
+    M.Cfg.yearlies = make_config_path_absolute(M.Cfg.yearlies)
     M.Cfg.templates = make_config_path_absolute(M.Cfg.templates)
 
     -- Check if ripgrep is compiled with --pcre
@@ -3526,6 +3731,8 @@ M.goto_thismonth = GotoThisMonth
 M.find_monthly_notes = FindMonthlyNotes
 M.goto_thisquarter = GotoThisQuarter
 M.find_quarterly_notes = FindQuarterlyNotes
+M.goto_thisyear = GotoThisYear
+M.find_yearly_notes = FindYearlyNotes
 M.yank_notelink = YankLink
 M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
@@ -3568,6 +3775,12 @@ local TelekastenCmd = {
                 "find quarterly notes",
                 "find_quarterly_notes",
                 M.find_quarterly_notes,
+            },
+            { "goto thisyear", "goto_thisyear", M.goto_thisyear },
+            {
+                "find yearly notes",
+                "find_yearly_notes",
+                M.find_yearly_notes,
             },
             { "yank link to note", "yank_notelink", M.yank_notelink },
             { "rename note", "rename_note", M.rename_note },
