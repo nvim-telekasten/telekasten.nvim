@@ -1610,7 +1610,8 @@ local function FindQuarterlyNotes(opts)
         end
 
         -- Use direct value instead of dateformat.quarter_yq, because os.date doesn't properly expand to a date
-        local dinfo = dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
+        local dinfo =
+            dateutils.calculate_dates(nil, M.Cfg.calendar_opts.calendar_monday)
         local title = dinfo.quarter_yq
         local fname = M.Cfg.quarterlies .. "/" .. title .. M.Cfg.extension
         local fexists = fileutils.file_exists(fname)
@@ -1619,7 +1620,9 @@ local function FindQuarterlyNotes(opts)
                 prompt_title = "Find quarterly note",
                 cwd = M.Cfg.quarterlies,
                 find_command = M.Cfg.find_command,
-                search_pattern = "%d%d%d%d%-Q[1-4]" .. vim.pesc(M.Cfg.extension) .. "$",
+                search_pattern = "%d%d%d%d%-Q[1-4]" .. vim.pesc(
+                    M.Cfg.extension
+                ) .. "$",
                 search_depth = 1,
                 attach_mappings = function(_, map)
                     actions.select_default:replace(
@@ -1688,9 +1691,7 @@ local function FindYearlyNotes(opts)
                 prompt_title = "Find yearly note",
                 cwd = M.Cfg.yearlies,
                 find_command = M.Cfg.find_command,
-                search_pattern = "%d%d%d%d"
-                    .. vim.pesc(M.Cfg.extension)
-                    .. "$",
+                search_pattern = "%d%d%d%d" .. vim.pesc(M.Cfg.extension) .. "$",
                 search_depth = 1,
                 attach_mappings = function(_, map)
                     actions.select_default:replace(

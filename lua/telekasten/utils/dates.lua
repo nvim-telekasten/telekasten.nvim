@@ -236,21 +236,21 @@ function M.calculate_dates(date, calendar_monday)
     end
 
     local cur_first_quarter = os.time({
-        year  = dinfo.year,
+        year = dinfo.year,
         month = q_start_month,
-        day   = 1,
-        hour  = dinfo.hour,
-        min   = dinfo.min,
-        sec   = dinfo.sec,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
     })
 
     local next_first_quarter = os.time({
-        year  = next_qyear,
+        year = next_qyear,
         month = (next_qnum - 1) * 3 + 1,
-        day   = 1,
-        hour  = dinfo.hour,
-        min   = dinfo.min,
-        sec   = dinfo.sec,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
     })
 
     dates.quarter = qnum
@@ -258,7 +258,7 @@ function M.calculate_dates(date, calendar_monday)
     dates.prev_quarter = string.format(df.quarter_yq, prev_qyear, prev_qnum)
     dates.next_quarter = string.format(df.quarter_yq, next_qyear, next_qnum)
     dates.first_of_quarter = os.date(df.date, cur_first_quarter)
-    dates.last_of_quarter  = os.date(df.date, next_first_quarter - oneday)
+    dates.last_of_quarter = os.date(df.date, next_first_quarter - oneday)
 
     dates.week = os.date(df.week, time)
     dates.prevweek = os.date(df.week, time - oneweek)
@@ -351,9 +351,9 @@ M.run_tests = function()
     print(check_isoweek(2021, 1, { year = 2021, month = 1, day = 4 })) -- 4.1.2020
     print(check_isoweek(2021, 52, { year = 2021, month = 12, day = 27 })) -- 27.12.2021
     print(check_isoweek(2022, 1, { year = 2022, month = 1, day = 3 })) -- 3.1.2022
-    print(check_quarter(2020, 1, { year = 2020, month = 1,  day = 1 })) -- 1.1.2020
-    print(check_quarter(2020, 2, { year = 2020, month = 4,  day = 1 })) -- 1.4.2020
-    print(check_quarter(2020, 3, { year = 2020, month = 7,  day = 1 })) -- 1.7.2020
+    print(check_quarter(2020, 1, { year = 2020, month = 1, day = 1 })) -- 1.1.2020
+    print(check_quarter(2020, 2, { year = 2020, month = 4, day = 1 })) -- 1.4.2020
+    print(check_quarter(2020, 3, { year = 2020, month = 7, day = 1 })) -- 1.7.2020
     print(check_quarter(2020, 4, { year = 2020, month = 10, day = 1 })) -- 1.10.2020
     print(check_quarter(2021, 1, { year = 2021, month = 1, day = 1 })) -- 1.1.2021
 end
