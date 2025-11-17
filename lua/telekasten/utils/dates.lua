@@ -78,6 +78,17 @@ M.isoweek_to_date = function(year, isoweek)
     }
 end
 
+M.quarter_to_date = function(year, quarter)
+    local start_month = (quarter - 1) * 3 + 1
+    local d = luadate(year, start_month, 1)
+
+    return {
+        year = d:getyear(),
+        month = d:getmonth(),
+        day = d:getday(),
+    }
+end
+
 local function daysuffix(day)
     day = tostring(day)
     if (day == "1") or (day == "21") or (day == "31") then
@@ -120,6 +131,10 @@ M.dateformats = {
     date = "%Y-%m-%d",
     week = "%V",
     isoweek = "%Y-W%V",
+    month_ym = "%Y-%m",
+    month_name = "%B",
+    quarter_yq = "%04d-Q%d",
+    year = "%Y",
     time24 = "%H:%M:%S",
     time12 = "%I:%M:%S %p",
 }
@@ -141,6 +156,8 @@ function M.calculate_dates(date, calendar_monday)
     end
 
     dates.year = dinfo.year
+    dates.prev_year = string.format("%04d", dinfo.year - 1)
+    dates.next_year = string.format("%04d", dinfo.year + 1)
     dates.month = dinfo.month
     dates.day = dinfo.day
     dates.hdate = daymap[wday]
@@ -166,6 +183,83 @@ function M.calculate_dates(date, calendar_monday)
     dates.date = os.date(df.date, time)
     dates.prevday = os.date(df.date, time - oneday)
     dates.nextday = os.date(df.date, time + oneday)
+
+    local cur_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+    local prev_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month - 1,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+    local next_first_month = os.time({
+        year = dinfo.year,
+        month = dinfo.month + 1,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+
+    dates.month_ym = os.date(df.month_ym, cur_first_month)
+    dates.prev_month_ym = os.date(df.month_ym, prev_first_month)
+    dates.next_month_ym = os.date(df.month_ym, next_first_month)
+    dates.month_name = os.date(df.month_name, cur_first_month)
+    dates.prev_month_name = os.date(df.month_name, prev_first_month)
+    dates.next_month_name = os.date(df.month_name, next_first_month)
+    dates.first_of_month = os.date("%Y-%m-01", cur_first_month)
+    dates.last_of_month = os.date("%Y-%m-%d", next_first_month - oneday)
+
+    local qnum = math.floor((dinfo.month - 1) / 3) + 1
+    local q_start_month = (qnum - 1) * 3 + 1
+
+    local prev_qnum = qnum - 1
+    local prev_qyear = dinfo.year
+    if prev_qnum == 0 then
+        prev_qnum = 4
+        prev_qyear = dinfo.year - 1
+    end
+
+    local next_qnum = qnum + 1
+    local next_qyear = dinfo.year
+    if next_qnum == 5 then
+        next_qnum = 1
+        next_qyear = dinfo.year + 1
+    end
+
+    local cur_first_quarter = os.time({
+        year = dinfo.year,
+        month = q_start_month,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+
+    local next_first_quarter = os.time({
+        year = next_qyear,
+        month = (next_qnum - 1) * 3 + 1,
+        day = 1,
+        hour = dinfo.hour,
+        min = dinfo.min,
+        sec = dinfo.sec,
+    })
+
+    dates.quarter = qnum
+    dates.quarter_yq = string.format(df.quarter_yq, dinfo.year, qnum)
+    dates.prev_quarter = string.format(df.quarter_yq, prev_qyear, prev_qnum)
+    dates.next_quarter = string.format(df.quarter_yq, next_qyear, next_qnum)
+    dates.first_of_quarter = os.date(df.date, cur_first_quarter)
+    dates.last_of_quarter = os.date(df.date, next_first_quarter - oneday)
+
     dates.week = os.date(df.week, time)
     dates.prevweek = os.date(df.week, time - oneweek)
     dates.nextweek = os.date(df.week, time + oneweek)
@@ -227,6 +321,29 @@ local function check_isoweek(year, isoweek, ydate)
     )
 end
 
+local function check_quarter(year, quarter, ydate)
+    print("***********   Q" .. quarter .. " " .. year .. ": ")
+    local ret = M.quarter_to_date(year, quarter)
+    local result = ret.year == ydate.year
+        and ret.month == ydate.month
+        and ret.day == ydate.day
+    print(
+        ret.year
+            .. "-"
+            .. ret.month
+            .. "-"
+            .. ret.day
+            .. " == "
+            .. ydate.year
+            .. "-"
+            .. ydate.month
+            .. "-"
+            .. ydate.day
+            .. " : "
+            .. tostring(result)
+    )
+end
+
 M.run_tests = function()
     print(check_isoweek(2020, 1, { year = 2019, month = 12, day = 30 })) -- 30.12.2019
     print(check_isoweek(2020, 52, { year = 2020, month = 12, day = 21 })) -- 21.12.2020
@@ -234,6 +351,11 @@ M.run_tests = function()
     print(check_isoweek(2021, 1, { year = 2021, month = 1, day = 4 })) -- 4.1.2020
     print(check_isoweek(2021, 52, { year = 2021, month = 12, day = 27 })) -- 27.12.2021
     print(check_isoweek(2022, 1, { year = 2022, month = 1, day = 3 })) -- 3.1.2022
+    print(check_quarter(2020, 1, { year = 2020, month = 1, day = 1 })) -- 1.1.2020
+    print(check_quarter(2020, 2, { year = 2020, month = 4, day = 1 })) -- 1.4.2020
+    print(check_quarter(2020, 3, { year = 2020, month = 7, day = 1 })) -- 1.7.2020
+    print(check_quarter(2020, 4, { year = 2020, month = 10, day = 1 })) -- 1.10.2020
+    print(check_quarter(2021, 1, { year = 2021, month = 1, day = 1 })) -- 1.1.2021
 end
 
 -- M.run_tests()
