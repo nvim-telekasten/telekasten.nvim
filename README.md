@@ -356,6 +356,10 @@ The following links are supported:
 - [[some/subdirectory/A cool title#Heading 27]]
 - [[some/subdirectory/A cool title#^xxxxxxxx]]
 
+## External file links (outside current vault)
+- [[~/other-vault/note]]  ........... links to a note using absolute path with tilde
+- [[/absolute/path/to/note]]  ....... links to a note using absolute path
+- [[C:/path/to/note]]  .............. links to a note using Windows absolute path
 
 # Media links
 Use these for images, PDF files, videos. If telescope-media-files is installed,
@@ -365,6 +369,32 @@ these can be previewed.
 
 See the documentation for more details regarding the different types of links
 (`:h telekasten.link_notation`).
+
+#### External File Linking
+
+Telekasten supports linking to files outside the current vault using absolute paths. This feature is enabled by default and allows you to reference notes across different vaults or directories.
+
+**Features:**
+- Follow links to external files using absolute path syntax
+- Automatically detect and format external file links when inserting
+- Read-only mode: external links only open existing files (won't create new files)
+- Supports tilde expansion (`~/`) for home directory paths
+
+**Configuration:**
+```lua
+require('telekasten').setup({
+  home = vim.fn.expand("~/zettelkasten"),
+  external_link_follow = true,  -- Enable external file linking (default: true)
+})
+```
+
+**Example:**
+```markdown
+See also: [[~/other-vault/reference-note]]
+Cross-reference: [[/absolute/path/to/note]]
+```
+
+When you use picker actions (`<C-i>` to insert link), files outside the current vault will automatically be formatted with absolute paths using `~/` when possible.
 
 ### Tag notation
 

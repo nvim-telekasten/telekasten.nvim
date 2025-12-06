@@ -419,6 +419,19 @@ telekasten.setup({opts})
         Flag that determines whether this year's note should always be
         created if not present. Also, whether yearly notes should be created
         when opening them via the calendar.
+                              *telekasten.settings.external_link_follow*
+    external_link_follow: ~
+        Flag that determines whether links to files outside the current vault
+        (using absolute paths) should be followed. When enabled, links like
+        `[[~/other-vault/note]]` or `[[/absolute/path/note]]` will open the
+        external file if it exists.
+
+        Features:
+        - Supports tilde expansion (`~/`) for home directory paths
+        - Supports Unix absolute paths (`/path/to/file`)
+        - Supports Windows paths (`C:/path/to/file`)
+        - Read-only mode: will not create non-existing external files
+        - Auto-formats external file links when using picker insert action
 
         Default: true
 
@@ -1046,6 +1059,30 @@ Optionally, notes can live in specific sub-directories:
 `[[some/subdirectory/A cool title#^xxxxxxxx]]` : links to the paragraph
                                     with id ^xxxxxxxx within the note named
                                     'A cool title' in some/subdirectory
+
+External file links (outside current vault)~
+
+Telekasten supports linking to files outside the current vault using absolute
+paths. This allows you to reference notes across different vaults or directories.
+
+`[[~/other-vault/note]]`  ........... links to a note using absolute path
+                                    with tilde expansion
+
+`[[/absolute/path/to/note]]`  ....... links to a note using absolute Unix path
+
+`[[C:/path/to/note]]`  .............. links to a note using Windows absolute path
+
+Features:
+- Follow links to external files using absolute path syntax
+- Automatically detect and format external file links when inserting
+- Read-only mode: external links only open existing files (won't create new files)
+- Supports tilde expansion (`~/`) for home directory paths
+
+When using picker actions (`<C-i>` to insert link), files outside the current
+vault will automatically be formatted with absolute paths using `~/` when possible.
+
+This feature is controlled by the `external_link_follow` configuration option
+(default: true). See |telekasten.config| for more details.
 
 Note that notes linked to with headings or paragraph IDs **will not be created
 automatically**. Non-existing notes will be ignored in this case, a global
