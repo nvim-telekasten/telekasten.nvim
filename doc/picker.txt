@@ -1,0 +1,71 @@
+* telekasten-picker.txt *
+
+Picker Abstraction Layer
+
+Introduction:
+
+Telekasten.nvim now includes a flexible picker abstraction layer, allowing you to choose your preferred fuzzy finder backend (Telescope.nvim, fzf-lua, or Snacks.nvim). This document explains how to configure and use this new feature.
+
+Configuration Guide:
+
+The picker backend can be configured using the `vim.g.telekasten_picker_backend` global variable. Set this variable in your Neovim configuration (e.g., `init.lua` or `init.vim`) to your desired backend. If the specified backend is not available, Telekasten will fall back to the next available backend in the order of `telescope`, `fzf-lua`, then `snacks`.
+
+Example (`init.lua`):
+
+lua << EOF
+vim.g.telekasten_picker_backend = "telescope"  " Use 'telescope', 'fzf-lua', or 'snacks'
+EOF
+
+API Reference:
+
+The main picker functionality is exposed through the `require("telekasten.picker")` module.
+
+* picker.setup({opts})
+  Sets up the picker configuration. Currently, the most important option is `backend`.
+
+  `opts`: A table of options.
+    `backend` (string): The preferred picker backend ("telescope", "fzf-lua", or "snacks").
+
+* picker.pick_item({opts}, on_select_callback)
+  Opens a picker to select an item and returns the selected item's path via a callback.
+
+  `opts`: A table of options.
+    `prompt` (string): The prompt displayed by the picker.
+    `items` (list of strings/tables): The items to display in the picker. If tables, they should have `value`, `display`, and `ordinal` fields.
+    `cwd` (string, optional): The current working directory for the picker.
+
+  `on_select_callback(selection)`: A function called with the selected item's value (typically a path).
+
+* picker.find_and_open({opts})
+  Opens a picker to select an item and immediately opens the selected file in a new buffer.
+
+  `opts`: A table of options (same as `pick_item`).
+
+Usage Examples:
+
+1. Selecting a note path for further processing:
+
+lua << EOF
+local picker = require("telekasten.picker")
+
+picker.pick_item({
+  prompt = "Choose a note to link",
+  items = {"note_a.md", "note_b.md", "note_c.md"},
+}, function(selected_note_path)
+  if selected_note_path then
+    print("Selected: " .. selected_note_path)
+    -- Further processing, e.g., insert link into current buffer
+  end
+end)
+EOF
+
+2. Finding and opening a note:
+
+lua << EOF
+local picker = require("telekasten.picker")
+
+picker.find_and_open({
+  prompt = "Open recent note",
+  items = {"2023-10-27-meeting.md", "todo-list.md"},
+})
+EOF
