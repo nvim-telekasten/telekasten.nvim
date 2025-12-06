@@ -79,6 +79,8 @@ local function defaultConfig(home)
         follow_creates_nonexisting = true,
         dailies_create_nonexisting = true,
         weeklies_create_nonexisting = true,
+        -- allow following links to files outside the current vault (absolute paths)
+        external_link_follow = true,
         -- skip telescope prompt for goto_today and goto_thisweek
         journal_auto_open = false,
         -- templates for new notes
@@ -726,6 +728,35 @@ function Pinfo:resolve_link(title, opts)
     opts.template_handling = opts.template_handling or M.Cfg.template_handling
     opts.new_note_location = opts.new_note_location or M.Cfg.new_note_location
 
+    -- Handle absolute path links (external files)
+    if opts.is_absolute_path and opts.absolute_path_title then
+        -- Expand ~ to home directory
+        local expanded = vim.fn.expand(opts.absolute_path_title)
+
+        -- Add extension if not present
+        if
+            not expanded:match("%.md$")
+            and not expanded:match(opts.extension .. "$")
+        then
+            expanded = expanded .. opts.extension
+        end
+
+        -- Set the path information
+        self.filepath = expanded
+        self.fexists = fileutils.file_exists(expanded)
+        self.filename = vim.fn.fnamemodify(expanded, ":t")
+        self.title = self.filename:gsub(opts.extension, "")
+        self.root_dir = vim.fn.fnamemodify(expanded, ":h")
+        self.is_daily_or_weekly = false
+        self.is_daily = false
+        self.is_weekly = false
+        self.template = nil
+        self.calendar_info = nil
+        self.sub_dir = ""
+
+        return self
+    end
+
     self.fexists = false
     self.title = title
     self.filename = title .. opts.extension
@@ -1160,11 +1191,31 @@ function picker_actions.paste_link(opts)
     return function(prompt_bufnr)
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        local pinfo = Pinfo:new({
-            filepath = selection.filename or selection.value,
-            opts,
-        })
-        local title = "[[" .. pinfo.title .. "]]"
+        local filepath = selection.filename or selection.value
+
+        -- Check if file is external to current vault (auto-detect)
+        local is_external = M.Cfg.external_link_follow
+            and not vim.startswith(filepath, M.Cfg.home)
+
+        local title
+        if is_external then
+            -- Use absolute path format for external files
+            -- Remove extension and replace home directory with ~
+            local link_path = filepath:gsub(M.Cfg.extension .. "$", "")
+            local home = vim.fn.expand("~")
+            if vim.startswith(link_path, home) then
+                link_path = "~" .. link_path:sub(#home + 1)
+            end
+            title = "[[" .. link_path .. "]]"
+        else
+            -- Standard link within current vault
+            local pinfo = Pinfo:new({
+                filepath = filepath,
+                opts,
+            })
+            title = "[[" .. pinfo.title .. "]]"
+        end
+
         vim.api.nvim_put({ title }, "", true, true)
         if opts.insert_after_inserting or opts.i then
             vim.api.nvim_feedkeys("A", "m", false)
@@ -1180,11 +1231,31 @@ function picker_actions.yank_link(opts)
             actions.close(prompt_bufnr)
         end
         local selection = action_state.get_selected_entry()
-        local pinfo = Pinfo:new({
-            filepath = selection.filename or selection.value,
-            opts,
-        })
-        local title = "[[" .. pinfo.title .. "]]"
+        local filepath = selection.filename or selection.value
+
+        -- Check if file is external to current vault (auto-detect)
+        local is_external = M.Cfg.external_link_follow
+            and not vim.startswith(filepath, M.Cfg.home)
+
+        local title
+        if is_external then
+            -- Use absolute path format for external files
+            -- Remove extension and replace home directory with ~
+            local link_path = filepath:gsub(M.Cfg.extension .. "$", "")
+            local home = vim.fn.expand("~")
+            if vim.startswith(link_path, home) then
+                link_path = "~" .. link_path:sub(#home + 1)
+            end
+            title = "[[" .. link_path .. "]]"
+        else
+            -- Standard link within current vault
+            local pinfo = Pinfo:new({
+                filepath = filepath,
+                opts,
+            })
+            title = "[[" .. pinfo.title .. "]]"
+        end
+
         vim.fn.setreg('"', title)
         print("yanked " .. title)
     end
@@ -2238,6 +2309,36 @@ local function FollowLink(opts)
                 title = title:gsub("^(%[)(.+)(%])$", "%2")
                 title = title:gsub("%s*\n", " ")
                 title = linkutils.remove_alias(title)
+
+                -- Check if this is an absolute path link (external file)
+                if
+                    M.Cfg.external_link_follow
+                    and (
+                        title:match("^~/")
+                        or title:match("^/")
+                        or title:match("^%a:")
+                    )
+                then
+                    -- This is an absolute path link to an external file
+                    vim.fn.setreg('"0', saved_reg)
+
+                    -- Handle absolute path immediately
+                    local external_opts = vim.tbl_extend("force", opts, {
+                        is_absolute_path = true,
+                        absolute_path_title = title,
+                        title = title,
+                    })
+                    local pinfo = Pinfo:new(external_opts)
+
+                    if pinfo.fexists then
+                        -- File exists, open it
+                        vim.cmd("e " .. vim.fn.fnameescape(pinfo.filepath))
+                    else
+                        -- File doesn't exist (read-only mode for external files)
+                        print("External file not found: " .. pinfo.filepath)
+                    end
+                    return
+                end
             else
                 -- we are in an external [link]
                 vim.cmd("normal yi)")
