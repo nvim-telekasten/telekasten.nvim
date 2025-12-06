@@ -278,7 +278,7 @@ end
 
 local function recursive_substitution(dir, old, new)
     print("Searching for links to '" .. old .. "' in directory: " .. dir)
-    
+
     global_dir_check(function(dir_check)
         if not dir_check then
             print("Directory check failed for: " .. dir)
@@ -301,7 +301,7 @@ local function recursive_substitution(dir, old, new)
                 if success and content then
                     local modified = false
                     local new_content = {}
-                    
+
                     for _, line in ipairs(content) do
                         local new_line = line
                         -- Handle different link formats:
@@ -310,11 +310,11 @@ local function recursive_substitution(dir, old, new)
                         -- [[oldtitle#^paragraph]] -> [[newtitle#^paragraph]]
                         -- [[oldtitle|alias]] -> [[newtitle|alias]]
                         -- [[oldtitle#heading|alias]] -> [[newtitle#heading|alias]]
-                        
+
                         -- Pattern to match [[oldtitle]] and variations
                         local pattern = "%[%[" .. vim.pesc(old) .. "([^%]]*)%]%]"
                         local replacement = "[[" .. new .. "%1]]"
-                        
+
                         local new_line_updated = new_line:gsub(pattern, replacement)
                         if new_line_updated ~= new_line then
                             modified = true
@@ -322,7 +322,7 @@ local function recursive_substitution(dir, old, new)
                         end
                         table.insert(new_content, new_line_updated)
                     end
-                    
+
                     -- Write back the modified content if changes were made
                     if modified then
                         local write_success = pcall(vim.fn.writefile, new_content, file)
@@ -1612,7 +1612,7 @@ end
 local function rename_update_links(oldfile, newname)
     if M.Cfg.rename_update_links == true then
         print("Updating links from '" .. oldfile.title .. "' to '" .. newname .. "'")
-        
+
         -- Save open buffers before looking for links to replace
         if #(vim.fn.getbufinfo({ bufmodified = 1 })) > 1 then
             vim.ui.select({ "Yes (default)", "No" }, {
@@ -1629,7 +1629,7 @@ local function rename_update_links(oldfile, newname)
         recursive_substitution(M.Cfg.home, oldfile.title, newname)
         recursive_substitution(M.Cfg.dailies, oldfile.title, newname)
         recursive_substitution(M.Cfg.weeklies, oldfile.title, newname)
-        
+
         print("Link update completed!")
     end
 end
@@ -1686,7 +1686,7 @@ local function RenameNote()
                 -- Update the current buffer's content to reflect the new title
                 local current_content = vim.fn.getline(1, "$")
                 local updated_content = {}
-                
+
                 for _, line in ipairs(current_content) do
                     -- Update frontmatter title field
                     if line:match("^title:") then
@@ -1695,10 +1695,10 @@ local function RenameNote()
                         table.insert(updated_content, line)
                     end
                 end
-                
+
                 -- Write the updated content to the current buffer
                 vim.fn.setline(1, updated_content)
-                
+
                 local oldTitle = oldfile.title:gsub(" ", "\\ ")
                 vim.cmd(
                     "saveas " .. M.Cfg.home .. "/" .. newname .. M.Cfg.extension
