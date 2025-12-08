@@ -140,7 +140,11 @@ local function imgFromClipboard()
             vim.fn.system("rm " .. png)
             vim.api.nvim_err_writeln(
                 string.format(
-                    "Unable to write image %s.\nIs there an image on the clipboard?\nSee also issue 131",
+                    "Unable to write image %s.\n"
+                        .. "Is there an image on the clipboard?\n"
+                        .. "Have you set clipboard_program to your preferred paste command? "
+                        .. "(see :help telekasten.configuration)\n"
+                        .. "See also issue 131",
                     png
                 )
             )
@@ -160,8 +164,8 @@ local function imgFromClipboard()
 end
 
 --- FindDailyNotes(opts)
--- Opens a picker looking for daily notes, creating new from template if needed
--- @param opts table Options if they should differ from user's configuration
+--- Opens a picker looking for daily notes, creating new from template if needed
+--- @param opts table Options if they should differ from user's configuration
 local function FindDailyNotes(opts)
     opts = opts or {}
     opts.insert_after_inserting = opts.insert_after_inserting
@@ -292,6 +296,223 @@ local function FindWeeklyNotes(opts)
                 nil,
                 fname,
                 M.note_type_templates.weekly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
+--- FindMonthlyNotes(opts)
+-- Defines and uses a picker looking for monthly notes, creating a new one from template if needed
+-- @param opts table Options if they should differ from user's configuration
+local function FindMonthlyNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local title = os.date(dateutils.dateformats.month_ym)
+        local fname = config.options.monthlies
+            .. "/" 
+            .. title 
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            fileutils.find_files_sorted({
+                prompt_title = "Find monthly note",
+                cwd = config.options.monthlies,
+                find_command = config.options.find_command,
+                search_pattern = "%d%d%d%d%-%d%d"
+                    .. vim.pesc(config.options.extension)
+                    .. "$",
+                search_depth = 1,
+                attach_mappings = function(_, map)
+                    actions.select_default:replace(
+                        picker_actions.select_default
+                    )
+                    map("i", "<c-y>", picker_actions.yank_link(opts))
+                    map("i", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-y>", picker_actions.yank_link(opts))
+                    map("n", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-c>", picker_actions.close(opts))
+                    map("n", "<esc>", picker_actions.close(opts))
+                    return true
+                end,
+                sort = config.options.sort,
+            })
+        end
+        if
+            (fexists ~= true)
+            and (
+                (opts.monthlies_create_nonexisting == true)
+                or config.options.monthlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.monthly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
+--- FindQuarterlyNotes(opts)
+-- Defines and uses a picker looking for quarterly notes, creating a new one from template if needed
+-- @param opts table Options if they should differ from user's configuration
+local function FindQuarterlyNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        -- Use direct value instead of dateformat.quarter_yq, because os.date doesn't properly expand to a date
+        local dinfo =
+            dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local title = dinfo.quarter_yq
+        local fname = config.options.quarterlies
+            .. "/"
+            .. title
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            fileutils.find_files_sorted({
+                prompt_title = "Find quarterly note",
+                cwd = config.options.quarterlies,
+                find_command = config.options.find_command,
+                search_pattern = "%d%d%d%d%-Q[1-4]" .. vim.pesc(
+                    config.options.extension
+                ) .. "$",
+                search_depth = 1,
+                attach_mappings = function(_, map)
+                    actions.select_default:replace(
+                        picker_actions.select_default
+                    )
+                    map("i", "<c-y>", picker_actions.yank_link(opts))
+                    map("i", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-y>", picker_actions.yank_link(opts))
+                    map("n", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-c>", picker_actions.close(opts))
+                    map("n", "<esc>", picker_actions.close(opts))
+                    return true
+                end,
+                sort = config.options.sort,
+            })
+        end
+        if
+            (fexists ~= true)
+            and (
+                (opts.quarterlies_create_nonexisting == true)
+                or config.options.quarterlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.quarterly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
+--- FindYearlyNotes(opts)
+-- Defines and uses a picker looking for yearly notes, creating a new one from template if needed
+-- @param opts table Options if they should differ from user's configuration
+local function FindYearlyNotes(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local title = os.date(dateutils.dateformats.year)
+        local fname = config.options.yearlies
+            .. "/"
+            .. title
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            fileutils.find_files_sorted({
+                prompt_title = "Find yearly note",
+                cwd = config.options.yearlies,
+                find_command = config.options.find_command,
+                search_pattern = "%d%d%d%d" .. vim.pesc(config.options.extension) .. "$",
+                search_depth = 1,
+                attach_mappings = function(_, map)
+                    actions.select_default:replace(
+                        picker_actions.select_default
+                    )
+                    map("i", "<c-y>", picker_actions.yank_link(opts))
+                    map("i", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-y>", picker_actions.yank_link(opts))
+                    map("n", "<c-i>", picker_actions.paste_link(opts))
+                    map("n", "<c-c>", picker_actions.close(opts))
+                    map("n", "<esc>", picker_actions.close(opts))
+                    return true
+                end,
+                sort = config.options.sort,
+            })
+        end
+        if
+            (fexists ~= true)
+            and (
+                (opts.yearlies_create_nonexisting == true)
+                or config.options.yearlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.yearly,
                 nil,
                 function()
                     opts.erase = true
@@ -531,7 +752,7 @@ local function YankLink()
 end
 
 --- RenameNote()
--- Prompt for new note title, rename the note and update all links.
+--- Prompt for new note title, rename the note and update all links.
 local function RenameNote()
     local oldfile =
         fileutils.Pinfo:new({ filepath = vim.fn.expand("%:p"), config.options })
@@ -970,9 +1191,7 @@ local function CreateNoteSelectTemplate(opts)
         vim.fn.chdir(config.options.home)
         fileutils.prompt_title(config.options.extension, nil, function(title)
             on_create_with_template(opts, title)
-        end)
-        -- change back to the original directory
-        vim.fn.chdir(current_dir)
+        end, M.Cfg.home)
     end)
 end
 
@@ -1061,6 +1280,36 @@ local function FollowLink(opts)
                 title = title:gsub("^(%[)(.+)(%])$", "%2")
                 title = title:gsub("%s*\n", " ")
                 title = linkutils.remove_alias(title)
+
+                -- Check if this is an absolute path link (external file)
+                if
+                    M.Cfg.external_link_follow
+                    and (
+                        title:match("^~/")
+                        or title:match("^/")
+                        or title:match("^%a:")
+                    )
+                then
+                    -- This is an absolute path link to an external file
+                    vim.fn.setreg('"0', saved_reg)
+
+                    -- Handle absolute path immediately
+                    local external_opts = vim.tbl_extend("force", opts, {
+                        is_absolute_path = true,
+                        absolute_path_title = title,
+                        title = title,
+                    })
+                    local pinfo = Pinfo:new(external_opts)
+
+                    if pinfo.fexists then
+                        -- File exists, open it
+                        vim.cmd("e " .. vim.fn.fnameescape(pinfo.filepath))
+                    else
+                        -- File doesn't exist (read-only mode for external files)
+                        print("External file not found: " .. pinfo.filepath)
+                    end
+                    return
+                end
             else
                 -- we are in an external [link]
                 vim.cmd("normal yi)")
@@ -1489,6 +1738,7 @@ local function GotoThisWeek(opts)
             .. config.options.extension
         local fexists = fileutils.file_exists(fname)
         local picker_actions = tkpickers.picker_actions
+
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1530,6 +1780,259 @@ local function GotoThisWeek(opts)
                 nil,
                 fname,
                 M.note_type_templates.weekly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+
+        picker()
+    end)
+end
+
+--- GotoThisMonth(opts)
+-- Find this month's monthly note and create it if necessary.
+-- @param opts table Options if they should differ from user's configuration
+local function GotoThisMonth(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open
+        or config.options.journal_auto_open
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
+        local title = dinfo.month_ym
+        local fname = config.options.monthlies
+            .. "/"
+            .. title
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
+                vim.cmd("e " .. fname)
+            else
+                fileutils.find_files_sorted({
+                    prompt_title = "Goto this month:",
+                    cwd = config.options.monthlies,
+                    default_text = title,
+                    find_command = config.options.find_command,
+                    attach_mappings = function(_, map)
+                        actions.select_default:replace(
+                            picker_actions.select_default
+                        )
+                        map("i", "<c-y>", picker_actions.yank_link(opts))
+                        map("i", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-y>", picker_actions.yank_link(opts))
+                        map("n", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-c>", picker_actions.close(opts))
+                        map("n", "<esc>", picker_actions.close(opts))
+                        return true
+                    end,
+                })
+            end
+        end
+
+        if
+            (fexists ~= true)
+            and (
+                (opts.monthlies_create_nonexisting == true)
+                or config.options.monthlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.monthly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+
+        picker()
+    end)
+end
+
+--- GotoThisQuarter(opts)
+-- Find this quarter's quarterly note and create it if necessary.
+-- @param opts table Options if they should differ from user's configuration
+local function GotoThisQuarter(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open
+        or config.options.journal_auto_open
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        -- Use direct value instead of dateformat.quarter_yq, because os.date doesn't properly expand to a date
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
+        local title = dinfo.quarter_yq
+        local fname = config.options.quarterlies
+            .. "/"
+            .. title
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
+                vim.cmd("e " .. fname)
+            else
+                fileutils.find_files_sorted({
+                    prompt_title = "Goto this quarter:",
+                    cwd = config.options.quarterlies,
+                    default_text = title,
+                    find_command = config.options.find_command,
+                    attach_mappings = function(_, map)
+                        actions.select_default:replace(
+                            picker_actions.select_default
+                        )
+                        map("i", "<c-y>", picker_actions.yank_link(opts))
+                        map("i", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-y>", picker_actions.yank_link(opts))
+                        map("n", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-c>", picker_actions.close(opts))
+                        map("n", "<esc>", picker_actions.close(opts))
+                        return true
+                    end,
+                })
+            end
+        end
+
+        if
+            (fexists ~= true)
+            and (
+                (opts.quarterlies_create_nonexisting == true)
+                or config.options.quarterlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.quarterly,
+                nil,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+
+        picker()
+    end)
+end
+
+--- GotoThisYear(opts)
+-- Find this year's yearly note and create it if necessary.
+-- @param opts table Options if they should differ from user's configuration
+local function GotoThisYear(opts)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+    opts.journal_auto_open = opts.journal_auto_open
+        or config.options.journal_auto_open
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
+        local title = dinfo.year
+        local fname = config.options.yearlies
+            .. "/"
+            .. title
+            .. config.options.extension
+        local fexists = fileutils.file_exists(fname)
+        local picker_actions = tkpickers.picker_actions
+
+        local function picker()
+            if opts.journal_auto_open then
+                if opts.calendar == true then
+                    -- ensure that the calendar window is not improperly overwritten
+                    vim.cmd("wincmd w")
+                end
+                vim.cmd("e " .. fname)
+            else
+                fileutils.find_files_sorted({
+                    prompt_title = "Goto this year:",
+                    cwd = config.options.yearlies,
+                    default_text = title,
+                    find_command = config.options.find_command,
+                    attach_mappings = function(_, map)
+                        actions.select_default:replace(
+                            picker_actions.select_default
+                        )
+                        map("i", "<c-y>", picker_actions.yank_link(opts))
+                        map("i", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-y>", picker_actions.yank_link(opts))
+                        map("n", "<c-i>", picker_actions.paste_link(opts))
+                        map("n", "<c-c>", picker_actions.close(opts))
+                        map("n", "<esc>", picker_actions.close(opts))
+                        return true
+                    end,
+                })
+            end
+        end
+
+        if
+            (fexists ~= true)
+            and (
+                (opts.yearlies_create_nonexisting == true)
+                or config.options.yearlies_create_nonexisting == true
+            )
+        then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                M.note_type_templates.yearly,
                 nil,
                 function()
                     opts.erase = true
@@ -1861,12 +2364,21 @@ local function Setup(cfg)
         or "none"
     config.options.template_new_weekly = config.options.template_new_weekly
         or "none"
+    config.options.template_new_monthly = config.options.template_new_monthly
+        or "none"
+    config.options.template_new_quarterly = config.options.template_new_quarterly
+        or "none"
+    config.options.template_new_yearly = config.options.template_new_yearly
+        or "none"
 
     -- refresh templates
     M.note_type_templates = {
         normal = config.options.template_new_note,
         daily = config.options.template_new_daily,
         weekly = config.options.template_new_weekly,
+        monthly = config.options.template_new_monthly,
+        quarterly = config.options.template_new_quarterly,
+        yearly = config.options.template_new_yearly,
     }
 
     -- for previewers to pick up our syntax, we need to tell plenary to override `.md` with our syntax
@@ -1895,6 +2407,12 @@ local function Setup(cfg)
         fileutils.make_config_path_absolute(config.options.dailies)
     config.options.weeklies =
         fileutils.make_config_path_absolute(config.options.weeklies)
+    config.options.monthlies =
+        fileutils.make_config_path_absolute(config.options.monthlies)
+    config.options.quarterlies =
+        fileutils.make_config_path_absolute(config.options.quarterlies)
+    config.options.yearlies =
+        fileutils.make_config_path_absolute(config.options.yearlies)
     config.options.templates =
         fileutils.make_config_path_absolute(config.options.templates)
 
@@ -1961,6 +2479,24 @@ local TelekastenCmd = {
             { "new note", "new_note", M.new_note },
             { "goto thisweek", "goto_thisweek", M.goto_thisweek },
             { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
+            { "goto thismonth", "goto_thismonth", M.goto_thismonth },
+            {
+                "find monthly notes",
+                "find_monthly_notes",
+                M.find_monthly_notes,
+            },
+            { "goto thisquarter", "goto_thisquarter", M.goto_thisquarter },
+            {
+                "find quarterly notes",
+                "find_quarterly_notes",
+                M.find_quarterly_notes,
+            },
+            { "goto thisyear", "goto_thisyear", M.goto_thisyear },
+            {
+                "find yearly notes",
+                "find_yearly_notes",
+                M.find_yearly_notes,
+            },
             { "yank link to note", "yank_notelink", M.yank_notelink },
             { "rename note", "rename_note", M.rename_note },
             {
@@ -2073,6 +2609,12 @@ M.goto_today = GotoToday
 M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
 M.find_weekly_notes = FindWeeklyNotes
+M.goto_thismonth = GotoThisMonth
+M.find_monthly_notes = FindMonthlyNotes
+M.goto_thisquarter = GotoThisQuarter
+M.find_quarterly_notes = FindQuarterlyNotes
+M.goto_thisyear = GotoThisYear
+M.find_yearly_notes = FindYearlyNotes
 M.yank_notelink = YankLink
 M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate

@@ -17,6 +17,27 @@ local function resolve_link(title, file_list, subdir_list, opts)
     filename = filename:gsub("^%./", "") -- strip potential leading ./
 
     if
+        opts.yearlies
+        and file_exists(opts.yearlies .. "/" .. filename, file_list)
+    then
+        filename = opts.yearlies .. "/" .. filename
+        fexists = true
+    end
+    if
+        opts.quarterlies
+        and file_exists(opts.quarterlies .. "/" .. filename, file_list)
+    then
+        filename = opts.quarterlies .. "/" .. filename
+        fexists = true
+    end
+    if
+        opts.monthlies
+        and file_exists(opts.monthlies .. "/" .. filename, file_list)
+    then
+        filename = opts.monthlies .. "/" .. filename
+        fexists = true
+    end
+    if
         opts.weeklies
         and file_exists(opts.weeklies .. "/" .. filename, file_list)
     then

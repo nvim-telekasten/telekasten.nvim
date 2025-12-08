@@ -85,7 +85,7 @@ end
 local function mod(n, d)
     return n - d * floor(n / d)
 end
--- is `str` in string list `tbl`, `ml` is the minimun len
+-- is `str` in string list `tbl`, `ml` is the minimum len
 local function inlist(str, tbl, ml, tn)
     local sl = len(str)
     if sl < (ml or 0) then
