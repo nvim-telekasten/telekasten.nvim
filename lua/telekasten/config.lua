@@ -1,6 +1,7 @@
 -- The configuration setup is inspire from akinsho/bufferline.nvim
 --
 local vim = vim
+local periodic = require('telekasten.periodic')
 
 ---@class M: Config
 local M = {}
@@ -35,6 +36,7 @@ function Config:new(opts)
         "A valid config table must be passed to merge"
     )
     o.options = vim.tbl_deep_extend("force", defaults.options, o.options or {})
+    o.options.periodic = periodic.normalize_periodic(o.options.periodic)
     return o
 end
 
@@ -50,11 +52,51 @@ function Config:get_defaults(home)
         take_over_my_home = true,
         auto_set_filetype = true,
         auto_set_syntax = true,
-        dailies = _home,
-        weeklies = _home,
-        monthlies = _home,
-        quarterlies = _home,
-        yearlies = _home,
+        periodic = {
+            root = _home,
+            kinds = {
+                yearly = {
+                    enabled = true,
+                    root = "",
+                    folder_path = "",
+                    filename = "{year}",
+                    template_file = "",
+                    create_if_missing = true,
+                },
+                quarterly = {
+                    enabled = true,
+                    root = "",
+                    folder_path = "",
+                    filename = "{quarter_yq}",
+                    template_file = "",
+                    create_if_missing = true,
+                },
+                monthly = {
+                    enabled = true,
+                    root = "",
+                    folder_path = "",
+                    filename = "{month_ym}",
+                    template_file = "",
+                    create_if_missing = true,
+                },
+                weekly = {
+                    enabled = true,
+                    root = "",
+                    folder_path = "",
+                    filename = "{isoweek}",
+                    template_file = "",
+                    create_if_missing = true,
+                },
+                daily = {
+                    enabled = true,
+                    root = "",
+                    folder_path = "",
+                    filename = "{date}",
+                    template_file = "",
+                    create_if_missing = true,
+                },
+            },
+        },
         templates = _home,
         image_subdir = nil, -- Should be deprecated gracefully and replaced by "images"
         extension = ".md",
@@ -63,11 +105,7 @@ function Config:get_defaults(home)
         uuid_sep = "-",
         filename_space_subst = nil,
         follow_creates_nonexisting = true,
-        dailies_create_nonexisting = true,
-        weeklies_create_nonexisting = true,
-        monthlies_create_nonexisting = true,
-        quarterlies_create_nonexisting = true,
-        yearlies_create_nonexisting = true,
+        external_link_follow = true,
         journal_auto_open = false,
         image_link_style = "markdown",
         sort = "filename",
