@@ -960,6 +960,33 @@ end, {})
 -- note picker actions
 local picker_actions = {}
 
+-- apply common keybinds in the picker
+local apply_picker_mappings = function (opts, default_select_func)
+    return function (_, map)
+        actions.select_default:replace(
+            default_select_func or picker_actions.select_default
+        )
+        -- Set a single or multiple keybinds to the functionality
+        local map_conf = {
+            {"i", M.Cfg.keybinds.picker.i_yank_link,  picker_actions.yank_link(opts)},
+            {"i", M.Cfg.keybinds.picker.i_yank_link,  picker_actions.yank_link(opts)},
+            {"i", M.Cfg.keybinds.picker.i_paste_link, picker_actions.paste_link(opts)},
+            {"n", M.Cfg.keybinds.picker.yank_link,  picker_actions.yank_link(opts)},
+            {"n", M.Cfg.keybinds.picker.paste_link, picker_actions.paste_link(opts)},
+            {"n", M.Cfg.keybinds.picker.close,      picker_actions.close(opts)},
+        }
+        for _, mc in pairs(map_conf) do
+            local mode, mappings, action = mc[1], mc[2], mc[3]
+            -- Apply map for all given keys
+            -- e.g. `keybinds.picker.close = {"<ESC>", "<C-c>"}`
+            for _, key in pairs(vim.tbl_flatten({mappings})) do
+                map(mode, key, action)
+            end
+        end
+        return true
+    end
+end
+
 -- find_files_sorted(opts)
 -- like builtin.find_files, but:
 --     - uses plenary.scan_dir synchronously instead of external jobs
@@ -1319,18 +1346,7 @@ local function FindDailyNotes(opts)
                 find_command = M.Cfg.find_command,
                 search_pattern = "%d%d%d%d%-%d%d%-%d%d",
                 search_depth = 1,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         end
@@ -1388,18 +1404,7 @@ local function FindWeeklyNotes(opts)
                 find_command = M.Cfg.find_command,
                 search_pattern = "%d%d%d%d%-W%d+",
                 search_depth = 1,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         end
@@ -1460,18 +1465,7 @@ local function FindMonthlyNotes(opts)
                     .. vim.pesc(M.Cfg.extension)
                     .. "$",
                 search_depth = 1,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         end
@@ -1534,18 +1528,7 @@ local function FindQuarterlyNotes(opts)
                     M.Cfg.extension
                 ) .. "$",
                 search_depth = 1,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         end
@@ -1603,18 +1586,7 @@ local function FindYearlyNotes(opts)
                 find_command = M.Cfg.find_command,
                 search_pattern = "%d%d%d%d" .. vim.pesc(M.Cfg.extension) .. "$",
                 search_depth = 1,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         end
@@ -1664,8 +1636,8 @@ local function InsertLink(opts)
         local cwd = M.Cfg.home
         local find_command = M.Cfg.find_command
         local sort = M.Cfg.sort
-        local attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
+        local attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, map)
+            return apply_picker_mappings(map, function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 if selection == nil then
@@ -1685,14 +1657,7 @@ local function InsertLink(opts)
                     vim.api.nvim_feedkeys("a", "m", false)
                 end
             end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
-            return true
-        end
+        end)
 
         if opts.with_live_grep then
             builtin.live_grep({
@@ -1783,18 +1748,7 @@ local function PreviewImg(opts)
                 find_command = M.Cfg.find_command,
                 filter_extensions = M.Cfg.media_extensions,
                 preview_type = "media",
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
-                    end)
-                    map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                    map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                    map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
                 sort = M.Cfg.sort,
             })
         else
@@ -1827,18 +1781,7 @@ local function BrowseImg(opts)
             find_command = M.Cfg.find_command,
             filter_extensions = M.Cfg.media_extensions,
             preview_type = "media",
-            attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                end)
-                map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                return true
-            end,
+            attach_mappings = apply_picker_mappings(opts),
             sort = M.Cfg.sort,
         })
     end)
@@ -1875,16 +1818,7 @@ local function FindFriends(opts)
             cwd = M.Cfg.home,
             default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings =apply_picker_mappings(opts),
         })
     end)
 end
@@ -2052,7 +1986,7 @@ local function GotoDate(opts)
                 cwd = M.Cfg.dailies,
                 default_text = word,
                 find_command = M.Cfg.find_command,
-                attach_mappings = function(prompt_bufnr, map)
+                attach_mappings = apply_picker_mappings(opts, function (prompt_bufnr, _)
                     actions.select_default:replace(function()
                         actions.close(prompt_bufnr)
 
@@ -2063,14 +1997,7 @@ local function GotoDate(opts)
                         vim.cmd("e " .. fname)
                         picker_actions.post_open()
                     end)
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                end)
             })
         end
     end
@@ -2144,13 +2071,7 @@ local function FindNotes(opts)
         local find_command = M.Cfg.find_command
         local sort = M.Cfg.sort
         local attach_mappings = function(_, map)
-            actions.select_default:replace(picker_actions.select_default)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            apply_picker_mappings(opts)
             if M.Cfg.enable_create_new then
                 map("i", "<c-n>", picker_actions.create_new(opts))
                 map("n", "<c-n>", picker_actions.create_new(opts))
@@ -2198,7 +2119,7 @@ local function InsertImgLink(opts)
             find_command = M.Cfg.find_command,
             filter_extensions = M.Cfg.media_extensions,
             preview_type = "media",
-            attach_mappings = function(prompt_bufnr, map)
+            attach_mappings = apply_picker_mappings(opts, function (prompt_bufnr, _)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
@@ -2209,14 +2130,7 @@ local function InsertImgLink(opts)
                         vim.api.nvim_feedkeys("A", "m", false)
                     end
                 end)
-                map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                return true
-            end,
+            end),
             sort = M.Cfg.sort,
         })
     end)
@@ -2246,16 +2160,7 @@ local function SearchNotes(opts)
             search_dirs = { M.Cfg.home },
             default_text = opts.default_text or vim.fn.expand("<cword>"),
             find_command = M.Cfg.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings = apply_picker_mappings(opts),
         })
     end)
 end
@@ -2292,16 +2197,7 @@ local function ShowBacklinks(opts)
             search_dirs = { M.Cfg.home },
             default_text = "\\[\\[" .. escaped_title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings = apply_picker_mappings(opts)
         })
     end)
 end
@@ -2344,7 +2240,7 @@ local function on_create_with_template(opts, title)
         prompt_title = "Select template...",
         cwd = M.Cfg.templates,
         find_command = M.Cfg.find_command,
-        attach_mappings = function(prompt_bufnr, map)
+        attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
@@ -2363,12 +2259,7 @@ local function on_create_with_template(opts, title)
                     end
                 )
             end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            return true
-        end,
+        end)
     })
 end
 
@@ -2419,16 +2310,7 @@ local function on_create(opts, title)
             cwd = pinfo.root_dir,
             default_text = generate_note_filename(uuid, title),
             find_command = M.Cfg.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-c>", picker_actions.close(opts))
-                map("n", "<esc>", picker_actions.close(opts))
-                return true
-            end,
+            attach_mappings = apply_picker_mappings(opts)
         })
     end
     if pinfo.fexists ~= true then
@@ -2605,18 +2487,7 @@ local function FollowLink(opts)
                         cwd = pinfo.root_dir,
                         default_text = title,
                         find_command = M.Cfg.find_command,
-                        attach_mappings = function(_, map)
-                            actions.select_default:replace(
-                                picker_actions.select_default
-                            )
-                            map("i", "<c-y>", picker_actions.yank_link(opts))
-                            map("i", "<c-i>", picker_actions.paste_link(opts))
-                            map("n", "<c-y>", picker_actions.yank_link(opts))
-                            map("n", "<c-i>", picker_actions.paste_link(opts))
-                            map("n", "<c-c>", picker_actions.close(opts))
-                            map("n", "<esc>", picker_actions.close(opts))
-                            return true
-                        end,
+                        attach_mappings = apply_picker_mappings(opts),
                         sort = M.Cfg.sort,
                     })
                 end
@@ -2938,18 +2809,7 @@ local function FollowLink(opts)
                 finder = live_grepper,
                 previewer = conf.grep_previewer(opts),
                 sorter = sorters.highlighter_only(opts),
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("i", "<c-cr>", picker_actions.paste_link(opts))
-                    map("n", "<c-cr>", picker_actions.paste_link(opts))
-                    return true
-                end,
+                attach_mappings = apply_picker_mappings(opts),
             })
             picker:find()
         end
@@ -2993,18 +2853,7 @@ local function GotoThisWeek(opts)
                     cwd = M.Cfg.weeklies,
                     default_text = title,
                     find_command = M.Cfg.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = apply_picker_mappings(opts),
                 })
             end
         end
@@ -3072,18 +2921,7 @@ local function GotoThisMonth(opts)
                     cwd = M.Cfg.monthlies,
                     default_text = title,
                     find_command = M.Cfg.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = apply_picker_mappings(opts),
                 })
             end
         end
@@ -3152,18 +2990,7 @@ local function GotoThisQuarter(opts)
                     cwd = M.Cfg.quarterlies,
                     default_text = title,
                     find_command = M.Cfg.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = apply_picker_mappings(opts),
                 })
             end
         end
@@ -3231,18 +3058,7 @@ local function GotoThisYear(opts)
                     cwd = M.Cfg.yearlies,
                     default_text = title,
                     find_command = M.Cfg.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = apply_picker_mappings(opts),
                 })
             end
         end
@@ -3485,7 +3301,7 @@ local function FindAllTags(opts)
                     end,
                 }),
                 sorter = conf.generic_sorter(opts),
-                attach_mappings = function(prompt_bufnr, map)
+                attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, _)
                     actions.select_default:replace(function()
                         -- actions for insert tag, default action: search for tag
                         local selection =
@@ -3500,14 +3316,7 @@ local function FindAllTags(opts)
                             FollowLink(follow_opts)
                         end)
                     end)
-                    map("i", "<c-y>", picker_actions.yank_tag(opts))
-                    map("i", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-y>", picker_actions.yank_tag(opts))
-                    map("n", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                end)
             })
             :find()
     end)

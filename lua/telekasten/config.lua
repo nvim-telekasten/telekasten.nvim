@@ -153,6 +153,16 @@ function M.defaultConfig(home)
 
         -- Specify a clipboard program to use
         clipboard_program = "", -- xsel, xclip, wl-paste, osascript
+        -- Keybinds for inside the picker
+        keybinds = {
+            picker = {
+                yank_link    = "<c-y>",
+                paste_link   = "<c-i>",
+                i_yank_link  = "<c-y>",
+                i_paste_link = "<c-i>",
+                close        = { "<ESC>", "<C-c>" },
+            },
+        }
     }
 
     return cfg
