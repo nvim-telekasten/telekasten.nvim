@@ -21,8 +21,98 @@ local vim = vim
 
 local kinds_order = { "yearly", "quarterly", "monthly", "weekly", "daily" }
 
+--- detection_patterns
+-- A Table containing detection patterns which determine
+-- if a given pattern is a periodic note or not.
+-- Each entry consists of three fields:
+    -- pattern (string): The full string regex pattern for the filename
+    -- kind (string): Which kind of periodic note it classifies as
+    -- value_table (table): Which values to update in the file's date info table,
+        -- based on detected pattern order
+-- For anything regarding weeklies or quarterlies, be sure to include 
+-- "week" or "quarter", respectively.
+M.detection_patterns = {
+    -- DAILY PATTERNS
+    -- Pattern: YYYY-MM-DD
+    {"^(%d%d%d%d)-(%d%d)-(%d%d)$", "daily", {"year", "month", "day"}},
+    -- Pattern: YYYY.MM.DD
+    {"^(%d%d%d%d).(%d%d).(%d%d)$", "daily", {"year", "month", "day"}},
+    -- Pattern : YYYY MM DD
+    {"^(%d%d%d%d)%s+(%d%d)%s+(%d%d)$", "daily", {"year", "month", "day"}},
+    -- Pattern: DD-MM-YYYY
+    {"^(%d%d)-(%d%d)-(%d%d%d%d)$", "daily", {"day", "month", "year"}}, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    -- Pattern: DD.MM.YYYY
+    {"^(%d%d).(%d%d).(%d%d%d%d)$", "daily", {"day", "month", "year"}}, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    -- Pattern: DD MM YYYY
+    {"^(%d%d)%s+(%d%d)%s+(%d%d%d%d)$", "daily", {"day", "month", "year"}}, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+
+    -- WEEKLY PATTERNS
+    -- Pattern: YYYY-[W]W
+    {"^(%d%d%d%d)-W(%d%d)$", "weekly", {"year", "week"}},
+    -- Pattern: YYYY.[W]W
+    {"^(%d%d%d%d).W(%d%d)$", "weekly", {"year", "week"}},
+    -- Pattern: YYYY [W]W
+    {"^(%d%d%d%d)%s+W(%d%d)$", "weekly", {"year", "week"}},
+    -- Pattern: [W]W-YYYY
+    {"^W(%d%d)-(%d%d%d%d)$", "weekly", {"week", "year"}},
+    -- Pattern: [W]W.YYYY
+    {"^W(%d%d).(%d%d%d%d)$", "weekly", {"week", "year"}},
+    -- Pattern: [W]W YYYY
+    {"^W(%d%d)%s+(%d%d%d%d)$", "weekly", {"week", "year"}},
+
+    -- MONTHLY PATTERNS
+    -- Pattern: YYYY-MM
+    {"^(%d%d%d%d)-(%d%d)$", "monthly", {"year", "month"}},
+    -- Pattern: YYYY.MM
+    {"^(%d%d%d%d).(%d%d)$", "monthly", {"year", "month"}},
+    -- Pattern: YYYY MM
+    {"^(%d%d%d%d)%s+(%d%d)$", "monthly", {"year", "month"}},
+    -- Pattern: YYYY-M  -- (month name)
+    {"^(%d%d%d%d)-(%a+)$", "monthly", {"year", "month_name"}},
+    -- Pattern: YYYY.M
+    {"^(%d%d%d%d).(%a+)$", "monthly", {"year", "month_name"}},
+    -- Pattern: YYYY M
+    {"^(%d%d%d%d)%s+(%a+)$", "monthly", {"year", "month_name"}},
+    -- Pattern: MM-YYYY
+    {"^(%d%d)-(%d%d%d%d)$", "monthly", {"month", "year"}},
+    -- Pattern: MM.YYYY
+    {"^(%d%d).(%d%d%d%d)$", "monthly", {"month", "year"}},
+    -- Pattern: MM YYYY
+    {"^(%d%d)%s+(%d%d%d%d)$", "monthly", {"month", "year"}},
+    -- Pattern: M-YYYY
+    {"^(%a+)-(%d%d%d%d)$", "monthly", {"month_name", "year"}},
+    -- Pattern: M.YYYY
+    {"^(%a+).(%d%d%d%d)$", "monthly", {"month_name", "year"}},
+    -- Pattern: M YYYY
+    {"^(%a+)%s+(%d%d%d%d)$", "monthly", {"month_name", "year"}},
+
+    -- QUARTERLY PATTERNS
+    -- Pattern: YYYY-[Q]Q
+    {"^(%d%d%d%d)-Q([1-4])$", "quarterly", {"year", "quarter"}},
+    -- Pattern: YYYY.[Q]Q
+    {"^(%d%d%d%d).Q([1-4])$", "quarterly", {"year", "quarter"}},
+    -- Pattern: YYYY [Q]Q
+    {"^(%d%d%d%d)%s+Q([1-4])$", "quarterly", {"year", "quarter"}},
+    -- Pattern: [Q]Q-YYYY
+    {"^Q([1-4])-(%d%d%d%d)$", "quarterly", {"quarter", "year"}},
+    -- Pattern: [Q]Q.YYYY
+    {"^Q([1-4]).(%d%d%d%d)$", "quarterly", {"quarter", "year"}},
+    -- Pattern: [Q]Q YYYY
+    {"^Q([1-4])%s+(%d%d%d%d)$", "quarterly", {"quarter", "year"}},
+
+    -- YEARLY PATTERNS
+    -- Pattern: YYYY
+    {"^(%d%d%d%d)$", "yearly", {"year"}},
+}
+
+-- A Table for specific token detection
+-- NOTE: Different from detection_patterns! Only for specific template tokens.
 local token_patterns = {
 	year       = "%d%d%d%d",
+    month      = "%d%d",
+    day        = "%d%d",
+    week       = "%d%d",
+    quarter    = "[1-4]",
 	quarter_yq = "%d%d%d%d%-Q[1-4]",
 	month_ym   = "%d%d%d%d%-%d%d",
 	isoweek    = "%d%d%d%d%-W%d%d",

@@ -153,8 +153,56 @@ local function random_variable(length)
     return res
 end
 
+local function applu_match(kind, fields, caps, cal_monday)
+    local dinfo = {}
+
+    for i, field in ipairs(fields) do
+        local v = caps[i]
+
+        if field == "year" or field == "month" or field == "day"
+            or field == "week" or field == "quarter" then
+            v = tonumber(v)
+        end
+
+        dinfo[field] = v
+    end
+
+    -- SPECIAL CASE: weekly notes
+    -- If we have a year + week, then convert that ISO week to a proper date
+    -- (this gives us year/month/day anchored to the *start* of that week)
+    if dinfo.week ~= nil and dinfo.year ~= nil then
+        dinfo = dateutils.isoweek_to_date(dinfo.year, dinfo.week)
+        dinfo.calculate_dates(dinfo, cal_monday)
+        return kind, dinfo
+    end
+
+    -- SPECIAL CASE: quarterly notes
+    -- quarter -> anchor on the first month of that quarter
+    if dinfo.quarter ~= nil and dinfo.year ~= nil then
+        local qi = dinfo.quarter
+        if qi >= 1 and qi <= 4 then
+            local first_month = (qi-1) * 3 + 1
+            dinfo.month = first_month
+            dinfo.day = 1
+        end
+    end
+
+    -- enforce sane defaults for monthlies and yearlies as well
+    if kind == "monthly" then
+        dinfo.day = dinfo.day or 1
+    elseif kind == "yearly" then
+        dinfo.month = dinfo.month or 1
+        dinfo.day = dinfo.day or 1
+    end
+
+    dinfo = dateutils.calculate_dates(dinfo, cal_monday)
+
+    return kind, dinfo
+end
+
+
 --- check_if_periodic(title)
--- Returns info on if the title given is for a daily or weekly and the date(s)
+-- Returns info on if the title given is for a periodic note and the date(s)
 -- @param title string Title of the note to be checked
 -- @return boolean True if daily note
 -- @return boolean True if weekly note
@@ -163,11 +211,11 @@ end
 -- @return boolean True if yearly note
 -- @return table Date info
 local function check_if_periodic(title)
-    local daily_match = "^(%d%d%d%d)-(%d%d)-(%d%d)$"
-    local weekly_match = "^(%d%d%d%d)-W(%d%d)$"
-    local monthly_match = "^(%d%d%d%d)-(%d%d)$"
-    local quarterly_match = "^(%d%d%d%d)-Q([1-4])$"
-    local yearly_match = "^(%d%d%d%d)$"
+    local cal_monday = config.options.calendar_opts.calendar_monday
+    local dateinfo = dateutils.calculate_dates(
+        nil,
+        cal_monday
+    ) -- sane default
 
     local is_daily = false
     local is_weekly = false
@@ -175,86 +223,28 @@ local function check_if_periodic(title)
     local is_quarterly = false
     local is_yearly = false
 
-    local dateinfo = dateutils.calculate_dates(
-        nil,
-        config.options.calendar_opts.calendar_monday
-    ) -- sane default
+    for _, entry in ipairs(periodic.detection_patterns) do
+        local pattern, kind, fields = entry[1], entry[2], entry[3]
+        local caps = { title:match(pattern) }
 
-    -- Set return values for a daily note
-    local start, _, year, month, day = title:find(daily_match)
-    if start ~= nil then
-        if tonumber(month) < 13 then
-            if tonumber(day) < 32 then -- TODO: This should probably be refined for accuracy in 28-30 day months
+        if #caps > 0 then
+            local k, dinfo = apply_match(kind, fields, caps, cal_monday)
+
+            if k == "daily" then
                 is_daily = true
-                dateinfo.year = tonumber(year)
-                dateinfo.month = tonumber(month)
-                dateinfo.day = tonumber(day)
-                dateinfo = dateutils.calculate_dates(
-                    dateinfo,
-                    config.options.calendar_opts.calendar_monday
-                )
+            elseif k == "weekly" then
+                is_weekly = true
+            elseif k == "monthly" then
+                is_monthly = true
+            elseif k == "quarterly" then
+                is_quarterly = true
+            elseif k == "yearly" then
+                is_yearly = true
             end
-        end
-    end
 
-    -- Set return values for a weekly note
-    -- Seems pointless to check both this and daily. Maybe try an else?
-    local week
-    start, _, year, week = title:find(weekly_match)
-    if start ~= nil then
-        if tonumber(week) < 53 then
-            is_weekly = true
-            -- ISO8601 week -> date calculation
-            dateinfo = dateutils.isoweek_to_date(tonumber(year), tonumber(week))
-            dateinfo = dateutils.calculate_dates(
-                dateinfo,
-                config.options.calendar_opts.calendar_monday
-            )
+            dateinfo = dinfo
+            break
         end
-    end
-
-    start, _, year, month = title:find(monthly_match)
-    if start ~= nil then
-        if tonumber(month) > 0 and tonumber(month) < 13 then
-            is_monthly = true
-            dateinfo.year = tonumber(year)
-            dateinfo.month = tonumber(month)
-            -- Minimal Day anchor to avoid any calculation errors
-            dateinfo.day = 1
-            dateinfo = dateutils.calculate_dates(
-                dateinfo,
-                config.options.calendar_opts.calendar_monday
-            )
-        end
-    end
-
-    local q
-    start, _, year, q = title:find(quarterly_match)
-    if start ~= nil then
-        local qi = tonumber(q)
-        if qi >= 1 and qi <= 4 then
-            is_quarterly = true
-            local first_month = (qi - 1) * 3 + 1
-            dateinfo.year = tonumber(year)
-            dateinfo.month = first_month
-            dateinfo.day = 1
-            dateinfo = dateutils.calculate_dates(
-                dateinfo,
-                config.options.calendar_opts.calendar_monday
-            )
-        end
-    end
-
-    start, _, year = title:find(yearly_match)
-    if start ~= nil then
-        is_yearly = true
-        dateinfo.year = tonumber(year)
-        dateinfo.month = 1
-        dateinfo.day = 1
-        dateinfo = dateutils.calculate_dates(
-            dateinfo,
-            config.options.calendar_opts.calendar_monday
-        )
     end
 
     return is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dateinfo
