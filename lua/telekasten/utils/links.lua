@@ -4,6 +4,7 @@ package.loaded[...] = M
 local scan = require("plenary.scandir")
 local config = require("telekasten.config")
 local tkutils = require("telekasten.utils")
+local fileutils = require("telekasten.utils.files")
 
 local vim = vim
 
@@ -16,43 +17,16 @@ local function resolve_link(title, file_list, subdir_list, opts)
     local filename = title .. opts.extension
     filename = filename:gsub("^%./", "") -- strip potential leading ./
 
-    if
-        opts.yearlies
-        and file_exists(opts.yearlies .. "/" .. filename, file_list)
-    then
-        filename = opts.yearlies .. "/" .. filename
-        fexists = true
-    end
-    if
-        opts.quarterlies
-        and file_exists(opts.quarterlies .. "/" .. filename, file_list)
-    then
-        filename = opts.quarterlies .. "/" .. filename
-        fexists = true
-    end
-    if
-        opts.monthlies
-        and file_exists(opts.monthlies .. "/" .. filename, file_list)
-    then
-        filename = opts.monthlies .. "/" .. filename
-        fexists = true
-    end
-    if
-        opts.weeklies
-        and file_exists(opts.weeklies .. "/" .. filename, file_list)
-    then
-        filename = opts.weeklies .. "/" .. filename
-        fexists = true
-    end
-    if
-        opts.dailies and file_exists(opts.dailies .. "/" .. filename, file_list)
-    then
-        filename = opts.dailies .. "/" .. filename
-        fexists = true
-    end
-    if file_exists(opts.home .. "/" .. filename, file_list) then
-        filename = opts.home .. "/" .. filename
-        fexists = true
+    local roots = fileutils.assemble_roots({ include_aux = false })
+
+    -- check all known common roots, excluding templates & images
+    for _, root in ipairs(roots) do
+        local tempfn = root .. "/" .. filename
+        if file_exists(tempfn, file_list) then
+            filename = tempfn
+            fexists = true
+            break
+        end
     end
 
     if fexists == false then
@@ -74,6 +48,7 @@ local function resolve_link(title, file_list, subdir_list, opts)
         -- default fn for creation
         filename = opts.home .. "/" .. filename
     end
+
     return fexists, filename
 end
 
@@ -219,13 +194,10 @@ function M.rename_update_links(oldfile, newname)
             end)
         end
 
-        tkutils.recursive_substitution(config.options.home, oldlink, newlink)
-        tkutils.recursive_substitution(config.options.dailies, oldlink, newlink)
-        tkutils.recursive_substitution(
-            config.options.weeklies,
-            oldlink,
-            newlink
-        )
+        local roots = fileutils.assemble_roots({ include_aux = false })
+        for _, dir in ipairs(roots) do
+            tkutils.recursive_substitution(dir, oldlink, newlink)
+        end
     end
 end
 

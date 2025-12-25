@@ -469,18 +469,8 @@ entire window, you can issue the following command in vim:
 Some (minor) stuff are currently still hard-coded. We will eventually change
 this to allow more flexibility at one point.
 
-Currently, the following things are hardcoded:
+Currently, the following are hardcoded:
 
-- the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g.
-  `2021-11-21.md`)
-- the file naming format for weekly note files: `YYYY-Www.ext` (e.g.
-  `2021-W46.md`)
-- the file naming format for monthly note files: `YYYY-MM.ext` (e.g. 
-  `2021-11`)
-- the file naming format for quarterly note files: `YYYY-[Q]Q.ext` (e.g. 
-  `2021-Q4`)
-- the file naming format for yearly note files: `YYYY.ext` (e.g. 
-  `2021`)
 - the file naming format for pasted images: `pasted_img_YYYYMMDDhhmmss.png`
   (e.g. `pasted_img_20211126041108.png`)
 
