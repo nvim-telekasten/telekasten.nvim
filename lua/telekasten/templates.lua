@@ -15,13 +15,15 @@ function M.expand_template(tmpl, ctx)
         return ""
     end
 
-    return (tmpl:gsub("{([%w_]+)}", function(key)
-        local v = ctx[key]
-        if v == nil then
-            return "{" .. key .. "}"
-        end
-        return tostring(v)
-    end))
+    return (
+        tmpl:gsub("{([%w_]+)}", function(key)
+            local v = ctx[key]
+            if v == nil then
+                return "{" .. key .. "}"
+            end
+            return tostring(v)
+        end)
+    )
 end
 
 function M.subst_templated_values(line, title, dates, uuid, calendar_monday)

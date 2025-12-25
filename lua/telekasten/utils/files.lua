@@ -153,14 +153,19 @@ local function random_variable(length)
     return res
 end
 
-local function applu_match(kind, fields, caps, cal_monday)
+local function apply_match(kind, fields, caps, cal_monday)
     local dinfo = {}
 
     for i, field in ipairs(fields) do
         local v = caps[i]
 
-        if field == "year" or field == "month" or field == "day"
-            or field == "week" or field == "quarter" then
+        if
+            field == "year"
+            or field == "month"
+            or field == "day"
+            or field == "week"
+            or field == "quarter"
+        then
             v = tonumber(v)
         end
 
@@ -181,7 +186,7 @@ local function applu_match(kind, fields, caps, cal_monday)
     if dinfo.quarter ~= nil and dinfo.year ~= nil then
         local qi = dinfo.quarter
         if qi >= 1 and qi <= 4 then
-            local first_month = (qi-1) * 3 + 1
+            local first_month = (qi - 1) * 3 + 1
             dinfo.month = first_month
             dinfo.day = 1
         end
@@ -200,7 +205,6 @@ local function applu_match(kind, fields, caps, cal_monday)
     return kind, dinfo
 end
 
-
 --- check_if_periodic(title)
 -- Returns info on if the title given is for a periodic note and the date(s)
 -- @param title string Title of the note to be checked
@@ -212,10 +216,7 @@ end
 -- @return table Date info
 local function check_if_periodic(title)
     local cal_monday = config.options.calendar_opts.calendar_monday
-    local dateinfo = dateutils.calculate_dates(
-        nil,
-        cal_monday
-    ) -- sane default
+    local dateinfo = dateutils.calculate_dates(nil, cal_monday) -- sane default
 
     local is_daily = false
     local is_weekly = false
@@ -544,14 +545,19 @@ function M.Pinfo:resolve_path(p, opts)
         self.root_dir = config.options.home
     end
 
-    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo = check_if_periodic(self.title)
+    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo =
+        check_if_periodic(self.title)
 
     self.is_daily = is_daily
     self.is_weekly = is_weekly
     self.is_monthly = is_monthly
     self.is_quarterly = is_quarterly
     self.is_yearly = is_yearly
-    self.is_periodic = is_daily or is_weekly or is_monthly or is_quarterly or is_yearly
+    self.is_periodic = is_daily
+        or is_weekly
+        or is_monthly
+        or is_quarterly
+        or is_yearly
 
     if self.is_periodic then
         local kind
@@ -568,7 +574,8 @@ function M.Pinfo:resolve_path(p, opts)
         end
 
         local pcfg = config.options.periodic
-        local _, _, root_dir = periodic.build_path(pcfg, kind, dinfo, config.options.extension)
+        local _, _, root_dir =
+            periodic.build_path(pcfg, kind, dinfo, config.options.extension)
 
         if root_dir and root_dir ~= "" then
             self.root_dir = root_dir
@@ -619,14 +626,19 @@ function M.Pinfo:resolve_link(title, opts)
     self.template = nil
     self.calendar_info = nil
 
-    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo = check_if_periodic(self.title)
+    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo =
+        check_if_periodic(self.title)
 
     self.calendar_info = dinfo
     self.is_daily = is_daily
     self.is_weekly = is_weekly
     self.is_monthly = is_monthly
     self.is_yearly = is_yearly
-    self.is_periodic = is_daily or is_weekly or is_monthly or is_quarterly or is_yearly
+    self.is_periodic = is_daily
+        or is_weekly
+        or is_monthly
+        or is_quarterly
+        or is_yearly
 
     local kind
     if is_daily then
@@ -640,7 +652,8 @@ function M.Pinfo:resolve_link(title, opts)
     end
 
     if kind ~= nil then
-        local path, _, root_dir, _ = periodic.build_path(opts.periodic, kind, dinfo, opts.extension)
+        local path, _, root_dir, _ =
+            periodic.build_path(opts.periodic, kind, dinfo, opts.extension)
 
         if path and M.file_exists(path) then
             self.filepath = path
@@ -680,7 +693,12 @@ function M.Pinfo:resolve_link(title, opts)
 
         if opts.new_note_location == "smart" then
             if kind ~= nil and self.calendar_info ~= nil then
-                local path, _, root_dir, _ = periodic.build_path(opts.periodic, kind, self.calendar_info, opts.extension)
+                local path, _, root_dir, _ = periodic.build_path(
+                    opts.periodic,
+                    kind,
+                    self.calendar_info,
+                    opts.extension
+                )
 
                 if path then
                     self.filepath = path

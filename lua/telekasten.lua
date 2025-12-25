@@ -183,10 +183,14 @@ local function FindDailyNotes(opts)
             return
         end
 
-        local dinfo = dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
         if not fname or not root_dir then
             return
         end
@@ -195,11 +199,8 @@ local function FindDailyNotes(opts)
         local fexists = fileutils.file_exists(fname)
 
         local search_root = periodic.search_root(pcfg, "daily") or pcfg.root
-        local search_pattern = periodic.filename_pattern(
-            pcfg,
-            "daily",
-            config.options.extension
-        )
+        local search_pattern =
+            periodic.filename_pattern(pcfg, "daily", config.options.extension)
 
         local function picker()
             fileutils.find_files_sorted({
@@ -223,10 +224,7 @@ local function FindDailyNotes(opts)
             })
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -263,10 +261,14 @@ local function FindWeeklyNotes(opts)
             return
         end
 
-        local dinfo = dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "weekly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, "weekly", dinfo, config.options.extension)
         if not fname or not root_dir then
             return
         end
@@ -274,7 +276,8 @@ local function FindWeeklyNotes(opts)
         local kcfg = pcfg.kinds.weekly
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "weekly") or pcfg.root
-        local search_pattern = periodic.filename_pattern(pcfg, "weekly", config.options.extension)
+        local search_pattern =
+            periodic.filename_pattern(pcfg, "weekly", config.options.extension)
 
         local picker_actions = tkpickers.picker_actions
         local function picker()
@@ -299,10 +302,7 @@ local function FindWeeklyNotes(opts)
             })
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -336,10 +336,18 @@ local function FindMonthlyNotes(opts)
             return
         end
 
-        local dinfo = dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "monthly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ = periodic.build_path(
+            pcfg,
+            "monthly",
+            dinfo,
+            config.options.extension
+        )
         if not fname or not root_dir then
             return
         end
@@ -347,7 +355,8 @@ local function FindMonthlyNotes(opts)
         local kcfg = pcfg.kinds.monthly
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "monthly") or pcfg.root
-        local search_pattern = periodic.filename_pattern(pcfg, "monthly", config.options.extension)
+        local search_pattern =
+            periodic.filename_pattern(pcfg, "monthly", config.options.extension)
 
         local picker_actions = tkpickers.picker_actions
 
@@ -373,10 +382,7 @@ local function FindMonthlyNotes(opts)
             })
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -410,10 +416,18 @@ local function FindQuarterlyNotes(opts)
             return
         end
 
-        local dinfo = dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "quarterly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ = periodic.build_path(
+            pcfg,
+            "quarterly",
+            dinfo,
+            config.options.extension
+        )
         if not fname or not root_dir then
             return
         end
@@ -421,7 +435,11 @@ local function FindQuarterlyNotes(opts)
         local kcfg = pcfg.kinds.quarterly
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "quarterly") or pcfg.root
-        local search_pattern = periodic.filename_pattern(pcfg, "quarterly", config.options.extension)
+        local search_pattern = periodic.filename_pattern(
+            pcfg,
+            "quarterly",
+            config.options.extension
+        )
 
         local picker_actions = tkpickers.picker_actions
 
@@ -447,10 +465,7 @@ local function FindQuarterlyNotes(opts)
             })
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -484,10 +499,14 @@ local function FindYearlyNotes(opts)
             return
         end
 
-        local dinfo = dateutils.calculate_dates(nil, config.options.calendar_opts.calendar_monday)
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "yearly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, "yearly", dinfo, config.options.extension)
         if not fname or not root_dir then
             return
         end
@@ -495,7 +514,8 @@ local function FindYearlyNotes(opts)
         local kcfg = pcfg.kinds.yearly
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "yearly") or pcfg.root
-        local search_pattern = periodic.filename_pattern(pcfg, "yearly", config.options.extension)
+        local search_pattern =
+            periodic.filename_pattern(pcfg, "yearly", config.options.extension)
 
         local picker_actions = tkpickers.picker_actions
 
@@ -521,10 +541,7 @@ local function FindYearlyNotes(opts)
             })
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -869,7 +886,8 @@ local function GotoDate(opts)
     end
 
     local dinfo = opts.dates or os.date(dateutils.dateformats.date)
-    local fname, title, root_dir, _ = periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
+    local fname, title, root_dir, _ =
+        periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
 
     local fexists = fileutils.file_exists(fname)
     local picker_actions = tkpickers.picker_actions
@@ -909,10 +927,7 @@ local function GotoDate(opts)
         end
     end
 
-    if
-        (not fexists)
-        and kcfg.create_if_missing
-    then
+    if (not fexists) and kcfg.create_if_missing then
         fileutils.create_note_from_template(
             title,
             nil,
@@ -1327,7 +1342,7 @@ local function FollowLink(opts)
                         absolute_path_title = title,
                         title = title,
                     })
-                    local pinfo = Pinfo:new(external_opts)
+                    local pinfo = fileutils.Pinfo:new(external_opts)
 
                     if pinfo.fexists then
                         -- File exists, open it
@@ -1761,7 +1776,8 @@ local function GotoThisWeek(opts)
         )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "weekly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, "weekly", dinfo, config.options.extension)
         if not fname or not root_dir then
             return
         end
@@ -1800,10 +1816,7 @@ local function GotoThisWeek(opts)
             end
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             local template = kcfg.template_file or M.note_type_templates.weekly
             fileutils.create_note_from_template(
                 title,
@@ -1847,7 +1860,12 @@ local function GotoThisMonth(opts)
         )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "monthly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ = periodic.build_path(
+            pcfg,
+            "monthly",
+            dinfo,
+            config.options.extension
+        )
         if not fname or not root_dir then
             return
         end
@@ -1855,7 +1873,8 @@ local function GotoThisMonth(opts)
         local kcfg = pcfg.kinds.monthly
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "monthly")
-        local search_pattern = periodic.filename_pattern(pcfg, "monthly", config.options.extension)
+        local search_pattern =
+            periodic.filename_pattern(pcfg, "monthly", config.options.extension)
 
         local picker_actions = tkpickers.picker_actions
 
@@ -1890,10 +1909,7 @@ local function GotoThisMonth(opts)
             end
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -1937,7 +1953,12 @@ local function GotoThisQuarter(opts)
         )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "quarterly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ = periodic.build_path(
+            pcfg,
+            "quarterly",
+            dinfo,
+            config.options.extension
+        )
         if not fname or not root_dir then
             return
         end
@@ -1977,10 +1998,7 @@ local function GotoThisQuarter(opts)
             end
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -2023,7 +2041,8 @@ local function GotoThisYear(opts)
         )
 
         local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(pcfg, "yearly", dinfo, config.options.extension)
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, "yearly", dinfo, config.options.extension)
         if not fname or not root_dir then
             return
         end
@@ -2063,10 +2082,7 @@ local function GotoThisYear(opts)
             end
         end
 
-        if
-            (not fexists)
-            and kcfg.create_if_missing
-        then
+        if (not fexists) and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,

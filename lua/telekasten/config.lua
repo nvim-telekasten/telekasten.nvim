@@ -1,7 +1,7 @@
 -- The configuration setup is inspire from akinsho/bufferline.nvim
 --
 local vim = vim
-local periodic = require('telekasten.periodic')
+local periodic = require("telekasten.periodic")
 
 ---@class M: Config
 local M = {}
