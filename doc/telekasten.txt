@@ -25,33 +25,34 @@ https://github.com/renerocksai/telekasten.nvim
                                                            *telekasten.contents*
 CONTENTS
 
-    0. Note file naming .............. |telekasten.note_naming|
-    1. Setup ......................... |telekasten.setup|
-        1.1 Requirements ............. |telekasten.requirements|
-        1.2 Configuration ............ |telekasten.configuration|
-    2. Highlights .................... |telekasten.highlights|
-    3. Usage ......................... |telekasten.usage|
-        3.1 Link Notation ............ |telekasten.link_notation|
-        3.2 Tag Notation ............. |telekasten.tag_notation|
-        3.3 Templates ................ |telekasten.templates|
-        3.4 Calendar ................. |telekasten.calendar|
-        3.5 Picker mappings .......... |telekasten.picker_mappings|
-        3.6 Multiple home directories. |telekasten.switch_vaults|
-    4. Suggested mappings ............ |telekasten.mappings|
-    5. FAQ ........................... |telekasten.faq|
-        5.1 Windows .................. |telekasten.windows|
-    6. Credits ....................... |telekasten.credits|
+    0. Note file naming .................... |telekasten.note_naming|
+    1. Setup ............................... |telekasten.setup|
+        1.1 Requirements ................... |telekasten.requirements|
+        1.2 Configuration .................. |telekasten.configuration|
+            1.2.1 Settings ................. |telekasten.settings|
+            1.2.2 Periodic ................. |telekasten.periodic|
+            1.2.3 Calender Options ......... |telekasten.calendar_opts|
+    2. Highlights .......................... |telekasten.highlights|
+    3. Usage ............................... |telekasten.usage|
+        3.1 Link Notation .................. |telekasten.link_notation|
+        3.2 Tag Notation ................... |telekasten.tag_notation|
+        3.3 Templates ...................... |telekasten.templates|
+        3.4 Periodic Notes ................. |telekasten.periodic_usage|
+        3.5 Calendar ....................... |telekasten.calendar|
+        3.6 Picker mappings ................ |telekasten.picker_mappings|
+        3.7 Multiple home directories....... |telekasten.switch_vaults|
+    4. Suggested mappings .................. |telekasten.mappings|
+    5. FAQ ................................. |telekasten.faq|
+        5.1 Windows ........................ |telekasten.windows|
+    6. Credits ............................. |telekasten.credits|
 
 ================================================================================
 Section 0: Note file naming                             *telekasten.note_naming*
 
 Please Note:~
-Currently, the following file naming conventions are hard-coded:
-- daily note files : `YYYY-MM-DD.ext` (e.g. `2021-11-21.md`)
-- weekly note files: `YYYY-Www.ext`   (e.g. `2021-W46.md`)
-- monthly note files: `YYYY-MM.ext` (e.g. `2021-11.md`)
-- quarterly note files: `YYYY-[Q]Q.ext` (e.g. `2021-Q4.md`)
-- yearly note files: `YYYY.ext` (e.g. `2021.md`)
+Previously, the file names for all periodic style notes (eg. daily notes,
+weekly notes, etc) was hardcoded, however now the filenames for the periodic
+notes is determined by the `filename` setting in periodic setup (see _).
 
 
 ================================================================================
@@ -73,21 +74,10 @@ telekasten.setup({opts})
 
       -- Main paths
       home = '/path/to/directory',          -- path to main notes folder
-      dailies = '/path/to/directory',       -- path to daily notes
-      weeklies = '/path/to/directory',      -- path to weekly notes
-      monthlies = '/path/to/directory',     -- path to monthly notes
-      quarterlies = '/path/to/directory',   -- path to quarterly notes
-      yearlies = '/path/to/directory',      -- path to yearly notes
-      templates = '/path/to/directory',     -- path to templates
 
       -- Specific note templates
         -- set to `nil` or do not specify if you do not want a template
       template_new_note = '/path/to/file',      -- template for new notes
-      template_new_daily = '/path/to/file',     -- template for new daily notes
-      template_new_weekly = '/path/to/file',    -- template for new weekly notes
-      template_new_monthly = '/path/to/file',   -- template for new monthly notes
-      template_new_quarterly = '/path/to/file', -- template for new quarterly notes
-      template_new_yearly = '/path/to/file',    -- template for new yearly notes
 
       -- Image subdir for pasting
         -- subdir name
@@ -110,11 +100,6 @@ telekasten.setup({opts})
 
       -- Flags for creating non-existing notes
       follow_creates_nonexisting = true,     -- create non-existing on follow
-      dailies_create_nonexisting = true,     -- create non-existing dailies
-      weeklies_create_nonexisting = true,    -- create non-existing weeklies
-      monthlies_create_nonexisting = true,   -- create non-existing monthlies
-      quarterlies_create_nonexisting = true, -- create non-existing quarterlies
-      yearlies_create_nonexisting = true,    -- create non-existing yearlies
 
       -- skip telescope prompt for goto_today and goto_thisweek
       journal_auto_open = false,
@@ -166,6 +151,66 @@ telekasten.setup({opts})
         ".webp",
       },
 
+      periodic = {
+        -- Root directory for all Periodic Notes
+        -- Default is the configured vault home directory
+        root = "",
+        kinds = {
+            yearly = {
+                -- Whether to enable this particular kind of periodic note
+                enabled = true,
+                -- Set only if you want a different root directory than the
+                -- periodic root
+                root = "",
+                -- The folder path under the periodic root where you want the
+                -- files for this kind of note to be stored. Supported values are
+                -- string literals, template values, (eg. either "yearlies" or
+                -- "{year}"). A mix of the two is also supported, (eg.
+                -- "yearlies/{year}")
+                folder_path = "",
+                -- Filename for this kind, supports the same values as
+                -- folder_path
+                filename = "{year}",
+                -- Template file for this kind of note
+                template_file = "",
+                -- Create this kind of note if it's missing
+                create_if_missing = true,
+            },
+            quarterly = {
+                enabled = true,
+                root = "",
+                folder_path = "",
+                filename = "{quarter_yq}",
+                template_file = "",
+                create_if_missing = true,
+            },
+            monthly = {
+                enabled = true,
+                root = "",
+                folder_path = "",
+                filename = "{month_ym}",
+                template_file = "",
+                create_if_missing = true,
+            },
+            weekly = {
+                enabled = true,
+                root = "",
+                folder_path = "",
+                filename = "{isoweek}",
+                template_file = "",
+                create_if_missing = true,
+            },
+            daily = {
+                enabled = true,
+                root = "",
+                folder_path = "",
+                filename = "{date}",
+                template_file = "",
+                create_if_missing = true,
+            },
+        },
+      },
+
       -- Calendar integration
       plug_into_calendar = true,         -- use calendar integration
       calendar_opts = {
@@ -199,6 +244,7 @@ telekasten.setup({opts})
     }
 <
 
+                                                *telekasten.settings*
     ---------------------
     Valid keys for {opts}
     ---------------------
@@ -246,41 +292,6 @@ telekasten.setup({opts})
         If `false`, the telekasten syntax will not be set.
 
         Default: `true`
-
-                                               *telekasten.settings.dailies*
-    dailies: ~
-        Path to your daily notes, to separate them from 'normal' notes.
-        Accepts absolute path or sub-directory name.
-
-        Default: 'vim.fn.expand("~/zettelkasten")'
-
-                                              *telekasten.settings.weeklies*
-    weeklies: ~
-        Path to your weekly notes, to separate them from 'normal' notes.
-        Accepts absolute path or sub-directory name.
-
-        Default: 'vim.fn.expand("~/zettelkasten")'
-
-                                              *telekasten.settings.monthlies*
-    monthlies: ~
-        Path to your monthly notes, to separate them from 'normal' notes.
-        Accepts absolute path or sub-directory name.
-
-        Default: 'vim.fn.expand("~/zettelkasten")'
-
-                                            *telekasten.settings.quarterlies*
-    quarterlies: ~
-        Path to your quarterly notes, to separate them from 'normal' notes.
-        Accepts absolute path or sub-directory name.
-
-        Default: 'vim.fn.expand("~/zettelkasten")'
-
-                                            *telekasten.settings.yearlies*
-    yearlies: ~
-        Path to your yearly notes, to separate them from 'normal' notes.
-        Accepts absolute path or sub-directory name.
-
-        Default: 'vim.fn.expand("~/zettelkasten")'
 
                                            *telekasten.settings.templates*
     templates: ~
@@ -383,43 +394,6 @@ telekasten.setup({opts})
 
         Default: true
 
-                          *telekasten.settings.dailies_create_nonexisting*
-    dailies_create_nonexisting: ~
-        Flag that determines whether today's note should always be created if
-        not present. Also, whether daily notes should be created when opening
-        them via the calendar.
-
-        Default: true
-
-                         *telekasten.settings.weeklies_create_nonexisting*
-    weeklies_create_nonexisting: ~
-        Flag that determines whether this week's note should always be created
-        if not present. Also, whether weekly notes should be created when
-        opening them via the calendar.
-
-        Default: true
-
-                         *telekasten.settings.monthlies_create_nonexisting*
-    monthlies_create_nonexisting: ~
-        Flag that determines whether this month's note should always be
-        created if not present. Also, whether monthly notes should be created
-        when opening them via the calendar.
-
-        Default: true
-
-                       *telekasten.settings.quarterlies_create_nonexisting*
-    quarterlies_create_nonexisting: ~
-        Flag that determines whether this quarter's note should always be
-        created if not present. Also, whether quarterly notes should be created
-        when opening them via the calendar.
-
-        Default: true
-
-                       *telekasten.settings.yearlies_create_nonexisting*
-    yearlies_create_nonexisting: ~
-        Flag that determines whether this year's note should always be
-        created if not present. Also, whether yearly notes should be created
-        when opening them via the calendar.
                               *telekasten.settings.external_link_follow*
     external_link_follow: ~
         Flag that determines whether links to files outside the current vault
@@ -439,7 +413,7 @@ telekasten.setup({opts})
                          *telekasten.settings.journal_auto_open*
     journal_auto_open: ~
         Flag that determines whether the telescope picker should be used when
-        opening the daily and weekly notes, or if they should be directly
+        opening the periodic notes, or if they should be directly
         created/opened.
 
         Default: false
@@ -451,46 +425,6 @@ telekasten.setup({opts})
 
         Default: `nil`
         Example: `'vim.fn.expand("~/zettelkasten/templates/basenote.md")'`
-
-                                  *telekasten.settings.template_new_daily*
-    template_new_daily: ~
-        Markdown template for new daily notes. Set to `nil` if you don't want
-        a template.
-
-        Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/daily.md")'`
-
-                                 *telekasten.settings.template_new_weekly*
-    template_new_weekly: ~
-        Markdown template for new weekly notes. Set to `nil` if you don't want
-        a template.
-
-        Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/weekly.md")'`
-
-                                *telekasten.settings.template_new_monthly*
-    template_new_monthly: ~
-        Markdown template for new monthly notes. Set to `nil` if you don't
-        want a template.
-
-        Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/monthly.md")'`
-
-                              *telekasten.settings.template_new_quarterly*
-    template_new_quarterly: ~
-        Markdown template for new quarterly notes. Set to `nil` if you don't
-        want a template.
-
-        Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/quarterly.md")'`
-
-                              *telekasten.settings.template_new_yearly*
-    template_new_yearly: ~
-        Markdown template for new yearly notes. Set to `nil` if you don't
-        want a template.
-
-        Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/yearly.md")'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax: ~
@@ -526,7 +460,7 @@ telekasten.setup({opts})
         via `new_note()`, or by `follow_link()` to a non-existing note.
 
         Valid options are:
-        - `'smart'`:     if day or week is detected in title, use daily / weekly
+        - `'smart'`:     if a periodic kind is detected in title, use periodic
                        templates, else the new note template.
 
         - `'prefer_new_note'`: use the new note template.
@@ -541,10 +475,9 @@ telekasten.setup({opts})
         to non-existing note.
 
         Valid options are:
-        - `'smart'`: put daily-looking (date as title) into the daily folder,
-                   weekly-looking notes into the weekly folder, all other notes
-                   into the home folder, except for notes with `sub/folders` in
-                   the title.
+        - `'smart'`: put periodic style notes into their configured folder,
+                   all other notes into the home folder, except for notes
+                   with `sub/folders` in the title.
 
         - `'prefer_home'`: put all notes in home folder except for
                          `goto_today()` and `goto_thisweek()`, and notes with
@@ -591,6 +524,164 @@ telekasten.setup({opts})
         using the `find_notes` picker.
 
         Default: true
+
+                                                *telekasten.periodic*
+    -----------------------------------
+    Valid keys for {opts.periodic}
+    -----------------------------------
+
+                                            *telekasten.periodic.root*
+    root: ~
+        Relative or Absolute path to hold all of your periodic style notes,
+        including daily, weekly, monthly, quarterly, and yearly notes. For a
+        relative path, eg. 'periodic', the specified subdirectory of the vault
+        root is used (see |telekasten.settings.home|). Set to nil if you 
+        don't wish to use a common root folder for all periodic notes, and it
+        will default to your vault root, and then you can instead set the 
+        individual root per kind. See |telekasten.periodic.kinds.root|.
+
+        For further usage information: ~
+            - see |telekasten.periodic_usage|
+
+        Default: |telekasten.settings.home|
+        Examples: ~
+            - Relative: 'periodic' (becomes 'vaultroot/periodic')
+            - Absolute: '~/zettelkasten/periodic' or
+                `vim.fn.expand('~/zettelkasten/periodic')`
+
+                                            *telekasten.periodic.kinds*
+    kinds: ~
+        A table containing configs for all periodic note kinds, which don't
+        have to be in a particular order. Yearly was only listed first in the
+        setup example for the convenience of users of nested setups. List of valid
+        kinds are:
+
+        - 'daily'
+        - 'weekly'
+        - 'monthly'
+        - 'quarterly'
+        - 'yearly'
+
+        The list of available options for each kind are the same, so for
+        convenience sake, only the kind options are listed here:
+
+        - `enabled`: 
+            - see |telekasten.periodic.kinds.enabled|
+        - `root`: 
+            - see |telekasten.periodic.kinds.root|
+        - `folder_path`: 
+            - see |telekasten.periodic.kinds.folder_path
+        - `filename`: 
+            - see |telekasten.periodic.kinds.filename|
+        - `template_file`:
+            - see |telekasten.periodic.kinds.template_file|
+        - `create_if_missing`:
+            - see |telekasten.periodic.kinds.create_if_missing|
+
+        For further usage information: ~
+            - see |telekasten.periodic_usage|
+
+                                    *telekasten.periodic.kinds.enabled*
+        enabled: ~
+            If `false`, no notes for this kind will be created.
+
+            Default: `true`
+
+                                    *telekasten.periodic.kinds.root*
+        root: ~
+            Absolute or relative path to the vault root, used in case you wish
+            this particular periodic variant to be stored in a separate
+            location within the vault rather than nested underneath the
+            periodic root. Set to nil or leave empty to disable this option.
+
+            Default: `nil`
+            Examples: ~
+                - Relative: 'yearly' (becomes 'vaultroot/yearly')
+                - Absolute: '~/zettelkasten/yearly' or
+                    `vim.fn.expand('~/zettelkasten/yearly')`
+        
+                                *telekasten.periodic.kinds.folder_path*
+        folder_path: ~
+            Relative path to the configured root (either periodic.root or
+            kinds.root), where the files for the notes for this periodic kind
+            are stored. Do not include the desired file name, or you'll end up
+            creating another nested folder, which is probably not desired.
+            Both literal strings and template values are supported, as well as
+            both combined together. For specific usage help, see |telekasten.periodic.config|.
+
+            By default the folder_path for each kinds are empty, thus they are
+            placed directly under the periodic root.
+
+            Examples: ~
+                - Nested Templates: `{year}/{quarter_yq}/{month_ym}`
+                - Nested Literals: 'yearlies/quarterlies/monthlies'
+
+            For further usage information: ~
+                - see |telekasten.periodic_usage|
+
+                                    *telekasten.periodic.kinds.filename*
+        filename: ~
+            The desired filename for this periodic kind. It's recommended to
+            keep it as a template value or arrangement of template values. Any
+            arrangement of template values is supported for the creation of
+            the file and regular file searching and selection. The only area
+            where full support isn't guaranteed is in date info for the file,
+            as that uses a different system of detection patterns which relies
+            on full filename regex rather than token-based regex. That being
+            said, all features should still work for any combination of
+            supported template values.
+
+            IMPORTANT: Please do not use the template order MM DD YYYY for your daily
+            notes, as the regex detection for this is identical to the
+            detection of DD MM YYYY, which is currently supported.
+
+            For all template values, see |telekasten.template_files|. Please
+            avoid anything unrelated to dates, and anything regarding
+            prev/next date values and first/last of values. If using a custom
+            template arrangement for dailies, use the template value `{day}` 
+            rather than `{date}` for the day number.
+
+            For further usage information: ~
+                - see |telekasten.periodic_usage|
+
+            Defaults vary by kind: ~
+                - 'yearly': `{year}`
+                - 'quarterly': `{quarter_yq}`
+                - 'monthly': `{month_ym}`
+                - 'weekly': `{isoweek}`
+                - 'daily': `{date}`
+
+            Examples: ~
+                - Provided Full Templates: ~
+                    - Template: `{month_ym}`
+                    - Result: `2025-12`
+                - Custom Template Arrangements: ~
+                    - Template: `{month}-{year}`
+                    - Result: `12-2025`
+
+            Supported Separators for Custom Templates: ~
+                - Dash (`-`): e.g. `2025-12`
+                - Dot (`.`): e.g. `2025.12`
+                - Space ( ): e.g. `2025 12`
+
+                            *telekasten.periodic.kinds.template_file*
+        template_file: ~
+            The path to the template file to use when creating a new note
+            of a specific kind. Function is exactly the same as regular
+            template files.
+
+            See Also: ~
+                - |telekasten.templates|
+
+            Default: `nil`
+
+                        *telekasten.periodic.kinds.create_if_missing*
+        create_if_missing: ~
+            Flag that determines whether this periodic kind should be
+            automatically created when following a link or selecting it in a
+            picker.
+
+            Default: `true`
 
                                                *telekasten.calendar_opts*
     -----------------------------------
@@ -722,16 +813,16 @@ telekasten.find_daily_notes() ~
   most recent file first.
 
   If today's daily note is not present, will be created if
-  `dailies_create_nonexisting` is set to `true`.
+  `daily.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.dailies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New daily notes are created with the template specified in the
-  `template_new_daily` setting.
+  `daily.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_daily|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -740,16 +831,16 @@ telekasten.goto_today() ~
   Pops up a Telescope finder with today's daily note pre-selected.
 
   If today's daily note is not present, will be created if
-  `dailies_create_nonexisting` is set to `true`.
+  `daily.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.dailies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New daily notes are created with the template specified in the
-  `template_new_daily` setting.
+  `daily.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_daily|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -758,35 +849,35 @@ telekasten.find_weekly_notes() ~
   Find weekly notes by week, via Telescope. File names are sorted by file
   name, most recent file first.
 
-  If this week's daily note is not present, will be created if
-  `weeklies_create_nonexisting` is set to `true`.
+  If this week's weekly note is not present, will be created if
+  `weekly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.weeklies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New weekly notes are created with the template specified in the
-  `template_new_weekly` setting.
+  `weekly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_weekly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                                   *telekasten.goto_thisweek()*
 telekasten.goto_thisweek() ~
-  Pops up a Telescope finder with this week's daily note pre-selected.
+  Pops up a Telescope finder with this week's weekly note pre-selected.
 
-  If this week's daily note is not present, will be created if
-  `weeklies_create_nonexisting` is set to `true`.
+  If this week's weekly note is not present, will be created if
+  `weekly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.weeklies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New weekly notes are created with the template specified in the
-  `template_new_weekly` setting.
+  `weekly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_weekly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -796,34 +887,34 @@ telekasten.find_monthly_notes() ~
   name, most recent file first.
 
   If this month's monthly note is not present, will be created if
-  `monthlies_create_nonexisting` is set to `true`.
+  `monthly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.monthlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New monthly notes are created with the template specified in the
-  `template_new_monthly` setting.
+  `monthly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_monthly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
                                                   *telekasten.goto_thismonth()*
 telekasten.goto_thismonth() ~
-  Pops up a Telescope finder with this month's daily note pre-selected.
+  Pops up a Telescope finder with this month's monthly note pre-selected.
 
   If this month's monthly note is not present, will be created if
-  `monthlies_create_nonexisting` is set to `true`.
+  `monthly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.monthlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New monthly notes are created with the template specified in the
-  `template_new_monthly` setting.
+  `monthly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_monthly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -833,16 +924,16 @@ telekasten.find_quarterly_notes() ~
   name, most recent file first.
 
   If this quarter's quarterly note is not present, will be created if
-  `quarterlies_create_nonexisting` is set to `true`.
+  `quarterly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.quarterlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New quarterly notes are created with the template specified in the
-  `template_new_quarterly` setting.
+  `quarterly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_quarterly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -851,16 +942,16 @@ telekasten.goto_thisquarter() ~
   Pops up a Telescope finder with this quarter's quarterly note pre-selected.
 
   If this quarter's quarterly note is not present, will be created if
-  `quarterlies_create_nonexisting` is set to `true`.
+  `quarterly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.quarterlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New quarterly notes are created with the template specified in the
-  `template_new_quarterly` setting.
+  `quarterly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_quarterly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -870,16 +961,16 @@ telekasten.find_yearly_notes() ~
   name, most recent file first.
 
   If this year's yearly note is not present, will be created if
-  `yearlies_create_nonexisting` is set to `true`.
+  `yearly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.yearlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New yearly notes are created with the template specified in the
-  `template_new_yearly` setting.
+  `yearly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_yearly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -888,16 +979,16 @@ telekasten.goto_thisyear() ~
   Pops up a Telescope finder with this year's yearly note pre-selected.
 
   If this year's yearly note is not present, will be created if
-  `yearlies_create_nonexisting` is set to `true`.
+  `yearly.create_if_missing` is set to `true`.
 
   See also: ~
-      - |telekasten.settings.yearlies_create_nonexisting|
+      - |telekasten.periodic.kinds.create_if_missing|
 
   New yearly notes are created with the template specified in the
-  `template_new_yearly` setting.
+  `yearly.template_file` setting.
 
   See also: ~
-      - |telekasten.settings.template_new_yearly|
+      - |telekasten.periodic.kinds.template_file|
       - |telekasten.templates|
       - |telekasten.template_files|
 
@@ -1156,25 +1247,9 @@ you jump to today's or this week's note, or when you typed a
 
 The specific templates and settings used are:
 
-  For daily notes: ~
-    - |telekasten.settings.template_new_daily|
-    - |telekasten.settings.dailies_create_nonexisting|
-
-  For weekly notes: ~
-    - |telekasten.settings.template_new_weekly|
-    - |telekasten.settings.weeklies_create_nonexisting|
-
-  For monthly notes: ~
-    - |telekasten.settings.template_new_monthly|
-    - |telekasten.settings.monthlies_create_nonexisting|
-
-  For quarterly notes: ~
-    - |telekasten.settings.template_new_quarterly|
-    - |telekasten.settings.quarterlies_create_nonexisting|
-
-  For yearly notes: ~
-    - |telekasten.settings.template_new_yearly|
-    - |telekasten.settings.yearlies_create_nonexisting|
+  For periodic notes: ~
+    - |telekasten.periodic.kinds.template_file|
+    - |telekasten.periodic.kinds.create_if_missing|
 
   For all other notes: ~
     - |telekasten.settings.template_new_note|
@@ -1207,9 +1282,8 @@ note:
                                                    *telekasten.template_files*
 Template Files ~
 
-The options `template_new_note`, `template_new_daily`, `template_new_weekly`,
-`template_new_monthly`, and `template_new_quarterly` are used to specify the paths to
-template text files that are used for creating new notes.
+The options `template_new_note`, and the periodic kind `template_file` are used to specify
+the paths to template text files that are used for creating new notes.
 
 The following substitutions will be made during new note creation:
 
@@ -1286,7 +1360,91 @@ And finally, what a template for weekly notes could look like:
 <
 
 --------------------------------------------------------------------------------
-Section 3.4: Calendar                                    *telekasten.calendar*
+Section 3.4: Periodic Usage                     *telekasten.periodic_usage*
+
+The current implementation of periodic notes includes support for many kinds
+of setups, including flat setups and many different nested setups. The only
+limitations currently are that not every filename token arrangement you make
+will be fully supported for `smart` note handling, as the automatic date
+detection only supports a limited list of regex patterns, although the
+creation and file picking functionality is unaffected.
+
+Important: ~
+    The template pattern `MM DD YYYY` for daily notes is not supported, as that
+    regex pattern is currently used to detect the pattern `DD MM YYYY`.
+    Regardless of separator, this remains the case.
+
+For specifics on the configuration settings, see: ~
+    - |telekasten.periodic|
+    - |telekasten.periodic.root|
+    - |telekasten.periodic.kinds|
+    - |telekasten.periodic.kinds.enabled|
+    - |telekasten.periodic.kinds.root|
+    - |telekasten.periodic.kinds.folder_path|
+    - |telekasten.periodic.kinds.filename|
+    - |telekasten.periodic.kinds.template_file|
+    - |telekasten.periodic.kinds.create_if_missing|
+
+General Concepts: ~
+    The exact folder path relative to the vault root/home (see
+    |telekasten.settings.home|) is generally managed by the `folder_path`
+    option per periodic kind, and supports any kind of combination of template
+    values and literal strings. This could be used to create any kind of
+    nested setup. For example, to demonstrate my personal setup:
+
+    - Dailies: `{year}/{quarter_yq}/{month_ym}/{isoweek}/{date}`
+        - Results in '2025/2025-Q4/2025-12/2025-W52/2025-12-23.md'
+
+    Every other periodic kind is stored in its own folder within that nest,
+    so for example my '2023-Q2' note would be stored in
+    '2023/2023-Q2/2023-Q2.md'. This results in a setup that is continuously
+    properly nested under each respective year.
+
+    Variations of this kind of nested setup are also supported, if you 
+    don't wish everything nested under year for example, you would set the
+    folder_path accordingly. Every folder_path setting per kind is considered
+    relative to the periodic root if the per kind root is not set.
+
+    Usage is also not limited to using only template values, literals are
+    supported as well. So for example you could set yearlies to be
+    `yearlies/{year}`, which would result in 'yearlies/2025/2025.md'. Or you
+    could use just plain literals for the folder_path, although that is not
+    recommended for the filename. So for example all monthlies could live in
+    `yearlies/quarterlies/monthlies`, which would result in '2025-12.md'
+    living in that last folder. One thing to keep in mind with this kind of
+    setup is that all of a particular kind will be stored in whatever folder
+    path you set, so every monthly note for every year would live in the
+    `monthlies` folder, and there would be no direct date correlation and
+    organization unless you provided that in some other way.
+
+    The relationship of filename and folder_path is such that the
+    filename will be appended with the extension, and then placed
+    under whatever the endpoint of the folder_path is. So for example
+    if you have a nested folder_path such as '2025/2025-Q4/2025-12' as
+    the folder_path for monthly notes, and your filename is set to
+    `{month_ym}`, then the full filepath will become
+    '2025/2025-Q4/2025-12/2025-12.md'. This does not prevent other
+    kinds being nested under the same folder path, such as weeklies or
+    dailies, but still places the monthly notes in the desired
+    locations.
+
+    Custom template arrangements for both folder_path and filename are
+    supported as well. Combinations of any supported template values are
+    supported, for the full list of supported template values, see
+    |telekasten.template_files|. To create a custom template for a folder
+    path, insert the custom template anywhere within the string. For
+    example, to use the custom template `{month}-{year}` for monthlies, you
+    would set the folder_path to `{year}/{quarter_yq}/{month}-{year}`. You can
+    also insert it in the middle of a folder path as well, so for example if
+    using `Q{quarter}-{year}` for quarterlies, you would set the folder_path for 
+    monthlies to `{year}/Q{quarter}-{year}/{month}-{year}`. The same holds
+    true for filenames. Thus you can try every possible combination and permutation of
+    every known element, and it'll be supported, mostly. As stated previously,
+    the only limitation is with the attached date info for the file, but
+    creation, search, and all goto functions should still work properly.
+
+--------------------------------------------------------------------------------
+Section 3.5: Calendar                                    *telekasten.calendar*
 
 When invoking `show_calendar()`, a calendar showing the previous, current, and
 next month is shown at the right side of vim.
