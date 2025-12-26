@@ -52,7 +52,8 @@ Section 0: Note file naming                             *telekasten.note_naming*
 Please Note:~
 Previously, the file names for all periodic style notes (eg. daily notes,
 weekly notes, etc) was hardcoded, however now the filenames for the periodic
-notes is determined by the `filename` setting in periodic setup (see _).
+notes is determined by the `filename` setting in periodic setup (see
+|telekasten.periodic.kinds.filename|).
 
 
 ================================================================================
@@ -570,7 +571,7 @@ telekasten.setup({opts})
         - `root`: 
             - see |telekasten.periodic.kinds.root|
         - `folder_path`: 
-            - see |telekasten.periodic.kinds.folder_path
+            - see |telekasten.periodic.kinds.folder_path|
         - `filename`: 
             - see |telekasten.periodic.kinds.filename|
         - `template_file`:

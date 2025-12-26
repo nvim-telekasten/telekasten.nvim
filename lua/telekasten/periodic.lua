@@ -18,7 +18,7 @@ local vim = vim
 ---@field extension string
 ---@field kinds table<string, PeriodicKindSpec>
 
-local kinds_order = { "yearly", "quarterly", "monthly", "weekly", "daily" }
+M.periodic_kinds = { "yearly", "quarterly", "monthly", "weekly", "daily" }
 
 --- detection_patterns
 -- A Table containing detection patterns which determine
@@ -39,11 +39,14 @@ M.detection_patterns = {
     -- Pattern : YYYY MM DD
     { "^(%d%d%d%d)%s+(%d%d)%s+(%d%d)$", "daily", { "year", "month", "day" } },
     -- Pattern: DD-MM-YYYY
-    { "^(%d%d)-(%d%d)-(%d%d%d%d)$", "daily", { "day", "month", "year" } }, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    { "^(%d%d)-(%d%d)-(%d%d%d%d)$", "daily", { "day", "month", "year" } },
     -- Pattern: DD.MM.YYYY
-    { "^(%d%d).(%d%d).(%d%d%d%d)$", "daily", { "day", "month", "year" } }, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    { "^(%d%d).(%d%d).(%d%d%d%d)$", "daily", { "day", "month", "year" } },
     -- Pattern: DD MM YYYY
-    { "^(%d%d)%s+(%d%d)%s+(%d%d%d%d)$", "daily", { "day", "month", "year" } }, -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
+    { "^(%d%d)%s+(%d%d)%s+(%d%d%d%d)$", "daily", { "day", "month", "year" } },
 
     -- WEEKLY PATTERNS
     -- Pattern: YYYY-[W]W
@@ -125,7 +128,7 @@ function M.normalize_periodic(periodic)
     periodic.root = periodic.root or ""
     periodic.kinds = periodic.kinds or {}
 
-    for _, kind in ipairs(kinds_order) do
+    for _, kind in ipairs(M.periodic_kinds) do
         local kcfg = periodic.kinds[kind] or {}
 
         if kcfg.enabled == nil then

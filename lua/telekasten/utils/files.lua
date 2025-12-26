@@ -159,13 +159,7 @@ local function apply_match(kind, fields, caps, cal_monday)
     for i, field in ipairs(fields) do
         local v = caps[i]
 
-        if
-            field == "year"
-            or field == "month"
-            or field == "day"
-            or field == "week"
-            or field == "quarter"
-        then
+        if periodic.periodic_kinds[field] then
             v = tonumber(v)
         end
 
