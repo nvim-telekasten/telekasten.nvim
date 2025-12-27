@@ -195,6 +195,20 @@ telekasten.setup({opts})
 
       -- Specify a clipboard program to use
       clipboard_program = "", -- xsel, xclip, wl-paste, osascript
+
+      -- Change default keybinds used in the picker.
+      -- Useful if you use <Tab> to cycle through entries, which overlaps with
+      -- <C-i> on most terminals.
+      -- To set keymaps for :Telekasten commands use |:map|.
+      keybinds = {
+        picker = {
+          yank_link    = "<c-y>",
+          paste_link   = "<c-i>",
+          i_yank_link  = "<c-y>",
+          i_paste_link = "<c-i>",
+          close        = { "<ESC>", "<C-c>" },
+        },
+      },
     }
 <
 
