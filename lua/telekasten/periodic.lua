@@ -35,7 +35,7 @@ M.detection_patterns = {}
 local token_meta = {
     year = {
         pattern = "%d%d%d%d",
-        fields = { "year" }
+        fields = { "year" },
     },
     month = {
         pattern = "%d%d",
@@ -55,7 +55,7 @@ local token_meta = {
     },
     quarter_yq = {
         pattern = "%d%d%d%d%-Q[1-4]",
-        fields = { "year", "quarter"},
+        fields = { "year", "quarter" },
     },
     month_ym = {
         pattern = "%d%d%d%d%-%d%d",
@@ -96,7 +96,7 @@ local function build_detection_patterns(periodic)
                     local s, e, token = tmpl:find("{([%w_]+)}", i)
                     if s then
                         if s > i then
-                            local literal = tmpl:sub(i, s-1)
+                            local literal = tmpl:sub(i, s - 1)
                             pat = pat .. escape_lua(literal)
                         end
 
