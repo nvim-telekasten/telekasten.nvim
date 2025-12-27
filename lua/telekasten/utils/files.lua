@@ -219,7 +219,9 @@ local function check_if_periodic(title)
     local is_yearly = false
 
     for _, entry in ipairs(periodic.detection_patterns) do
-        local pattern, kind, fields = entry[1], entry[2], entry[3]
+        local pattern = entry.pattern
+        local kind = entry.kind
+        local fields = entry.fields or {}
         local caps = { title:match(pattern) }
 
         if #caps > 0 then
@@ -759,7 +761,7 @@ function M.Pinfo:resolve_link(title, opts)
         elseif self.is_yearly then
             self.template = pcfg.kinds.yearly.template_file
         else
-            self.template = opts.note_type_templates.normal
+            self.template = opts.template_new_note
         end
     end
 

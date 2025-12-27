@@ -21,105 +21,116 @@ local vim = vim
 M.periodic_kinds = { "yearly", "quarterly", "monthly", "weekly", "daily" }
 
 --- detection_patterns
--- A Table containing detection patterns which determine
+-- A dynamically filled table containing detection patterns which determine
 -- if a given pattern is a periodic note or not.
 -- Each entry consists of three fields:
 -- pattern (string): The full string regex pattern for the filename
 -- kind (string): Which kind of periodic note it classifies as
--- value_table (table): Which values to update in the file's date info table,
+-- fields (table): Which values to update in the file's date info table,
 -- based on detected pattern order
--- For anything regarding weeklies or quarterlies, be sure to include
--- "week" or "quarter", respectively.
-M.detection_patterns = {
-    -- DAILY PATTERNS
-    -- Pattern: YYYY-MM-DD
-    { "^(%d%d%d%d)-(%d%d)-(%d%d)$", "daily", { "year", "month", "day" } },
-    -- Pattern: YYYY.MM.DD
-    { "^(%d%d%d%d).(%d%d).(%d%d)$", "daily", { "year", "month", "day" } },
-    -- Pattern : YYYY MM DD
-    { "^(%d%d%d%d)%s+(%d%d)%s+(%d%d)$", "daily", { "year", "month", "day" } },
-    -- Pattern: DD-MM-YYYY
-    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
-    { "^(%d%d)-(%d%d)-(%d%d%d%d)$", "daily", { "day", "month", "year" } },
-    -- Pattern: DD.MM.YYYY
-    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
-    { "^(%d%d).(%d%d).(%d%d%d%d)$", "daily", { "day", "month", "year" } },
-    -- Pattern: DD MM YYYY
-    -- IMPORTANT: Ask people to NOT use this kind of format for month/day/year
-    { "^(%d%d)%s+(%d%d)%s+(%d%d%d%d)$", "daily", { "day", "month", "year" } },
-
-    -- WEEKLY PATTERNS
-    -- Pattern: YYYY-[W]W
-    { "^(%d%d%d%d)-W(%d%d)$", "weekly", { "year", "week" } },
-    -- Pattern: YYYY.[W]W
-    { "^(%d%d%d%d).W(%d%d)$", "weekly", { "year", "week" } },
-    -- Pattern: YYYY [W]W
-    { "^(%d%d%d%d)%s+W(%d%d)$", "weekly", { "year", "week" } },
-    -- Pattern: [W]W-YYYY
-    { "^W(%d%d)-(%d%d%d%d)$", "weekly", { "week", "year" } },
-    -- Pattern: [W]W.YYYY
-    { "^W(%d%d).(%d%d%d%d)$", "weekly", { "week", "year" } },
-    -- Pattern: [W]W YYYY
-    { "^W(%d%d)%s+(%d%d%d%d)$", "weekly", { "week", "year" } },
-
-    -- MONTHLY PATTERNS
-    -- Pattern: YYYY-MM
-    { "^(%d%d%d%d)-(%d%d)$", "monthly", { "year", "month" } },
-    -- Pattern: YYYY.MM
-    { "^(%d%d%d%d).(%d%d)$", "monthly", { "year", "month" } },
-    -- Pattern: YYYY MM
-    { "^(%d%d%d%d)%s+(%d%d)$", "monthly", { "year", "month" } },
-    -- Pattern: YYYY-M  -- (month name)
-    { "^(%d%d%d%d)-(%a+)$", "monthly", { "year", "month_name" } },
-    -- Pattern: YYYY.M
-    { "^(%d%d%d%d).(%a+)$", "monthly", { "year", "month_name" } },
-    -- Pattern: YYYY M
-    { "^(%d%d%d%d)%s+(%a+)$", "monthly", { "year", "month_name" } },
-    -- Pattern: MM-YYYY
-    { "^(%d%d)-(%d%d%d%d)$", "monthly", { "month", "year" } },
-    -- Pattern: MM.YYYY
-    { "^(%d%d).(%d%d%d%d)$", "monthly", { "month", "year" } },
-    -- Pattern: MM YYYY
-    { "^(%d%d)%s+(%d%d%d%d)$", "monthly", { "month", "year" } },
-    -- Pattern: M-YYYY
-    { "^(%a+)-(%d%d%d%d)$", "monthly", { "month_name", "year" } },
-    -- Pattern: M.YYYY
-    { "^(%a+).(%d%d%d%d)$", "monthly", { "month_name", "year" } },
-    -- Pattern: M YYYY
-    { "^(%a+)%s+(%d%d%d%d)$", "monthly", { "month_name", "year" } },
-
-    -- QUARTERLY PATTERNS
-    -- Pattern: YYYY-[Q]Q
-    { "^(%d%d%d%d)-Q([1-4])$", "quarterly", { "year", "quarter" } },
-    -- Pattern: YYYY.[Q]Q
-    { "^(%d%d%d%d).Q([1-4])$", "quarterly", { "year", "quarter" } },
-    -- Pattern: YYYY [Q]Q
-    { "^(%d%d%d%d)%s+Q([1-4])$", "quarterly", { "year", "quarter" } },
-    -- Pattern: [Q]Q-YYYY
-    { "^Q([1-4])-(%d%d%d%d)$", "quarterly", { "quarter", "year" } },
-    -- Pattern: [Q]Q.YYYY
-    { "^Q([1-4]).(%d%d%d%d)$", "quarterly", { "quarter", "year" } },
-    -- Pattern: [Q]Q YYYY
-    { "^Q([1-4])%s+(%d%d%d%d)$", "quarterly", { "quarter", "year" } },
-
-    -- YEARLY PATTERNS
-    -- Pattern: YYYY
-    { "^(%d%d%d%d)$", "yearly", { "year" } },
-}
+M.detection_patterns = {}
 
 -- A Table for specific token detection
 -- NOTE: Different from detection_patterns! Only for specific template tokens.
-local token_patterns = {
-    year = "%d%d%d%d",
-    month = "%d%d",
-    day = "%d%d",
-    week = "%d%d",
-    quarter = "[1-4]",
-    quarter_yq = "%d%d%d%d%-Q[1-4]",
-    month_ym = "%d%d%d%d%-%d%d",
-    isoweek = "%d%d%d%d%-W%d%d",
-    date = "%d%d%d%d%-%d%d%-%d%d",
+local token_meta = {
+    year = {
+        pattern = "%d%d%d%d",
+        fields = { "year" }
+    },
+    month = {
+        pattern = "%d%d",
+        fields = { "month" },
+    },
+    day = {
+        pattern = "%d%d",
+        fields = { "day" },
+    },
+    week = {
+        pattern = "%d%d",
+        fields = { "week" },
+    },
+    quarter = {
+        pattern = "[1-4]",
+        fields = { "quarter" },
+    },
+    quarter_yq = {
+        pattern = "%d%d%d%d%-Q[1-4]",
+        fields = { "year", "quarter"},
+    },
+    month_ym = {
+        pattern = "%d%d%d%d%-%d%d",
+        fields = { "year", "day" },
+    },
+    isoweek = {
+        pattern = "%d%d%d%d%-W%d%d",
+        fields = { "year", "week" },
+    },
+    date = {
+        pattern = "%d%d%d%d%-%d%d%-%d%d",
+        fields = { "year", "month", "day" },
+    },
 }
+
+local function escape_lua(text)
+    return (text:gsub("([%%%^%$%(%)%.%[%]%+%-%?])", "%%%1"))
+end
+
+---@param periodic PeriodicConfig
+---@return table[] detection_patterns
+local function build_detection_patterns(periodic)
+    local patterns = {}
+
+    if not periodic or not periodic.kinds then
+        return patterns
+    end
+
+    for kind, kcfg in pairs(periodic.kinds) do
+        if kcfg ~= false then
+            local tmpl = kcfg.filename or ""
+            if tmpl ~= "" then
+                local pat = "^"
+                local fields = {}
+
+                local i = 1
+                while i <= #tmpl do
+                    local s, e, token = tmpl:find("{([%w_]+)}", i)
+                    if s then
+                        if s > i then
+                            local literal = tmpl:sub(i, s-1)
+                            pat = pat .. escape_lua(literal)
+                        end
+
+                        local meta = token_meta[token]
+                        if meta and meta.pattern then
+                            pat = pat .. meta.pattern
+                            for _, f in ipairs(meta.fields) do
+                                table.insert(fields, f)
+                            end
+                        else
+                            pat = pat .. ".*"
+                        end
+
+                        i = e + 1
+                    else
+                        local literal = tmpl:sub(i)
+                        pat = pat .. escape_lua(literal)
+                        break
+                    end
+                end
+
+                pat = pat .. "$"
+
+                table.insert(patterns, {
+                    pattern = pat,
+                    kind = kind,
+                    fields = fields,
+                })
+            end
+        end
+    end
+
+    return patterns
+end
 
 ---@param periodic PeriodicConfig|nil
 ---@return PeriodicConfig
@@ -146,6 +157,8 @@ function M.normalize_periodic(periodic)
 
         periodic.kinds[kind] = kcfg
     end
+
+    M.detection_patterns = build_detection_patterns(periodic)
 
     return periodic
 end
@@ -221,10 +234,12 @@ function M.filename_pattern(periodic, kind, extension)
     end
 
     -- escape lua pattern magic
-    pattern = pattern:gsub("([%%%^%$%(%)%.%[%]%+%-%?])", "%%%1")
+    pattern = pattern:gsub("[^{]+", function(lit)
+        return escape_lua(lit)
+    end)
 
     pattern = pattern:gsub("{([%w_]+)}", function(key)
-        return token_patterns[key] or ".*"
+        return token_meta[key] or ".*"
     end)
 
     extension = extension or ""
