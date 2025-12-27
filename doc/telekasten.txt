@@ -610,7 +610,7 @@ telekasten.setup({opts})
             Both literal strings and template values are supported, as well as
             both combined together. For specific usage help, see |telekasten.periodic.config|.
 
-            By default the folder_path for each kinds are empty, thus they are
+            By default the folder_path for each kind is empty, thus they are
             placed directly under the periodic root.
 
             Examples: ~
@@ -624,17 +624,8 @@ telekasten.setup({opts})
         filename: ~
             The desired filename for this periodic kind. It's recommended to
             keep it as a template value or arrangement of template values. Any
-            arrangement of template values is supported for the creation of
-            the file and regular file searching and selection. The only area
-            where full support isn't guaranteed is in date info for the file,
-            as that uses a different system of detection patterns which relies
-            on full filename regex rather than token-based regex. That being
-            said, all features should still work for any combination of
-            supported template values.
-
-            IMPORTANT: Please do not use the template order MM DD YYYY for your daily
-            notes, as the regex detection for this is identical to the
-            detection of DD MM YYYY, which is currently supported.
+            arrangement of template values is supported. Any separator you
+            decide to use between tokens is also supported.
 
             For all template values, see |telekasten.template_files|. Please
             avoid anything unrelated to dates, and anything regarding
@@ -659,11 +650,6 @@ telekasten.setup({opts})
                 - Custom Template Arrangements: ~
                     - Template: `{month}-{year}`
                     - Result: `12-2025`
-
-            Supported Separators for Custom Templates: ~
-                - Dash (`-`): e.g. `2025-12`
-                - Dot (`.`): e.g. `2025.12`
-                - Space ( ): e.g. `2025 12`
 
                             *telekasten.periodic.kinds.template_file*
         template_file: ~
@@ -1364,16 +1350,7 @@ And finally, what a template for weekly notes could look like:
 Section 3.4: Periodic Usage                     *telekasten.periodic_usage*
 
 The current implementation of periodic notes includes support for many kinds
-of setups, including flat setups and many different nested setups. The only
-limitations currently are that not every filename token arrangement you make
-will be fully supported for `smart` note handling, as the automatic date
-detection only supports a limited list of regex patterns, although the
-creation and file picking functionality is unaffected.
-
-Important: ~
-    The template pattern `MM DD YYYY` for daily notes is not supported, as that
-    regex pattern is currently used to detect the pattern `DD MM YYYY`.
-    Regardless of separator, this remains the case.
+of setups, including flat setups and many different nested setups.
 
 For specifics on the configuration settings, see: ~
     - |telekasten.periodic|
@@ -1439,10 +1416,8 @@ General Concepts: ~
     also insert it in the middle of a folder path as well, so for example if
     using `Q{quarter}-{year}` for quarterlies, you would set the folder_path for 
     monthlies to `{year}/Q{quarter}-{year}/{month}-{year}`. The same holds
-    true for filenames. Thus you can try every possible combination and permutation of
-    every known element, and it'll be supported, mostly. As stated previously,
-    the only limitation is with the attached date info for the file, but
-    creation, search, and all goto functions should still work properly.
+    true for filenames. Thus you can try every possible combination and 
+    permutation of every known element, and it'll be supported.
 
 --------------------------------------------------------------------------------
 Section 3.5: Calendar                                    *telekasten.calendar*
