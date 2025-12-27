@@ -27,7 +27,6 @@ local config = require("telekasten.config")
 
 -- declare locals for the nvim api stuff to avoid more lsp warnings
 local vim = vim
-local _home = vim.fn.expand("~/zettelkasten")
 local M = {}
 
 local function generate_note_filename(uuid, title)
@@ -961,25 +960,49 @@ end, {})
 local picker_actions = {}
 
 -- apply common keybinds in the picker
-local apply_picker_mappings = function (opts, default_select_func)
-    return function (_, map)
+local apply_picker_mappings = function(opts, default_select_func)
+    return function(_, map)
         actions.select_default:replace(
             default_select_func or picker_actions.select_default
         )
         -- Set a single or multiple keybinds to the functionality
         local map_conf = {
-            {"i", M.Cfg.keybinds.picker.i_yank_link,  picker_actions.yank_link(opts)},
-            {"i", M.Cfg.keybinds.picker.i_yank_link,  picker_actions.yank_link(opts)},
-            {"i", M.Cfg.keybinds.picker.i_paste_link, picker_actions.paste_link(opts)},
-            {"n", M.Cfg.keybinds.picker.yank_link,  picker_actions.yank_link(opts)},
-            {"n", M.Cfg.keybinds.picker.paste_link, picker_actions.paste_link(opts)},
-            {"n", M.Cfg.keybinds.picker.close,      picker_actions.close(opts)},
+            {
+                "i",
+                M.Cfg.keybinds.picker.i_yank_link,
+                picker_actions.yank_link(opts),
+            },
+            {
+                "i",
+                M.Cfg.keybinds.picker.i_yank_link,
+                picker_actions.yank_link(opts),
+            },
+            {
+                "i",
+                M.Cfg.keybinds.picker.i_paste_link,
+                picker_actions.paste_link(opts),
+            },
+            {
+                "n",
+                M.Cfg.keybinds.picker.yank_link,
+                picker_actions.yank_link(opts),
+            },
+            {
+                "n",
+                M.Cfg.keybinds.picker.paste_link,
+                picker_actions.paste_link(opts),
+            },
+            {
+                "n",
+                M.Cfg.keybinds.picker.close,
+                picker_actions.close(opts),
+            },
         }
         for _, mc in pairs(map_conf) do
             local mode, mappings, action = mc[1], mc[2], mc[3]
             -- Apply map for all given keys
             -- e.g. `keybinds.picker.close = {"<ESC>", "<C-c>"}`
-            for _, key in pairs(vim.tbl_flatten({mappings})) do
+            for _, key in pairs(vim.tbl_flatten({ mappings })) do
                 map(mode, key, action)
             end
         end
@@ -1636,28 +1659,32 @@ local function InsertLink(opts)
         local cwd = M.Cfg.home
         local find_command = M.Cfg.find_command
         local sort = M.Cfg.sort
-        local attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, map)
-            return apply_picker_mappings(map, function()
-                actions.close(prompt_bufnr)
-                local selection = action_state.get_selected_entry()
-                if selection == nil then
-                    selection = { filename = action_state.get_current_line() }
-                end
-                local pinfo = Pinfo:new({
-                    filepath = selection.filename or selection.value,
-                    opts,
-                })
-                vim.api.nvim_put(
-                    { "[[" .. pinfo.title .. "]]" },
-                    "",
-                    false,
-                    true
-                )
-                if opts.i then
-                    vim.api.nvim_feedkeys("a", "m", false)
-                end
-            end)
-        end)
+        local attach_mappings = apply_picker_mappings(
+            opts,
+            function(prompt_bufnr, map)
+                return apply_picker_mappings(map, function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    if selection == nil then
+                        selection =
+                            { filename = action_state.get_current_line() }
+                    end
+                    local pinfo = Pinfo:new({
+                        filepath = selection.filename or selection.value,
+                        opts,
+                    })
+                    vim.api.nvim_put(
+                        { "[[" .. pinfo.title .. "]]" },
+                        "",
+                        false,
+                        true
+                    )
+                    if opts.i then
+                        vim.api.nvim_feedkeys("a", "m", false)
+                    end
+                end)
+            end
+        )
 
         if opts.with_live_grep then
             builtin.live_grep({
@@ -1818,7 +1845,7 @@ local function FindFriends(opts)
             cwd = M.Cfg.home,
             default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
-            attach_mappings =apply_picker_mappings(opts),
+            attach_mappings = apply_picker_mappings(opts),
         })
     end)
 end
@@ -1986,18 +2013,21 @@ local function GotoDate(opts)
                 cwd = M.Cfg.dailies,
                 default_text = word,
                 find_command = M.Cfg.find_command,
-                attach_mappings = apply_picker_mappings(opts, function (prompt_bufnr, _)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
+                attach_mappings = apply_picker_mappings(
+                    opts,
+                    function(prompt_bufnr, _)
+                        actions.select_default:replace(function()
+                            actions.close(prompt_bufnr)
 
-                        -- open the new note
-                        if opts.calendar == true then
-                            vim.cmd("wincmd w")
-                        end
-                        vim.cmd("e " .. fname)
-                        picker_actions.post_open()
-                    end)
-                end)
+                            -- open the new note
+                            if opts.calendar == true then
+                                vim.cmd("wincmd w")
+                            end
+                            vim.cmd("e " .. fname)
+                            picker_actions.post_open()
+                        end)
+                    end
+                ),
             })
         end
     end
@@ -2119,18 +2149,26 @@ local function InsertImgLink(opts)
             find_command = M.Cfg.find_command,
             filter_extensions = M.Cfg.media_extensions,
             preview_type = "media",
-            attach_mappings = apply_picker_mappings(opts, function (prompt_bufnr, _)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    local fn = selection.value
-                    fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
-                    vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
-                    if opts.i then
-                        vim.api.nvim_feedkeys("A", "m", false)
-                    end
-                end)
-            end),
+            attach_mappings = apply_picker_mappings(
+                opts,
+                function(prompt_bufnr, _)
+                    actions.select_default:replace(function()
+                        actions.close(prompt_bufnr)
+                        local selection = action_state.get_selected_entry()
+                        local fn = selection.value
+                        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
+                        vim.api.nvim_put(
+                            { "![](" .. fn .. ")" },
+                            "",
+                            true,
+                            true
+                        )
+                        if opts.i then
+                            vim.api.nvim_feedkeys("A", "m", false)
+                        end
+                    end)
+                end
+            ),
             sort = M.Cfg.sort,
         })
     end)
@@ -2197,7 +2235,7 @@ local function ShowBacklinks(opts)
             search_dirs = { M.Cfg.home },
             default_text = "\\[\\[" .. escaped_title .. "([#|].+)?\\]\\]",
             find_command = M.Cfg.find_command,
-            attach_mappings = apply_picker_mappings(opts)
+            attach_mappings = apply_picker_mappings(opts),
         })
     end)
 end
@@ -2240,26 +2278,29 @@ local function on_create_with_template(opts, title)
         prompt_title = "Select template...",
         cwd = M.Cfg.templates,
         find_command = M.Cfg.find_command,
-        attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                actions.close(prompt_bufnr)
-                -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
-                local template = action_state.get_selected_entry().value
-                -- TODO: pass in the calendar_info returned from the pinfo
-                create_note_from_template(
-                    title,
-                    uuid,
-                    fname,
-                    template,
-                    pinfo.calendar_info,
-                    function()
-                        -- open the new note
-                        vim.cmd("e " .. fname)
-                        picker_actions.post_open()
-                    end
-                )
-            end)
-        end)
+        attach_mappings = apply_picker_mappings(
+            opts,
+            function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
+                    local template = action_state.get_selected_entry().value
+                    -- TODO: pass in the calendar_info returned from the pinfo
+                    create_note_from_template(
+                        title,
+                        uuid,
+                        fname,
+                        template,
+                        pinfo.calendar_info,
+                        function()
+                            -- open the new note
+                            vim.cmd("e " .. fname)
+                            picker_actions.post_open()
+                        end
+                    )
+                end)
+            end
+        ),
     })
 end
 
@@ -2310,7 +2351,7 @@ local function on_create(opts, title)
             cwd = pinfo.root_dir,
             default_text = generate_note_filename(uuid, title),
             find_command = M.Cfg.find_command,
-            attach_mappings = apply_picker_mappings(opts)
+            attach_mappings = apply_picker_mappings(opts),
         })
     end
     if pinfo.fexists ~= true then
@@ -3301,22 +3342,25 @@ local function FindAllTags(opts)
                     end,
                 }),
                 sorter = conf.generic_sorter(opts),
-                attach_mappings = apply_picker_mappings(opts, function(prompt_bufnr, _)
-                    actions.select_default:replace(function()
-                        -- actions for insert tag, default action: search for tag
-                        local selection =
-                            action_state.get_selected_entry().value.tag
-                        local follow_opts = {
-                            follow_tag = selection,
-                            show_link_counts = false,
-                            templateDir = templateDir,
-                        }
-                        actions._close(prompt_bufnr, false)
-                        vim.schedule(function()
-                            FollowLink(follow_opts)
+                attach_mappings = apply_picker_mappings(
+                    opts,
+                    function(prompt_bufnr, _)
+                        actions.select_default:replace(function()
+                            -- actions for insert tag, default action: search for tag
+                            local selection =
+                                action_state.get_selected_entry().value.tag
+                            local follow_opts = {
+                                follow_tag = selection,
+                                show_link_counts = false,
+                                templateDir = templateDir,
+                            }
+                            actions._close(prompt_bufnr, false)
+                            vim.schedule(function()
+                                FollowLink(follow_opts)
+                            end)
                         end)
-                    end)
-                end)
+                    end
+                ),
             })
             :find()
     end)

@@ -156,13 +156,13 @@ function M.defaultConfig(home)
         -- Keybinds for inside the picker
         keybinds = {
             picker = {
-                yank_link    = "<c-y>",
-                paste_link   = "<c-i>",
-                i_yank_link  = "<c-y>",
+                yank_link = "<c-y>",
+                paste_link = "<c-i>",
+                i_yank_link = "<c-y>",
                 i_paste_link = "<c-i>",
-                close        = { "<ESC>", "<C-c>" },
+                close = { "<ESC>", "<C-c>" },
             },
-        }
+        },
     }
 
     return cfg
