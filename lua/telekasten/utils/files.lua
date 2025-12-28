@@ -969,13 +969,13 @@ local function resolve_template_file(templatefn)
         if cfg.templates and cfg.templates ~= "" then
             table.insert(
                 candidates,
-                Path:new({ cfg.templates, templatefn}):absolute()
+                Path:new({ cfg.templates, templatefn }):absolute()
             )
         end
         if cfg.home and cfg.home ~= "" then
             table.insert(
                 candidates,
-                Path:new({cfg.home, templatefn}):absolute()
+                Path:new({ cfg.home, templatefn }):absolute()
             )
         end
     end
@@ -1004,7 +1004,6 @@ function M.create_note_from_template(
     calendar_info,
     callback
 )
-
     templatefn = resolve_template_file(templatefn)
 
     -- first, read the template file
