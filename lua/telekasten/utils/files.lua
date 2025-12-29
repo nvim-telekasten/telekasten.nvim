@@ -12,6 +12,7 @@ local entry_display = require("telescope.pickers.entry_display")
 local previewers = require("telescope.previewers")
 local utils = require("telescope.utils")
 local config = require("telekasten.config")
+local periodic = require("telekasten.periodic")
 local tkpickers = require("telekasten.pickers")
 local templates = require("telekasten.templates")
 local tkutils = require("telekasten.utils")
@@ -46,16 +47,89 @@ local function strip_extension(str, ext)
     return str:gsub("(" .. ext:gsub("%.", "%%.") .. ")$", "")
 end
 
--- Prompts the user for a note title
-function M.prompt_title(ext, defaultFile, callback)
-    local canceledStr = "__INPUT_CANCELLED__"
+--- assemble_roots_specs(opts)
+--- Collect all important root directories:
+---   - home
+---   - periodic root
+---   - each enabled periodic kind's root
+---   - (optionally) templates and image_subdir
+--- Returns an array of { dir = <abs path>, label = <string> }.
+--- @param opts { include_aux?: boolean }|nil
+local function assemble_roots_specs(opts)
+    opts = opts or {}
+    local include_aux = opts.include_aux ~= false --default: include templates & images
 
+    local dirs = {}
+    local seen = {}
+
+    local function add(dir, label)
+        if dir ~= nil and dir ~= "" and not seen[dir] then
+            seen[dir] = true
+            table.insert(dirs, { dir = dir, label = label })
+        end
+    end
+
+    add(config.options.home, "home")
+
+    local pcfg = config.options.periodic
+    if pcfg then
+        add(pcfg.root, "proot")
+
+        if pcfg.kinds then
+            for kind, kcfg in pairs(pcfg.kinds) do
+                if kcfg.enabled then
+                    local root = periodic.search_root(pcfg, kind)
+                    add(root, kind)
+                end
+            end
+        end
+    end
+
+    if include_aux then
+        add(config.options.templates, "templates")
+        add(config.options.image_subdir, "images")
+    end
+
+    return dirs
+end
+
+--- assemble_roots(opts)
+--- Convenience wrapper that returns just a list of directory paths,
+--- in the same order as assemble_root_specs.
+--- @param opts { include_aux?: boolean }|nil
+--- @return string[]
+function M.assemble_roots(opts)
+    local specs = assemble_roots_specs(opts)
+    local roots = {}
+    for _, spec in ipairs(specs) do
+        table.insert(roots, spec.dir)
+    end
+    return roots
+end
+
+-- Prompts the user for a note title
+function M.prompt_title(ext, defaultFile, callback, cwd)
+    local canceledStr = "__INPUT_CANCELLED__"
+    local current_dir = ""
+    -- change the cwd to the configured home directory, so tab completion
+    -- works for the folders in that directory
+    if not cwd then
+        cwd = ""
+    end
+    if cwd ~= "" then
+        current_dir = vim.fn.getcwd()
+        vim.fn.chdir(cwd)
+    end
     vim.ui.input({
         prompt = "Title: ",
         cancelreturn = canceledStr,
         completion = "file",
         default = defaultFile,
     }, function(title)
+        -- change back to the original directory
+        if current_dir ~= "" then
+            vim.fn.chdir(current_dir)
+        end
         if not title then
             title = ""
         end
@@ -79,57 +153,98 @@ local function random_variable(length)
     return res
 end
 
---- check_if_daily_or_weekly(title)
--- Returns info on if the title given is for a daily or weekly and the date(s)
+local function apply_match(kind, fields, caps, cal_monday)
+    local dinfo = {}
+
+    for i, field in ipairs(fields) do
+        local v = caps[i]
+
+        if periodic.periodic_kinds[field] then
+            v = tonumber(v)
+        end
+
+        dinfo[field] = v
+    end
+
+    -- SPECIAL CASE: weekly notes
+    -- If we have a year + week, then convert that ISO week to a proper date
+    -- (this gives us year/month/day anchored to the *start* of that week)
+    if dinfo.week ~= nil and dinfo.year ~= nil then
+        dinfo = dateutils.isoweek_to_date(dinfo.year, dinfo.week)
+        dinfo.calculate_dates(dinfo, cal_monday)
+        return kind, dinfo
+    end
+
+    -- SPECIAL CASE: quarterly notes
+    -- quarter -> anchor on the first month of that quarter
+    if dinfo.quarter ~= nil and dinfo.year ~= nil then
+        local qi = dinfo.quarter
+        if qi >= 1 and qi <= 4 then
+            local first_month = (qi - 1) * 3 + 1
+            dinfo.month = first_month
+            dinfo.day = 1
+        end
+    end
+
+    -- enforce sane defaults for monthlies and yearlies as well
+    if kind == "monthly" then
+        dinfo.day = dinfo.day or 1
+    elseif kind == "yearly" then
+        dinfo.month = dinfo.month or 1
+        dinfo.day = dinfo.day or 1
+    end
+
+    dinfo = dateutils.calculate_dates(dinfo, cal_monday)
+
+    return kind, dinfo
+end
+
+--- check_if_periodic(title)
+-- Returns info on if the title given is for a periodic note and the date(s)
 -- @param title string Title of the note to be checked
 -- @return boolean True if daily note
 -- @return boolean True if weekly note
+-- @return boolean True if monthly note
+-- @return boolean True if quarterly note
+-- @return boolean True if yearly note
 -- @return table Date info
-local function check_if_daily_or_weekly(title)
-    local daily_match = "^(%d%d%d%d)-(%d%d)-(%d%d)$"
-    local weekly_match = "^(%d%d%d%d)-W(%d%d)$"
+local function check_if_periodic(title)
+    local cal_monday = config.options.calendar_opts.calendar_monday
+    local dateinfo = dateutils.calculate_dates(nil, cal_monday) -- sane default
 
     local is_daily = false
     local is_weekly = false
-    local dateinfo = dateutils.calculate_dates(
-        nil,
-        config.options.calendar_opts.calendar_monday
-    ) -- sane default
+    local is_monthly = false
+    local is_quarterly = false
+    local is_yearly = false
 
-    -- Set return values for a daily note
-    local start, _, year, month, day = title:find(daily_match)
-    if start ~= nil then
-        if tonumber(month) < 13 then
-            if tonumber(day) < 32 then -- TODO: This should probably be refined for accuracy in 28-30 day months
+    for _, entry in ipairs(periodic.detection_patterns) do
+        local pattern = entry.pattern
+        local kind = entry.kind
+        local fields = entry.fields or {}
+        local caps = { title:match(pattern) }
+
+        if #caps > 0 then
+            local k, dinfo = apply_match(kind, fields, caps, cal_monday)
+
+            if k == "daily" then
                 is_daily = true
-                dateinfo.year = tonumber(year)
-                dateinfo.month = tonumber(month)
-                dateinfo.day = tonumber(day)
-                dateinfo = dateutils.calculate_dates(
-                    dateinfo,
-                    config.options.calendar_opts.calendar_monday
-                )
+            elseif k == "weekly" then
+                is_weekly = true
+            elseif k == "monthly" then
+                is_monthly = true
+            elseif k == "quarterly" then
+                is_quarterly = true
+            elseif k == "yearly" then
+                is_yearly = true
             end
+
+            dateinfo = dinfo
+            break
         end
     end
 
-    -- Set return values for a weekly note
-    -- Seems pointless to check both this and daily. Maybe try an else?
-    local week
-    start, _, year, week = title:find(weekly_match)
-    if start ~= nil then
-        if tonumber(week) < 53 then
-            is_weekly = true
-            -- ISO8601 week -> date calculation
-            dateinfo = dateutils.isoweek_to_date(tonumber(year), tonumber(week))
-            dateinfo = dateutils.calculate_dates(
-                dateinfo,
-                config.options.calendar_opts.calendar_monday
-            )
-        end
-    end
-
-    return is_daily, is_weekly, dateinfo
+    return is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dateinfo
 end
 
 --- filter_filetypes(flist, ftypes)
@@ -273,18 +388,28 @@ function M.global_dir_check(callback)
         callback(ret)
     end
     local check = M.check_dir_and_ask
-    -- nested callbacks to handle asynchronous vim.ui.select
-    -- looks a little confusing but execution is sequential from top to bottom
-    check(config.options.home, "home", function()
-        check(config.options.dailies, "dailies", function()
-            check(config.options.weeklies, "weeklies", function()
-                check(config.options.templates, "templates", function()
-                    -- Note the `callback` in this last function call
-                    check(config.options.image_subdir, "images", callback)
-                end)
-            end)
+
+    local dirs = assemble_roots_specs({ include_aux = true })
+
+    local i = 1
+    local function step()
+        local entry = dirs[i]
+        if not entry then
+            callback(true)
+            return
+        end
+
+        i = i + 1
+        check(entry.dir, entry.label, function(ok)
+            if ok == false then
+                callback(false)
+                return
+            end
+            step()
         end)
-    end)
+    end
+
+    step()
 end
 
 --- generate_note_filename(uuid, title)
@@ -342,9 +467,12 @@ end
 ---    - filepath : full path, identical to p
 ---    - root_dir : the root dir (home, dailies, ...)
 ---    - sub_dir : subdir if present, relative to root_dir
----    - is_daily_or_weekly : bool
+---    - is_periodic : bool
 ---    - is_daily : bool
 ---    - is_weekly : bool
+---    - is_monthly : bool
+---    - is_quarterly : bool
+---    - is_yearly : bool
 ---    - template : suggested template based on opts
 M.Pinfo = {
     fexists = false,
@@ -353,9 +481,12 @@ M.Pinfo = {
     filepath = "",
     root_dir = "",
     sub_dir = "",
-    is_daily_or_weekly = false,
+    is_periodic = false,
     is_daily = false,
     is_weekly = false,
+    is_monthly = false,
+    is_quarterly = false,
+    is_yearly = false,
     template = "",
     calendar_info = nil,
 }
@@ -393,9 +524,12 @@ function M.Pinfo:resolve_path(p, opts)
     self.fexists = M.file_exists(p)
     self.filepath = p
     self.root_dir = config.options.home
-    self.is_daily_or_weekly = false
+    self.is_periodic = false
     self.is_daily = false
     self.is_weekly = false
+    self.is_monthly = false
+    self.is_quarterly = false
+    self.is_yearly = false
 
     -- strip all dirs to get filename
     local pp = Path:new(p)
@@ -406,19 +540,42 @@ function M.Pinfo:resolve_path(p, opts)
     if vim.startswith(p, config.options.home) then
         self.root_dir = config.options.home
     end
-    if vim.startswith(p, config.options.dailies) then
-        self.root_dir = config.options.dailies
-        -- TODO: parse "title" into calendarinfo like in resolve_link
-        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        self.is_daily_or_weekly = true
-        self.is_daily = true
-    end
-    if vim.startswith(p, config.options.weeklies) then
-        -- TODO: parse "title" into calendarinfo like in resolve_link
-        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        self.root_dir = config.options.weeklies
-        self.is_daily_or_weekly = true
-        self.is_weekly = true
+
+    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo =
+        check_if_periodic(self.title)
+
+    self.is_daily = is_daily
+    self.is_weekly = is_weekly
+    self.is_monthly = is_monthly
+    self.is_quarterly = is_quarterly
+    self.is_yearly = is_yearly
+    self.is_periodic = is_daily
+        or is_weekly
+        or is_monthly
+        or is_quarterly
+        or is_yearly
+
+    if self.is_periodic then
+        local kind
+        if is_daily then
+            kind = "daily"
+        elseif is_weekly then
+            kind = "weekly"
+        elseif is_monthly then
+            kind = "monthly"
+        elseif is_quarterly then
+            kind = "quarterly"
+        elseif is_yearly then
+            kind = "yearly"
+        end
+
+        local pcfg = config.options.periodic
+        local _, _, root_dir =
+            periodic.build_path(pcfg, kind, dinfo, config.options.extension)
+
+        if root_dir and root_dir ~= "" then
+            self.root_dir = root_dir
+        end
     end
 
     -- now work out subdir relative to root
@@ -438,25 +595,24 @@ end
 --- resolve_link(title, opts)
 -- Returns a Pinfo table for the given title and options
 -- @param title string Title to be resolved to file path
--- @param opts table Options, ideally including weeklies, dailies, home, extention, template_handling,
+-- @param opts table Options, ideally including periodics, home, extension, template_handling,
 -- new_note_location, and note_type_templates
 -- @return table Pinfo for note corresponding to title if found or detailing the failure
 function M.Pinfo:resolve_link(title, opts)
     -- Set options, preferring passed opts over user config
     opts = opts or {}
-    opts.weeklies = opts.weeklies or config.options.weeklies
-    opts.dailies = opts.dailies or config.options.dailies
+    opts.periodic = opts.periodic or config.options.periodic
     opts.home = opts.home or config.options.home
     opts.extension = opts.extension or config.options.extension
     opts.template_handling = opts.template_handling
         or config.options.template_handling
     opts.new_note_location = opts.new_note_location
         or config.options.new_note_location
+    opts.template_new_note = opts.template_new_note
+        or config.options.template_new_note
     opts.note_type_templates = opts.note_type_templates
         or {
             normal = config.options.template_new_note,
-            daily = config.options.template_new_daily,
-            weekly = config.options.template_new_weekly,
         }
 
     -- Set basic Pinfo values
@@ -465,37 +621,45 @@ function M.Pinfo:resolve_link(title, opts)
     self.filename = title .. opts.extension
     self.filename = self.filename:gsub("^%./", "") -- strip potential leading ./
     self.root_dir = opts.home
-    self.is_daily_or_weekly = false
-    self.is_daily = false
-    self.is_weekly = false
     self.template = nil
     self.calendar_info = nil
 
-    -- Try checking for existence and assigning values as a weekly, then as a daily, then as a plain note in home
-    if
-        opts.weeklies and M.file_exists(opts.weeklies .. "/" .. self.filename)
-    then
-        -- TODO: parse "title" into calendarinfo like below
-        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
-        self.filepath = opts.weeklies .. "/" .. self.filename
-        self.fexists = true
-        self.root_dir = opts.weeklies
-        self.is_daily_or_weekly = true
-        self.is_weekly = true
+    local is_daily, is_weekly, is_monthly, is_quarterly, is_yearly, dinfo =
+        check_if_periodic(self.title)
+
+    self.calendar_info = dinfo
+    self.is_daily = is_daily
+    self.is_weekly = is_weekly
+    self.is_monthly = is_monthly
+    self.is_yearly = is_yearly
+    self.is_periodic = is_daily
+        or is_weekly
+        or is_monthly
+        or is_quarterly
+        or is_yearly
+
+    local kind
+    if is_daily then
+        kind = "daily"
+    elseif is_weekly then
+        kind = "weekly"
+    elseif is_monthly then
+        kind = "monthly"
+    elseif is_yearly then
+        kind = "yearly"
     end
-    if -- TODO: This should be able to convert to an elseif, I think. Weekly and daily file names are distinct
-        opts.dailies and M.file_exists(opts.dailies .. "/" .. self.filename)
-    then
-        -- TODO: parse "title" into calendarinfo like below
-        -- not really necessary as the file exists anyway and therefore we don't need to instantiate a template
-        -- if we still want calendar_info, just move the code for it out of `if self.fexists == false`.
-        self.filepath = opts.dailies .. "/" .. self.filename
-        self.fexists = true
-        self.root_dir = opts.dailies
-        self.is_daily_or_weekly = true
-        self.is_daily = true
+
+    if kind ~= nil then
+        local path, _, root_dir, _ =
+            periodic.build_path(opts.periodic, kind, dinfo, opts.extension)
+
+        if path and M.file_exists(path) then
+            self.filepath = path
+            self.fexists = true
+            self.root_dir = root_dir or opts.home
+        end
     end
+
     if M.file_exists(opts.home .. "/" .. self.filename) then
         self.filepath = opts.home .. "/" .. self.filename
         self.fexists = true
@@ -518,26 +682,31 @@ function M.Pinfo:resolve_link(title, opts)
         end
     end
 
-    -- if we just cannot find the note, check if it's a daily or weekly one
+    -- if we just cannot find the note, check if it's a periodic one
     -- Note that fexists is not changed; This is prep in case a new note is made
     if self.fexists == false then
         -- TODO: if we're not smart, we also shouldn't need to try to set the calendar info..?
         --       I bet someone will want the info in there, so let's put it in if possible
-        _, _, self.calendar_info = check_if_daily_or_weekly(self.title) -- will set today as default, so leave in!
+        _, _, _, _, _, self.calendar_info = check_if_periodic(self.title) -- will set today as default, so leave in!
 
         if opts.new_note_location == "smart" then
-            self.filepath = opts.home .. "/" .. self.filename -- default
-            self.is_daily, self.is_weekly, self.calendar_info =
-                check_if_daily_or_weekly(self.title) -- TODO: Don't replicate call, simply save all values above
-            if self.is_daily == true then
-                self.root_dir = opts.dailies
-                self.filepath = opts.dailies .. "/" .. self.filename
-                self.is_daily_or_weekly = true
-            end
-            if self.is_weekly == true then
-                self.root_dir = opts.weeklies
-                self.filepath = opts.weeklies .. "/" .. self.filename
-                self.is_daily_or_weekly = true
+            if kind ~= nil and self.calendar_info ~= nil then
+                local path, _, root_dir, _ = periodic.build_path(
+                    opts.periodic,
+                    kind,
+                    self.calendar_info,
+                    opts.extension
+                )
+
+                if path then
+                    self.filepath = path
+                    self.root_dir = root_dir or opts.home
+                    self.is_periodic = true
+                else
+                    self.filepath = opts.home .. "/" .. self.filename
+                end
+            else
+                self.filepath = opts.home .. "/" .. self.filename
             end
         elseif opts.new_note_location == "same_as_current" then
             local cwd = vim.fn.expand("%:p")
@@ -576,18 +745,25 @@ function M.Pinfo:resolve_link(title, opts)
         :gsub("^/", "")
 
     -- now suggest a template based on opts
-    self.template = opts.note_type_templates.normal
+    self.template = opts.template_new_note
     if opts.template_handling == "prefer_new_note" then
         self.template = opts.note_type_templates.normal
     elseif opts.template_handling == "always_ask" then
         self.template = nil
     elseif opts.template_handling == "smart" then
+        local pcfg = config.options.periodic
         if self.is_daily then
-            self.template = opts.note_type_templates.daily
+            self.template = pcfg.kinds.daily.template_file
         elseif self.is_weekly then
-            self.template = opts.note_type_templates.weekly
+            self.template = pcfg.kinds.weekly.template_file
+        elseif self.is_monthly then
+            self.template = pcfg.kinds.monthly.template_file
+        elseif self.is_quarterly then
+            self.template = pcfg.kinds.quarterly.template_file
+        elseif self.is_yearly then
+            self.template = pcfg.kinds.yearly.template_file
         else
-            self.template = opts.note_type_templates.normal
+            self.template = opts.template_new_note
         end
     end
 
@@ -775,6 +951,44 @@ function M.find_files_sorted(opts)
     picker:find()
 end
 
+local function resolve_template_file(templatefn)
+    if not templatefn or templatefn == "" then
+        return nil
+    end
+
+    local expanded = vim.fn.expand(templatefn)
+
+    local cfg = config.options
+    local candidates = {}
+
+    table.insert(candidates, expanded)
+
+    local p = Path:new(expanded)
+
+    if not p:is_absolute() then
+        if cfg.templates and cfg.templates ~= "" then
+            table.insert(
+                candidates,
+                Path:new({ cfg.templates, templatefn }):absolute()
+            )
+        end
+        if cfg.home and cfg.home ~= "" then
+            table.insert(
+                candidates,
+                Path:new({ cfg.home, templatefn }):absolute()
+            )
+        end
+    end
+
+    for _, cand in ipairs(candidates) do
+        if M.file_exists(cand) then
+            return cand
+        end
+    end
+
+    return nil
+end
+
 -- string, string, string, string, table, function -> N/A
 --- create_note_from_template(title, uuid, filepath, templatefn, calendar_info, callback)
 -- @param title string Title for the new note
@@ -790,6 +1004,8 @@ function M.create_note_from_template(
     calendar_info,
     callback
 )
+    templatefn = resolve_template_file(templatefn)
+
     -- first, read the template file
     local lines = {}
     if M.file_exists(templatefn) then

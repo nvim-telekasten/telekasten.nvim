@@ -5,6 +5,27 @@ local dateutils = require("telekasten.utils.dates")
 local M = {}
 local vim = vim
 
+--- expand_template(tmpl, ctx)
+-- Expand a simple {token} template using values from ctx.
+-- @param tmpl string
+-- @param ctx table<string, string|number>
+-- @return string
+function M.expand_template(tmpl, ctx)
+    if tmpl == nil or tmpl == "" then
+        return ""
+    end
+
+    return (
+        tmpl:gsub("{([%w_]+)}", function(key)
+            local v = ctx[key]
+            if v == nil then
+                return "{" .. key .. "}"
+            end
+            return tostring(v)
+        end)
+    )
+end
+
 function M.subst_templated_values(line, title, dates, uuid, calendar_monday)
     -- Various date formats
     if dates == nil then

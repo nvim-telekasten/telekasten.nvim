@@ -14,7 +14,7 @@ based on [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 #### Highlights
 
 - Find notes by name, #tag or by searching within note text
-- Find daily, weekly notes by date
+- Find daily, weekly, monthly, quarterly, and yearly notes by date
 - **Vaults**: Support for multiple separate note collections
 - Place and follow links to your notes or create new ones, with templates
 - Find notes that link back to your notes
@@ -192,6 +192,8 @@ greatly improve the note-taking experience.
   markdown previewer
 - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc):
   generate a table of contents for your markdown documents
+- [md_toc](https://github.com/D3alWyth1T/md_toc):
+  generate a table of contents for your markdown documents, better support for neovim/packer integration
 - [synctodo](https://github.com/cnshsliu/synctodo): bash script to sync todos
   among Telekasten, Mac and iPhone reminders.
 - [telescope-all-recent](https://github.com/prochri/telescope-all-recent.nvim):
@@ -234,6 +236,12 @@ The following sub-commands are defined:
 - `new_note` : Create a new note, prompts for title
 - `goto_thisweek` : Open this week's weekly note
 - `find_weekly_notes` : Find weekly notes by title (calendar week)
+- `goto_thismonth` : Open this month's monthly note
+- `find_monthly_notes` : Find monthly notes by title
+- `goto_thisquarter` : Open this quarter's quarterly note
+- `find_quarterly_notes` : Find quarterly notes by title
+- `goto_thisyear` : Open this year's yearly note
+- `find_yearly_notes` : Find yearly notes by title
 - `yank_notelink` : Yank a link to the currently open note
 - `new_templated_note` : create a new note by template, prompts for title and template
 - `show_calendar` : Show the calendar
@@ -348,6 +356,10 @@ The following links are supported:
 - [[some/subdirectory/A cool title#Heading 27]]
 - [[some/subdirectory/A cool title#^xxxxxxxx]]
 
+## External file links (outside current vault)
+- [[~/other-vault/note]]  ........... links to a note using absolute path with tilde
+- [[/absolute/path/to/note]]  ....... links to a note using absolute path
+- [[C:/path/to/note]]  .............. links to a note using Windows absolute path
 
 # Media links
 Use these for images, PDF files, videos. If telescope-media-files is installed,
@@ -357,6 +369,32 @@ these can be previewed.
 
 See the documentation for more details regarding the different types of links
 (`:h telekasten.link_notation`).
+
+#### External File Linking
+
+Telekasten supports linking to files outside the current vault using absolute paths. This feature is enabled by default and allows you to reference notes across different vaults or directories.
+
+**Features:**
+- Follow links to external files using absolute path syntax
+- Automatically detect and format external file links when inserting
+- Read-only mode: external links only open existing files (won't create new files)
+- Supports tilde expansion (`~/`) for home directory paths
+
+**Configuration:**
+```lua
+require('telekasten').setup({
+  home = vim.fn.expand("~/zettelkasten"),
+  external_link_follow = true,  -- Enable external file linking (default: true)
+})
+```
+
+**Example:**
+```markdown
+See also: [[~/other-vault/reference-note]]
+Cross-reference: [[/absolute/path/to/note]]
+```
+
+When you use picker actions (`<C-i>` to insert link), files outside the current vault will automatically be formatted with absolute paths using `~/` when possible.
 
 ### Tag notation
 
@@ -431,12 +469,8 @@ entire window, you can issue the following command in vim:
 Some (minor) stuff are currently still hard-coded. We will eventually change
 this to allow more flexibility at one point.
 
-Currently, the following things are hardcoded:
+Currently, the following are hardcoded:
 
-- the file naming format for daily note files: `YYYY-MM-DD.ext` (e.g.
-  `2021-11-21.md`)
-- the file naming format for weekly note files: `YYYY-Www.ext` (e.g.
-  `2021-W46.md`)
 - the file naming format for pasted images: `pasted_img_YYYYMMDDhhmmss.png`
   (e.g. `pasted_img_20211126041108.png`)
 

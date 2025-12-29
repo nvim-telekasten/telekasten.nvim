@@ -63,12 +63,12 @@ function M.save_all_mod_buffers()
 end
 
 --- recursive_substitution(dir, old, new)
--- Runs ripgrep and sed if and only if the global dir check passes
--- ripgrep finds all files with instances of 'old' in 'dir'
--- sed takes file list from rg and replaces all instances of 'old' with 'new'
--- @param dir string Directory in which to perform the substitution
--- @param old string Old string to be removed
--- @param new string New string to replace the removed old string
+--- Runs ripgrep and sed if and only if the global dir check passes
+--- ripgrep finds all files with instances of 'old' in 'dir'
+--- sed takes file list from rg and replaces all instances of 'old' with 'new'
+--- @param dir string Directory in which to perform the substitution
+--- @param old string Old string to be removed
+--- @param new string New string to replace the removed old string
 function M.recursive_substitution(dir, old, new)
     fileutils.global_dir_check(function(dir_check)
         if not dir_check then

@@ -11,13 +11,31 @@
 ---| '".webm"'
 ---| '".webp"'
 
+---@alias PeriodicKind
+---| '"daily"'
+---| '"weekly"'
+---| '"monthly"'
+---| '"quarterly"'
+---| '"yearly"'
+
+---@class PeriodicKindConfig
+---@field enabled boolean
+---@field root string|nil
+---@field folder_path string
+---@field filename string
+---@field template_file string|nil
+---@field create_if_missing boolean
+
+---@class PeriodicConfig
+---@field root string
+---@field kinds table<PeriodicKind, PeriodicKindConfig>
+
 ---@class VaultConfig
 ---@field home string
 ---@field take_over_my_home boolean
 ---@field auto_set_filetype boolean
 ---@field auto_set_syntax boolean
----@field dailies string
----@field weeklies string
+---@field periodic PeriodicConfig
 ---@field templates string
 ---@field image_subdir string|nil Should be deprecated gracefully and replaced by "images"
 ---@field extension "md" | string
@@ -26,8 +44,7 @@
 ---@field uuid_sep "-" | string
 ---@field filename_space_subst string|nil
 ---@field follow_creates_nonexisting boolean
----@field dailies_create_nonexisting boolean
----@field weeklies_create_nonexisting boolean
+---@field external_link_follow boolean
 ---@field journal_auto_open boolean
 ---@field image_link_style "wiki" | "markdown"
 ---@field sort "filename" | "modified"
@@ -49,8 +66,6 @@
 ---@field clipboard_program string
 ---@field filter_extensions string[]
 ---@field template_new_note string|nil
----@field template_new_daily string|nil
----@field template_new_weekly string|nil
 ---@field find_command string[]
 ---@field rg_pcre boolean
 ---
