@@ -608,6 +608,8 @@ function M.Pinfo:resolve_link(title, opts)
         or config.options.template_handling
     opts.new_note_location = opts.new_note_location
         or config.options.new_note_location
+    opts.template_new_note = opts.template_new_note
+        or config.options.template_new_note
     opts.note_type_templates = opts.note_type_templates
         or {
             normal = config.options.template_new_note,
@@ -743,7 +745,7 @@ function M.Pinfo:resolve_link(title, opts)
         :gsub("^/", "")
 
     -- now suggest a template based on opts
-    self.template = opts.note_type_templates.normal
+    self.template = opts.template_new_note
     if opts.template_handling == "prefer_new_note" then
         self.template = opts.note_type_templates.normal
     elseif opts.template_handling == "always_ask" then
@@ -949,6 +951,44 @@ function M.find_files_sorted(opts)
     picker:find()
 end
 
+local function resolve_template_file(templatefn)
+    if not templatefn or templatefn == "" then
+        return nil
+    end
+
+    local expanded = vim.fn.expand(templatefn)
+
+    local cfg = config.options
+    local candidates = {}
+
+    table.insert(candidates, expanded)
+
+    local p = Path:new(expanded)
+
+    if not p:is_absolute() then
+        if cfg.templates and cfg.templates ~= "" then
+            table.insert(
+                candidates,
+                Path:new({ cfg.templates, templatefn }):absolute()
+            )
+        end
+        if cfg.home and cfg.home ~= "" then
+            table.insert(
+                candidates,
+                Path:new({ cfg.home, templatefn }):absolute()
+            )
+        end
+    end
+
+    for _, cand in ipairs(candidates) do
+        if M.file_exists(cand) then
+            return cand
+        end
+    end
+
+    return nil
+end
+
 -- string, string, string, string, table, function -> N/A
 --- create_note_from_template(title, uuid, filepath, templatefn, calendar_info, callback)
 -- @param title string Title for the new note
@@ -964,6 +1004,8 @@ function M.create_note_from_template(
     calendar_info,
     callback
 )
+    templatefn = resolve_template_file(templatefn)
+
     -- first, read the template file
     local lines = {}
     if M.file_exists(templatefn) then

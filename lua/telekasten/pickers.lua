@@ -238,6 +238,8 @@ function M.on_create(opts, title)
         or config.options.new_note_location
     opts.template_handling = opts.template_handling
         or config.options.template_handling
+    opts.template_new_note = opts.template_new_note
+        or config.options.template_new_note
     local uuid_type = opts.uuid_type or config.options.uuid_type
 
     if title == nil then

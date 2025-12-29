@@ -78,6 +78,8 @@ telekasten.setup({opts})
 
       -- Specific note templates
         -- set to `nil` or do not specify if you do not want a template
+        -- supports both absolute paths, and paths relative to template or
+        -- home, as it checks both directories for the file
       template_new_note = '/path/to/file',      -- template for new notes
 
       -- Image subdir for pasting
@@ -421,11 +423,15 @@ telekasten.setup({opts})
 
                                    *telekasten.settings.template_new_note*
     template_new_note: ~
-        Markdown template for new notes. Set to `nil` if you don't want a
-        template.
+        Markdown template for new notes. Supports both absolute paths, and
+        paths relative to your configured home and templates. Set to `nil` 
+        if you don't want a template.
 
         Default: `nil`
-        Example: `'vim.fn.expand("~/zettelkasten/templates/basenote.md")'`
+        Examples:
+            - Absolute: `'vim.fn.expand("~/zettelkasten/templates/basenote.md")'`
+            - Relative to Home: `'templates/basenote.md'`
+            - Relative to Templates: `'basenote.md'`
 
                                       *telekasten.settings.install_syntax*
     install_syntax: ~
