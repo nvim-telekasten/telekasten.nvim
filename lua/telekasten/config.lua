@@ -141,6 +141,15 @@ function Config:get_defaults(home)
         enable_create_new = true,
         -- Specify a clipboard program to use
         clipboard_program = "", -- xsel, xclip, wl-paste, osascript
+        keybinds = {
+            picker = {
+                yank_link = "<c-y>",
+                paste_link = "<c-i>",
+                i_yank_link = "<c-y>",
+                i_paste_link = "<c-i>",
+                close = { "<ESC>", "<C-c>" },
+            },
+        },
     }
     return { options = opts }
 end

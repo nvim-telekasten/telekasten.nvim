@@ -29,6 +29,16 @@
 ---@class PeriodicConfig
 ---@field root string
 ---@field kinds table<PeriodicKind, PeriodicKindConfig>
+---
+---@class PickerKeybinds
+---@field yank_link string
+---@field paste_link string
+---@field i_yank_link string
+---@field i_paste_link string
+---@field close string
+
+---@class Keybinds
+---@field picker PickerKeybinds
 
 ---@class VaultConfig
 ---@field home string
@@ -66,6 +76,7 @@
 ---@field clipboard_program string
 ---@field filter_extensions string[]
 ---@field template_new_note string|nil
+---@field keybinds Keybinds
 ---@field find_command string[]
 ---@field rg_pcre boolean
 ---
