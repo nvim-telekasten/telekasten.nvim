@@ -2123,20 +2123,18 @@ local function FindAllTags(opts)
                 sorter = conf.generic_sorter(opts),
                 attach_mappings = tkpickers.apply_picker_mappings(
                     opts,
-                    function(prompt_bufnr, _)
-                        actions.select_default:replace(function()
-                            -- actions for insert tag, default action: search for tag
-                            local selection =
-                                action_state.get_selected_entry().value.tag
-                            local follow_opts = {
-                                follow_tag = selection,
-                                show_link_counts = false,
-                                templateDir = templateDir,
-                            }
-                            actions._close(prompt_bufnr, false)
-                            vim.schedule(function()
-                                FollowLink(follow_opts)
-                            end)
+                    function(prompt_bufnr)
+                        -- actions for insert tag, default action: search for tag
+                        local selection =
+                            action_state.get_selected_entry().value.tag
+                        local follow_opts = {
+                            follow_tag = selection,
+                            show_link_counts = false,
+                            templateDir = templateDir,
+                        }
+                        actions._close(prompt_bufnr, false)
+                        vim.schedule(function()
+                            FollowLink(follow_opts)
                         end)
                     end
                 ),
