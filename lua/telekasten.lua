@@ -283,8 +283,7 @@ local function imgFromClipboard()
             if
                 vim.fn
                     .system("file --mime-type -b " .. image_path)
-                    :gsub("%s+", "")
-                == "image/png"
+                    :gsub("%s+", "") == "image/png"
             then
                 return "cp " .. image_path .. " " .. dir .. "/" .. filename
             else
@@ -1659,30 +1658,28 @@ local function InsertLink(opts)
         local cwd = M.Cfg.home
         local find_command = M.Cfg.find_command
         local sort = M.Cfg.sort
+
         local attach_mappings = apply_picker_mappings(
             opts,
-            function(prompt_bufnr, map)
-                return apply_picker_mappings(map, function()
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    if selection == nil then
-                        selection =
-                            { filename = action_state.get_current_line() }
-                    end
-                    local pinfo = Pinfo:new({
-                        filepath = selection.filename or selection.value,
-                        opts,
-                    })
-                    vim.api.nvim_put(
-                        { "[[" .. pinfo.title .. "]]" },
-                        "",
-                        false,
-                        true
-                    )
-                    if opts.i then
-                        vim.api.nvim_feedkeys("a", "m", false)
-                    end
-                end)
+            function(prompt_bufnr, _)
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                if selection == nil then
+                    selection = { filename = action_state.get_current_line() }
+                end
+                local pinfo = Pinfo:new({
+                    filepath = selection.filename or selection.value,
+                    opts,
+                })
+                vim.api.nvim_put(
+                    { "[[" .. pinfo.title .. "]]" },
+                    "",
+                    false,
+                    true
+                )
+                if opts.i then
+                    vim.api.nvim_feedkeys("a", "m", false)
+                end
             end
         )
 
