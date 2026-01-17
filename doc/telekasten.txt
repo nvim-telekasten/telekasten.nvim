@@ -1485,6 +1485,7 @@ The following substitutions will be made during new note creation:
 | `{{isoweek}}`          | week in iso format              | 2021-46                     |
 | `{{isoprevweek}}`      | last week, iso                  | 2021-45                     |
 | `{{isonextweek}}`      | next week, iso                  | 2021-47                     |
+| `{{month}}`            | current month                   | 11                          |
 | `{{month_ym}}`         | current month in iso format     | 2021-11                     |
 | `{{prev_month_ym}}`    | previous month in iso format    | 2021-10                     |
 | `{{next_month_ym}}`    | next month in iso format        | 2021-12                     |
