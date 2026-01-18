@@ -44,7 +44,8 @@ function M.vaults(telekasten, opts)
                         -- print(vim.inspect(selection))
                         telekasten.chdir(selection.value[2])
                     end)
-                end)
+                end
+            ),
         })
         :find()
 end
@@ -299,7 +300,6 @@ function M.on_create(opts, title)
     })
     local fname = pinfo.filepath
 
-    local picker_actions = M.picker_actions
     local function picker()
         fileutils.find_files_sorted({
             prompt_title = "Created note...",

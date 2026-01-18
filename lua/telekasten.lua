@@ -931,7 +931,11 @@ local function InsertImgLink(opts)
                         actions.close(prompt_bufnr)
                         local selection = action_state.get_selected_entry()
                         local fn = selection.value
-                        fn = make_relative_path(vim.fn.expand("%:p"), fn, "/")
+                        fn = linkutils.make_relative_path(
+                            vim.fn.expand("%:p"),
+                            fn,
+                            "/"
+                        )
                         vim.api.nvim_put(
                             { "![](" .. fn .. ")" },
                             "",
@@ -1051,7 +1055,7 @@ local function on_create_with_template(opts, title)
         find_command = config.options.find_command,
         attach_mappings = tkpickers.apply_picker_mappings(
             opts,
-            function(prompt_bufnr, map)
+            function(prompt_bufnr, _)
                 actions.select_default:replace(function()
                     actions.close(prompt_bufnr)
                     -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
