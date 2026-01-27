@@ -35,15 +35,17 @@ function M.vaults(telekasten, opts)
                 end,
             }),
             sorter = conf.generic_sorter(opts),
-            attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    -- print(vim.inspect(selection))
-                    telekasten.chdir(selection.value[2])
-                end)
-                return true
-            end,
+            attach_mappings = M.apply_picker_mappings(
+                opts,
+                function(prompt_bufnr, map)
+                    return M.apply_picker_mappings(map, function()
+                        actions.close(prompt_bufnr)
+                        local selection = action_state.get_selected_entry()
+                        -- print(vim.inspect(selection))
+                        telekasten.chdir(selection.value[2])
+                    end)
+                end
+            ),
         })
         :find()
 end
@@ -223,6 +225,51 @@ function M.picker_actions.create_new(opts)
     end
 end
 
+M.apply_picker_mappings = function(opts, default_select_func)
+    return function(_, map)
+        actions.select_default:replace(
+            default_select_func or M.picker_actions.select_default
+        )
+        -- Set a single or multiple keybinds to the functionality
+        local map_conf = {
+            {
+                "i",
+                config.options.keybinds.picker.i_yank_link,
+                M.picker_actions.yank_link(opts),
+            },
+            {
+                "i",
+                config.options.keybinds.picker.i_paste_link,
+                M.picker_actions.paste_link(opts),
+            },
+            {
+                "n",
+                config.options.keybinds.picker.yank_link,
+                M.picker_actions.yank_link(opts),
+            },
+            {
+                "n",
+                config.options.keybinds.picker.paste_link,
+                M.picker_actions.paste_link(opts),
+            },
+            {
+                "n",
+                config.options.keybinds.picker.close,
+                M.picker_actions.close(opts),
+            },
+        }
+        for _, mc in pairs(map_conf) do
+            local mode, mappings, action = mc[1], mc[2], mc[3]
+            -- Apply map for all given keys
+            -- e.g. `keybinds.picker.close = {"<ESC>", "<C-c>"}`
+            for _, key in pairs(vim.tbl_flatten({ mappings })) do
+                map(mode, key, action)
+            end
+        end
+        return true
+    end
+end
+
 --- on_create(opts, title)
 -- Needs description
 -- @param opts table Options, ideally including insert_after_inserting, close_after_yanking, new_note_location,
@@ -253,23 +300,13 @@ function M.on_create(opts, title)
     })
     local fname = pinfo.filepath
 
-    local picker_actions = M.picker_actions
     local function picker()
         fileutils.find_files_sorted({
             prompt_title = "Created note...",
             cwd = pinfo.root_dir,
             default_text = fileutils.generate_note_filename(uuid, title),
             find_command = config.options.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-c>", picker_actions.close(opts))
-                map("n", "<esc>", picker_actions.close(opts))
-                return true
-            end,
+            attach_mappings = M.apply_picker_mappings(opts),
         })
     end
     if pinfo.fexists ~= true then

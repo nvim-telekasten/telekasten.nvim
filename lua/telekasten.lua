@@ -173,7 +173,6 @@ local function FindDailyNotes(opts)
         or config.options.insert_after_inserting
     opts.close_after_yanking = opts.close_after_yanking
         or config.options.close_after_yanking
-    local picker_actions = tkpickers.picker_actions
 
     -- If global dir check passes, defines a picker for daily files
     -- If today's daily doesn't exist, create one from template
@@ -208,29 +207,17 @@ local function FindDailyNotes(opts)
                 cwd = search_root,
                 find_command = config.options.find_command,
                 search_pattern = search_pattern,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
                 sort = config.options.sort,
             })
         end
-
-        if (not fexists) and kcfg.create_if_missing then
+        if not fexists and kcfg.create_if_missing then
             fileutils.create_note_from_template(
                 title,
                 nil,
                 fname,
                 kcfg.template_file,
-                dinfo,
+                nil,
                 function()
                     opts.erase = true
                     opts.erase_file = fname
@@ -279,25 +266,13 @@ local function FindWeeklyNotes(opts)
         local search_pattern =
             periodic.filename_pattern(pcfg, "weekly", config.options.extension)
 
-        local picker_actions = tkpickers.picker_actions
         local function picker()
             fileutils.find_files_sorted({
                 prompt_title = "Find weekly note",
                 cwd = search_root,
                 find_command = config.options.find_command,
                 search_pattern = search_pattern,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
                 sort = config.options.sort,
             })
         end
@@ -358,26 +333,13 @@ local function FindMonthlyNotes(opts)
         local search_pattern =
             periodic.filename_pattern(pcfg, "monthly", config.options.extension)
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             fileutils.find_files_sorted({
                 prompt_title = "Find monthly note",
                 cwd = search_root,
                 find_command = config.options.find_command,
                 search_pattern = search_pattern,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
                 sort = config.options.sort,
             })
         end
@@ -441,26 +403,13 @@ local function FindQuarterlyNotes(opts)
             config.options.extension
         )
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             fileutils.find_files_sorted({
                 prompt_title = "Find quarterly note",
                 cwd = search_root,
                 find_command = config.options.find_command,
                 search_pattern = search_pattern,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
                 sort = config.options.sort,
             })
         end
@@ -517,27 +466,13 @@ local function FindYearlyNotes(opts)
         local search_pattern =
             periodic.filename_pattern(pcfg, "yearly", config.options.extension)
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             fileutils.find_files_sorted({
                 prompt_title = "Find yearly note",
                 cwd = search_root,
                 find_command = config.options.find_command,
                 search_pattern = search_pattern,
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
-                sort = config.options.sort,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
             })
         end
 
@@ -581,9 +516,10 @@ local function InsertLink(opts)
         local cwd = config.options.home
         local find_command = config.options.find_command
         local sort = config.options.sort
-        local picker_actions = tkpickers.picker_actions
-        local attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
+
+        local attach_mappings = tkpickers.apply_picker_mappings(
+            opts,
+            function(prompt_bufnr, _)
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 if selection == nil then
@@ -602,15 +538,8 @@ local function InsertLink(opts)
                 if opts.i then
                     vim.api.nvim_feedkeys("a", "m", false)
                 end
-            end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
-            return true
-        end
+            end
+        )
 
         -- Open picker for users to chose note, preferring live grep
         if opts.with_live_grep then
@@ -658,7 +587,6 @@ local function PreviewImg(opts)
         -- check if fname exists anywhere
         local imageDir = config.options.image_subdir or config.options.home
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
-        local picker_actions = tkpickers.picker_actions
 
         if fexists == true then
             fileutils.find_files_sorted({
@@ -668,18 +596,7 @@ local function PreviewImg(opts)
                 find_command = config.options.find_command,
                 filter_extensions = config.options.media_extensions,
                 preview_type = "media",
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
-                    end)
-                    map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                    map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                    map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
                 sort = config.options.sort,
             })
         else
@@ -703,25 +620,13 @@ local function BrowseImg(opts)
             return
         end
 
-        local picker_actions = tkpickers.picker_actions
         fileutils.find_files_sorted({
             prompt_title = "Preview image/media",
             cwd = config.options.home,
             find_command = config.options.find_command,
             filter_extensions = config.options.media_extensions,
             preview_type = "media",
-            attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                end)
-                map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                return true
-            end,
+            attach_mappings = tkpickers.apply_picker_mappings(opts),
             sort = config.options.sort,
         })
     end)
@@ -751,22 +656,12 @@ local function FindFriends(opts)
         title = linkutils.remove_alias(title)
         title = title:gsub("^(%[)(.+)(%])$", "%2")
 
-        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             prompt_title = "Notes referencing `" .. title .. "`",
             cwd = config.options.home,
             default_text = "\\[\\[" .. title .. "([#|].+)?\\]\\]",
             find_command = config.options.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings = tkpickers.apply_picker_mappings(opts),
         })
     end)
 end
@@ -904,25 +799,21 @@ local function GotoDate(opts)
                 cwd = periodic.search_root(pcfg, "daily") or root_dir,
                 default_text = title,
                 find_command = config.options.find_command,
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
+                attach_mappings = tkpickers.apply_picker_mappings(
+                    opts,
+                    function(prompt_bufnr, _)
+                        actions.select_default:replace(function()
+                            actions.close(prompt_bufnr)
 
-                        -- open the new note
-                        if opts.calendar == true then
-                            vim.cmd("wincmd w")
-                        end
-                        vim.cmd("e " .. fname)
-                        picker_actions.post_open()
-                    end)
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                            -- open the new note
+                            if opts.calendar == true then
+                                vim.cmd("wincmd w")
+                            end
+                            vim.cmd("e " .. fname)
+                            picker_actions.post_open()
+                        end)
+                    end
+                ),
             })
         end
     end
@@ -988,13 +879,7 @@ local function FindNotes(opts)
         local sort = config.options.sort
         local picker_actions = tkpickers.picker_actions
         local attach_mappings = function(_, map)
-            actions.select_default:replace(picker_actions.select_default)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            map("i", "<c-cr>", picker_actions.paste_link(opts))
-            map("n", "<c-cr>", picker_actions.paste_link(opts))
+            tkpickers.apply_picker_mappings(opts)
             if config.options.enable_create_new then
                 map("i", "<c-n>", picker_actions.create_new(opts))
                 map("n", "<c-n>", picker_actions.create_new(opts))
@@ -1033,36 +918,36 @@ local function InsertImgLink(opts)
             return
         end
 
-        local picker_actions = tkpickers.picker_actions
         fileutils.find_files_sorted({
             prompt_title = "Find image/media",
             cwd = config.options.home,
             find_command = config.options.find_command,
             filter_extensions = config.options.media_extensions,
             preview_type = "media",
-            attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    local fn = selection.value
-                    fn = linkutils.make_relative_path(
-                        vim.fn.expand("%:p"),
-                        fn,
-                        "/"
-                    )
-                    vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
-                    if opts.i then
-                        vim.api.nvim_feedkeys("A", "m", false)
-                    end
-                end)
-                map("i", "<c-y>", picker_actions.yank_img_link(opts))
-                map("i", "<c-i>", picker_actions.paste_img_link(opts))
-                map("n", "<c-y>", picker_actions.yank_img_link(opts))
-                map("n", "<c-i>", picker_actions.paste_img_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_img_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_img_link(opts))
-                return true
-            end,
+            attach_mappings = tkpickers.apply_picker_mappings(
+                opts,
+                function(prompt_bufnr, _)
+                    actions.select_default:replace(function()
+                        actions.close(prompt_bufnr)
+                        local selection = action_state.get_selected_entry()
+                        local fn = selection.value
+                        fn = linkutils.make_relative_path(
+                            vim.fn.expand("%:p"),
+                            fn,
+                            "/"
+                        )
+                        vim.api.nvim_put(
+                            { "![](" .. fn .. ")" },
+                            "",
+                            true,
+                            true
+                        )
+                        if opts.i then
+                            vim.api.nvim_feedkeys("A", "m", false)
+                        end
+                    end)
+                end
+            ),
             sort = config.options.sort,
         })
     end)
@@ -1083,23 +968,13 @@ local function SearchNotes(opts)
             return
         end
 
-        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             prompt_title = "Search in notes",
             cwd = config.options.home,
             search_dirs = { config.options.home },
             default_text = opts.default_text or vim.fn.expand("<cword>"),
             find_command = config.options.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings = tkpickers.apply_picker_mappings(opts),
         })
     end)
 end
@@ -1128,7 +1003,6 @@ local function ShowBacklinks(opts)
         local escaped_title = string.gsub(title, "%(", "\\(")
         escaped_title = string.gsub(escaped_title, "%)", "\\)")
 
-        local picker_actions = tkpickers.picker_actions
         builtin.live_grep({
             results_title = "Backlinks to " .. title,
             prompt_title = "Search",
@@ -1136,16 +1010,7 @@ local function ShowBacklinks(opts)
             search_dirs = { config.options.home },
             default_text = "\\[\\[" .. escaped_title .. "([#|].+)?\\]\\]",
             find_command = config.options.find_command,
-            attach_mappings = function(_, map)
-                actions.select_default:replace(picker_actions.select_default)
-                map("i", "<c-y>", picker_actions.yank_link(opts))
-                map("i", "<c-i>", picker_actions.paste_link(opts))
-                map("n", "<c-y>", picker_actions.yank_link(opts))
-                map("n", "<c-i>", picker_actions.paste_link(opts))
-                map("i", "<c-cr>", picker_actions.paste_link(opts))
-                map("n", "<c-cr>", picker_actions.paste_link(opts))
-                return true
-            end,
+            attach_mappings = tkpickers.apply_picker_mappings(opts),
         })
     end)
 end
@@ -1188,31 +1053,29 @@ local function on_create_with_template(opts, title)
         prompt_title = "Select template...",
         cwd = config.options.templates,
         find_command = config.options.find_command,
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                actions.close(prompt_bufnr)
-                -- local template = config.options.templates .. "/" .. action_state.get_selected_entry().value
-                local template = action_state.get_selected_entry().value
-                -- TODO: pass in the calendar_info returned from the pinfo
-                fileutils.create_note_from_template(
-                    title,
-                    uuid,
-                    fname,
-                    template,
-                    pinfo.calendar_info,
-                    function()
-                        -- open the new note
-                        vim.cmd("e " .. fname)
-                        picker_actions.post_open()
-                    end
-                )
-            end)
-            map("i", "<c-y>", picker_actions.yank_link(opts))
-            map("i", "<c-i>", picker_actions.paste_link(opts))
-            map("n", "<c-y>", picker_actions.yank_link(opts))
-            map("n", "<c-i>", picker_actions.paste_link(opts))
-            return true
-        end,
+        attach_mappings = tkpickers.apply_picker_mappings(
+            opts,
+            function(prompt_bufnr, _)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
+                    local template = action_state.get_selected_entry().value
+                    -- TODO: pass in the calendar_info returned from the pinfo
+                    fileutils.create_note_from_template(
+                        title,
+                        uuid,
+                        fname,
+                        template,
+                        pinfo.calendar_info,
+                        function()
+                            -- open the new note
+                            vim.cmd("e " .. fname)
+                            picker_actions.post_open()
+                        end
+                    )
+                end)
+            end
+        ),
     })
 end
 
@@ -1288,7 +1151,6 @@ local function FollowLink(opts)
         local search_mode = "files"
         local title
         local filename_part = ""
-        local picker_actions = tkpickers.picker_actions
 
         -- first: check if we're in a tag or a link
         local kind
@@ -1400,18 +1262,7 @@ local function FollowLink(opts)
                         cwd = pinfo.root_dir,
                         default_text = title,
                         find_command = config.options.find_command,
-                        attach_mappings = function(_, map)
-                            actions.select_default:replace(
-                                picker_actions.select_default
-                            )
-                            map("i", "<c-y>", picker_actions.yank_link(opts))
-                            map("i", "<c-i>", picker_actions.paste_link(opts))
-                            map("n", "<c-y>", picker_actions.yank_link(opts))
-                            map("n", "<c-i>", picker_actions.paste_link(opts))
-                            map("n", "<c-c>", picker_actions.close(opts))
-                            map("n", "<esc>", picker_actions.close(opts))
-                            return true
-                        end,
+                        attach_mappings = tkpickers.apply_picker_mappings(opts),
                         sort = config.options.sort,
                     })
                 end
@@ -1733,18 +1584,7 @@ local function FollowLink(opts)
                 finder = live_grepper,
                 previewer = conf.grep_previewer(opts),
                 sorter = sorters.highlighter_only(opts),
-                attach_mappings = function(_, map)
-                    actions.select_default:replace(
-                        picker_actions.select_default
-                    )
-                    map("i", "<c-y>", picker_actions.yank_link(opts))
-                    map("i", "<c-i>", picker_actions.paste_link(opts))
-                    map("n", "<c-y>", picker_actions.yank_link(opts))
-                    map("n", "<c-i>", picker_actions.paste_link(opts))
-                    map("i", "<c-cr>", picker_actions.paste_link(opts))
-                    map("n", "<c-cr>", picker_actions.paste_link(opts))
-                    return true
-                end,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
             })
             picker:find()
         end
@@ -1784,7 +1624,6 @@ local function GotoThisWeek(opts)
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "weekly")
 
-        local picker_actions = tkpickers.picker_actions
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1798,24 +1637,13 @@ local function GotoThisWeek(opts)
                     cwd = search_root,
                     default_text = title,
                     find_command = config.options.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = tkpickers.apply_picker_mappings(opts),
                 })
             end
         end
 
         if (not fexists) and kcfg.create_if_missing then
-            local template = kcfg.template_file or M.note_type_templates.weekly
+            local template = kcfg.template_file
             fileutils.create_note_from_template(
                 title,
                 nil,
@@ -1874,8 +1702,6 @@ local function GotoThisMonth(opts)
         local search_pattern =
             periodic.filename_pattern(pcfg, "monthly", config.options.extension)
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1891,18 +1717,7 @@ local function GotoThisMonth(opts)
                     -- Include search pattern so we only find monthlies and not dailies
                     search_pattern = search_pattern,
                     find_command = config.options.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = tkpickers.apply_picker_mappings(opts),
                 })
             end
         end
@@ -1965,8 +1780,6 @@ local function GotoThisQuarter(opts)
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "quarterly")
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -1980,18 +1793,7 @@ local function GotoThisQuarter(opts)
                     cwd = search_root,
                     default_text = title,
                     find_command = config.options.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = tkpickers.apply_picker_mappings(opts),
                 })
             end
         end
@@ -2049,8 +1851,6 @@ local function GotoThisYear(opts)
         local fexists = fileutils.file_exists(fname)
         local search_root = periodic.search_root(pcfg, "yearly")
 
-        local picker_actions = tkpickers.picker_actions
-
         local function picker()
             if opts.journal_auto_open then
                 if opts.calendar == true then
@@ -2064,18 +1864,7 @@ local function GotoThisYear(opts)
                     cwd = search_root,
                     default_text = title,
                     find_command = config.options.find_command,
-                    attach_mappings = function(_, map)
-                        actions.select_default:replace(
-                            picker_actions.select_default
-                        )
-                        map("i", "<c-y>", picker_actions.yank_link(opts))
-                        map("i", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-y>", picker_actions.yank_link(opts))
-                        map("n", "<c-i>", picker_actions.paste_link(opts))
-                        map("n", "<c-c>", picker_actions.close(opts))
-                        map("n", "<esc>", picker_actions.close(opts))
-                        return true
-                    end,
+                    attach_mappings = tkpickers.apply_picker_mappings(opts),
                 })
             end
         end
@@ -2283,7 +2072,6 @@ local function FindAllTags(opts)
 
         local tag_map = tagutils.do_find_all_tags(opts)
         local taglist = {}
-        local picker_actions = tkpickers.picker_actions
 
         local max_tag_len = 0
         for k, v in pairs(tag_map) do
@@ -2337,8 +2125,9 @@ local function FindAllTags(opts)
                     end,
                 }),
                 sorter = conf.generic_sorter(opts),
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
+                attach_mappings = tkpickers.apply_picker_mappings(
+                    opts,
+                    function(prompt_bufnr)
                         -- actions for insert tag, default action: search for tag
                         local selection =
                             action_state.get_selected_entry().value.tag
@@ -2351,15 +2140,8 @@ local function FindAllTags(opts)
                         vim.schedule(function()
                             FollowLink(follow_opts)
                         end)
-                    end)
-                    map("i", "<c-y>", picker_actions.yank_tag(opts))
-                    map("i", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-y>", picker_actions.yank_tag(opts))
-                    map("n", "<c-i>", picker_actions.paste_tag(opts))
-                    map("n", "<c-c>", picker_actions.close(opts))
-                    map("n", "<esc>", picker_actions.close(opts))
-                    return true
-                end,
+                    end
+                ),
             })
             :find()
     end)
