@@ -14,6 +14,7 @@ local vim = vim
 ---@field create_if_missing boolean
 
 ---@class PeriodicSpec
+---@field enabled boolean
 ---@field root string
 ---@field extension string
 ---@field kinds table<string, PeriodicKindSpec>
@@ -80,7 +81,7 @@ end
 local function build_detection_patterns(periodic)
     local patterns = {}
 
-    if not periodic or not periodic.kinds then
+    if not periodic or periodic.enabled == false or not periodic.kinds then
         return patterns
     end
 
@@ -136,6 +137,11 @@ end
 ---@return PeriodicConfig
 function M.normalize_periodic(periodic)
     periodic = periodic or {}
+
+    if periodic.enabled == nil then
+        periodic.enabled = true
+    end
+
     periodic.root = periodic.root or ""
     periodic.kinds = periodic.kinds or {}
 
@@ -158,12 +164,20 @@ function M.normalize_periodic(periodic)
         periodic.kinds[kind] = kcfg
     end
 
-    M.detection_patterns = build_detection_patterns(periodic)
+    if periodic.enabled == false then
+        M.detection_patterns = {}
+    else
+        M.detection_patterns = build_detection_patterns(periodic)
+    end
 
     return periodic
 end
 
 local function root_for_kind(periodic, kind)
+    if not periodic or periodic.enabled == false then
+        return nil
+    end
+
     local kcfg = periodic.kinds[kind]
     if not kcfg or kcfg.enabled == false then
         return nil
@@ -185,6 +199,10 @@ end
 ---@return string|nil root_dir
 ---@return string|nil sub_dir
 function M.build_path(periodic, kind, dinfo, extension)
+    if not periodic or periodic.enabled == false then
+        return nil, nil, nil, nil
+    end
+
     local kcfg = periodic.kinds[kind]
     if not kcfg or kcfg.enabled == false then
         return nil, nil, nil, nil
@@ -223,6 +241,10 @@ end
 ---@param extension string
 ---@return string|nil
 function M.filename_pattern(periodic, kind, extension)
+    if not periodic or periodic.enabled == false then
+        return nil
+    end
+
     local kcfg = periodic.kinds[kind]
     if not kcfg or kcfg.enabled == false then
         return nil

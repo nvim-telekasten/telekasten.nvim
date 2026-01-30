@@ -53,6 +53,7 @@ function Config:get_defaults(home)
         auto_set_filetype = true,
         auto_set_syntax = true,
         periodic = {
+            enabled = true,
             root = _home,
             kinds = {
                 yearly = {

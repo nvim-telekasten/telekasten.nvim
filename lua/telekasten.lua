@@ -769,6 +769,11 @@ local function GotoDate(opts)
         or config.options.journal_auto_open
 
     local pcfg = config.options.periodic
+    if not pcfg or pcfg.enabled == false then
+        tkutils.print_error("periodic notes are disabled")
+        return
+    end
+
     if not pcfg or not pcfg.kinds or not pcfg.kinds.daily then
         tkutils.print_error("periodic.daily is not configured")
         return
