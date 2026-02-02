@@ -261,7 +261,7 @@ function M.filename_pattern(periodic, kind, extension)
     end)
 
     pattern = pattern:gsub("{([%w_]+)}", function(key)
-        return token_meta[key] or ".*"
+        return token_meta[key].pattern or ".*"
     end)
 
     extension = extension or ""
