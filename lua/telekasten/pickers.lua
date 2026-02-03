@@ -38,12 +38,10 @@ function M.vaults(telekasten, opts)
             attach_mappings = M.apply_picker_mappings(
                 opts,
                 function(prompt_bufnr, map)
-                    return M.apply_picker_mappings(map, function()
-                        actions.close(prompt_bufnr)
-                        local selection = action_state.get_selected_entry()
-                        -- print(vim.inspect(selection))
-                        telekasten.chdir(selection.value[2])
-                    end)
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    -- print(vim.inspect(selection))
+                    telekasten.chdir(selection.value[2])
                 end
             ),
         })
