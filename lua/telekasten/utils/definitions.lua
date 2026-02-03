@@ -27,6 +27,7 @@
 ---@field create_if_missing boolean
 
 ---@class PeriodicConfig
+---@field enabled boolean
 ---@field root string
 ---@field kinds table<PeriodicKind, PeriodicKindConfig>
 ---

@@ -72,7 +72,7 @@ local function assemble_roots_specs(opts)
     add(config.options.home, "home")
 
     local pcfg = config.options.periodic
-    if pcfg then
+    if pcfg and pcfg.enabled ~= false then
         add(pcfg.root, "proot")
 
         if pcfg.kinds then
@@ -211,6 +211,11 @@ end
 local function check_if_periodic(title)
     local cal_monday = config.options.calendar_opts.calendar_monday
     local dateinfo = dateutils.calculate_dates(nil, cal_monday) -- sane default
+
+    local pcfg = config.options.periodic
+    if not pcfg or pcfg.enabled == false then
+        return false, false, false, false, false, dateinfo
+    end
 
     local is_daily = false
     local is_weekly = false
