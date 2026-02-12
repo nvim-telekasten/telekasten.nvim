@@ -164,337 +164,6 @@ local function imgFromClipboard()
     end)
 end
 
---- FindDailyNotes(opts)
---- Opens a picker looking for daily notes, creating new from template if needed
---- @param opts table Options if they should differ from user's configuration
-local function FindDailyNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-
-    -- If global dir check passes, defines a picker for daily files
-    -- If today's daily doesn't exist, create one from template
-    -- Either way, then open the picker
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local dinfo = dateutils.calculate_dates(
-            nil,
-            config.options.calendar_opts.calendar_monday
-        )
-
-        local pcfg = config.options.periodic
-        local fname, title, root_dir, _ =
-            periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
-        if not fname or not root_dir then
-            return
-        end
-
-        local kcfg = pcfg.kinds.daily
-        local fexists = fileutils.file_exists(fname)
-
-        local search_root = periodic.search_root(pcfg, "daily") or pcfg.root
-        local search_pattern =
-            periodic.filename_pattern(pcfg, "daily", config.options.extension)
-
-        local function picker()
-            fileutils.find_files_sorted({
-                prompt_title = "Find daily note",
-                cwd = search_root,
-                find_command = config.options.find_command,
-                search_pattern = search_pattern,
-                attach_mappings = tkpickers.apply_picker_mappings(opts),
-                sort = config.options.sort,
-            })
-        end
-        if not fexists and kcfg.create_if_missing then
-            fileutils.create_note_from_template(
-                title,
-                nil,
-                fname,
-                kcfg.template_file,
-                nil,
-                function()
-                    opts.erase = true
-                    opts.erase_file = fname
-                    picker()
-                end
-            )
-            return
-        end
-        picker()
-    end)
-end
-
---- FindWeeklyNotes(opts)
--- Defines and uses a picker looking for weekly notes, creating a new one from template if needed
--- @param opts table Options if they should differ from user's configuration
-local function FindWeeklyNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-
-    -- If global dir check passes, set up a picker for weekly notes
-    -- If this week's note does not exist, create from template
-    -- Either way, then call the picker
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local dinfo = dateutils.calculate_dates(
-            nil,
-            config.options.calendar_opts.calendar_monday
-        )
-
-        local pcfg = config.options.periodic
-        local fname, title, root_dir, _ =
-            periodic.build_path(pcfg, "weekly", dinfo, config.options.extension)
-        if not fname or not root_dir then
-            return
-        end
-
-        local kcfg = pcfg.kinds.weekly
-        local fexists = fileutils.file_exists(fname)
-        local search_root = periodic.search_root(pcfg, "weekly") or pcfg.root
-        local search_pattern =
-            periodic.filename_pattern(pcfg, "weekly", config.options.extension)
-
-        local function picker()
-            fileutils.find_files_sorted({
-                prompt_title = "Find weekly note",
-                cwd = search_root,
-                find_command = config.options.find_command,
-                search_pattern = search_pattern,
-                attach_mappings = tkpickers.apply_picker_mappings(opts),
-                sort = config.options.sort,
-            })
-        end
-
-        if (not fexists) and kcfg.create_if_missing then
-            fileutils.create_note_from_template(
-                title,
-                nil,
-                fname,
-                kcfg.template_file,
-                dinfo,
-                function()
-                    opts.erase = true
-                    opts.erase_file = fname
-                    picker()
-                end
-            )
-            return
-        end
-        picker()
-    end)
-end
-
---- FindMonthlyNotes(opts)
--- Defines and uses a picker looking for monthly notes, creating a new one from template if needed
--- @param opts table Options if they should differ from user's configuration
-local function FindMonthlyNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local dinfo = dateutils.calculate_dates(
-            nil,
-            config.options.calendar_opts.calendar_monday
-        )
-
-        local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(
-            pcfg,
-            "monthly",
-            dinfo,
-            config.options.extension
-        )
-        if not fname or not root_dir then
-            return
-        end
-
-        local kcfg = pcfg.kinds.monthly
-        local fexists = fileutils.file_exists(fname)
-        local search_root = periodic.search_root(pcfg, "monthly") or pcfg.root
-        local search_pattern =
-            periodic.filename_pattern(pcfg, "monthly", config.options.extension)
-
-        local function picker()
-            fileutils.find_files_sorted({
-                prompt_title = "Find monthly note",
-                cwd = search_root,
-                find_command = config.options.find_command,
-                search_pattern = search_pattern,
-                attach_mappings = tkpickers.apply_picker_mappings(opts),
-                sort = config.options.sort,
-            })
-        end
-
-        if (not fexists) and kcfg.create_if_missing then
-            fileutils.create_note_from_template(
-                title,
-                nil,
-                fname,
-                kcfg.template_file,
-                dinfo,
-                function()
-                    opts.erase = true
-                    opts.erase_file = fname
-                    picker()
-                end
-            )
-            return
-        end
-        picker()
-    end)
-end
-
---- FindQuarterlyNotes(opts)
--- Defines and uses a picker looking for quarterly notes, creating a new one from template if needed
--- @param opts table Options if they should differ from user's configuration
-local function FindQuarterlyNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local dinfo = dateutils.calculate_dates(
-            nil,
-            config.options.calendar_opts.calendar_monday
-        )
-
-        local pcfg = config.options.periodic
-        local fname, title, root_dir, _ = periodic.build_path(
-            pcfg,
-            "quarterly",
-            dinfo,
-            config.options.extension
-        )
-        if not fname or not root_dir then
-            return
-        end
-
-        local kcfg = pcfg.kinds.quarterly
-        local fexists = fileutils.file_exists(fname)
-        local search_root = periodic.search_root(pcfg, "quarterly") or pcfg.root
-        local search_pattern = periodic.filename_pattern(
-            pcfg,
-            "quarterly",
-            config.options.extension
-        )
-
-        local function picker()
-            fileutils.find_files_sorted({
-                prompt_title = "Find quarterly note",
-                cwd = search_root,
-                find_command = config.options.find_command,
-                search_pattern = search_pattern,
-                attach_mappings = tkpickers.apply_picker_mappings(opts),
-                sort = config.options.sort,
-            })
-        end
-
-        if (not fexists) and kcfg.create_if_missing then
-            fileutils.create_note_from_template(
-                title,
-                nil,
-                fname,
-                kcfg.template_file,
-                dinfo,
-                function()
-                    opts.erase = true
-                    opts.erase_file = fname
-                    picker()
-                end
-            )
-            return
-        end
-        picker()
-    end)
-end
-
---- FindYearlyNotes(opts)
--- Defines and uses a picker looking for yearly notes, creating a new one from template if needed
--- @param opts table Options if they should differ from user's configuration
-local function FindYearlyNotes(opts)
-    opts = opts or {}
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local dinfo = dateutils.calculate_dates(
-            nil,
-            config.options.calendar_opts.calendar_monday
-        )
-
-        local pcfg = config.options.periodic
-        local fname, title, root_dir, _ =
-            periodic.build_path(pcfg, "yearly", dinfo, config.options.extension)
-        if not fname or not root_dir then
-            return
-        end
-
-        local kcfg = pcfg.kinds.yearly
-        local fexists = fileutils.file_exists(fname)
-        local search_root = periodic.search_root(pcfg, "yearly") or pcfg.root
-        local search_pattern =
-            periodic.filename_pattern(pcfg, "yearly", config.options.extension)
-
-        local function picker()
-            fileutils.find_files_sorted({
-                prompt_title = "Find yearly note",
-                cwd = search_root,
-                find_command = config.options.find_command,
-                search_pattern = search_pattern,
-                attach_mappings = tkpickers.apply_picker_mappings(opts),
-            })
-        end
-
-        if (not fexists) and kcfg.create_if_missing then
-            fileutils.create_note_from_template(
-                title,
-                nil,
-                fname,
-                kcfg.template_file,
-                dinfo,
-                function()
-                    opts.erase = true
-                    opts.erase_file = fname
-                    picker()
-                end
-            )
-            return
-        end
-        picker()
-    end)
-end
-
 --- InsertLink(opts)
 -- Sets up and uses a picker from which users can pick a note to insert a link to
 -- @param opts table Options if they should differ from user's configuration
@@ -910,6 +579,100 @@ local function FindNotes(opts)
             })
         end
     end)
+end
+
+--- FindPeriodicNotes(opts, kind)
+--- Opens a picker looking for notes for the specified Periodic kind,
+--- creating new note from template if needed
+--- @param opts table Options if they should differ from user's configuration
+--- @param kind PeriodicKind Specific Periodic Kind the function should look for
+local function FindPeriodicNotes(opts, kind)
+    opts = opts or {}
+    opts.insert_after_inserting = opts.insert_after_inserting
+        or config.options.insert_after_inserting
+    opts.close_after_yanking = opts.close_after_yanking
+        or config.options.close_after_yanking
+
+    if type(kind) ~= "string" then
+        tkutils.print_error("Wrong Periodic Kind Passed to Function")
+        return
+    end
+
+    fileutils.global_dir_check(function(dir_check)
+        if not dir_check then
+            return
+        end
+
+        local pcfg = config.options.periodic
+        if not periodic.is_enabled(pcfg) then
+            tkutils.print_error("Periodic Notes are Disabled.")
+            return
+        end
+        
+        if not periodic.is_enabled(pcfg, kind) then
+            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
+            return
+        end
+
+        local kcfg = pcfg.kinds[kind]
+        if not kcfg then
+            tkutils.print_error(("No config found for periodic kind: %s"):format(kind))
+            return
+        end
+
+        local dinfo = dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday
+        )
+
+        local fname, title, root_dir, _ =
+            periodic.build_path(pcfg, kind, dinfo, config.options.extension)
+        if not fname or not root_dir then
+            return
+        end
+
+        local fexists = fileutils.file_exists(fname)
+        local search_root = periodic.search_root(pcfg, kind) or pcfg.root
+        local search_pattern =
+            periodic.filename_pattern(pcfg, kind, config.options.extension)
+        if not search_pattern then
+            return
+        end
+
+        local function picker()
+            fileutils.find_files_sorted({
+                prompt_title = ("Find %s note"):format(kind),
+                cwd = search_root,
+                find_command = config.options.find_command,
+                search_pattern = search_pattern,
+                attach_mappings = tkpickers.apply_picker_mappings(opts),
+                sort = config.options.sort,
+            })
+        end
+
+        if (not fexists) and kcfg.create_if_missing then
+            fileutils.create_note_from_template(
+                title,
+                nil,
+                fname,
+                kcfg.template_file,
+                dinfo,
+                function()
+                    opts.erase = true
+                    opts.erase_file = fname
+                    picker()
+                end
+            )
+            return
+        end
+        picker()
+    end)
+end
+
+local function make_periodic_finder(kind)
+    return function(opts)
+        FindPeriodicNotes(opts, kind)
+    end
 end
 
 --- InsertImgLink(opts)
@@ -1595,6 +1358,8 @@ local function FollowLink(opts)
         end
     end)
 end
+
+--- GotoPeriodic(opts, kind)
 
 --- GotoThisWeek(opts)
 -- Find this week's weekly note and create it if necessary.
@@ -2430,7 +2195,7 @@ end
 
 -- Define all user facing functions
 M.find_notes = FindNotes
-M.find_daily_notes = FindDailyNotes
+M.find_daily_notes = make_periodic_finder("daily")
 M.search_notes = SearchNotes
 M.insert_link = InsertLink
 M.follow_link = FollowLink
@@ -2438,13 +2203,13 @@ M.setup = _setup
 M.goto_today = GotoToday
 M.new_note = CreateNote
 M.goto_thisweek = GotoThisWeek
-M.find_weekly_notes = FindWeeklyNotes
+M.find_weekly_notes = make_periodic_finder("weekly")
 M.goto_thismonth = GotoThisMonth
-M.find_monthly_notes = FindMonthlyNotes
+M.find_monthly_notes = make_periodic_finder("monthly")
 M.goto_thisquarter = GotoThisQuarter
-M.find_quarterly_notes = FindQuarterlyNotes
+M.find_quarterly_notes = make_periodic_finder("quarterly")
 M.goto_thisyear = GotoThisYear
-M.find_yearly_notes = FindYearlyNotes
+M.find_yearly_notes = make_periodic_finder("yearly")
 M.yank_notelink = YankLink
 M.rename_note = RenameNote
 M.new_templated_note = CreateNoteSelectTemplate
