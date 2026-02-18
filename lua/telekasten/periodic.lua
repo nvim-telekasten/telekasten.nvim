@@ -168,6 +168,23 @@ function M.is_enabled(periodic, kind)
     return true
 end
 
+---Returns whether the given string is a Periodic kind
+---@param s string String to be compared to periodic_kinds
+---@return boolean Whether the given string is a Periodic Kind or Not
+function M.is_kind(s)
+    if type(s) ~= "string" then
+        return false
+    end
+
+    for _, k in ipairs(M.periodic_kinds or {}) do
+        if k == s then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---@param periodic PeriodicConfig|nil
 ---@return PeriodicConfig
 function M.normalize_periodic(periodic)
