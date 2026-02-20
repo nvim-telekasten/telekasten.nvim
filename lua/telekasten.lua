@@ -1245,120 +1245,6 @@ local function FollowLink(opts)
     end)
 end
 
---- GoToDate(opts)
--- find note for date and create it if necessary.
--- @param opts table Options if they should differ from user's configuration
--- Move to utils/files.lua? Technically not user facing...
-local function GotoDate(opts)
-    opts = opts or {}
-
-    opts.dates = dateutils.calculate_dates(
-        opts.date_table,
-        config.options.calendar_opts.calendar_monday
-    )
-    opts.insert_after_inserting = opts.insert_after_inserting
-        or config.options.insert_after_inserting
-    opts.close_after_yanking = opts.close_after_yanking
-        or config.options.close_after_yanking
-    opts.journal_auto_open = opts.journal_auto_open
-        or config.options.journal_auto_open
-
-    local pcfg = config.options.periodic
-    if not pcfg or pcfg.enabled == false then
-        tkutils.print_error("periodic notes are disabled")
-        return
-    end
-
-    if not pcfg or not pcfg.kinds or not pcfg.kinds.daily then
-        tkutils.print_error("periodic.daily is not configured")
-        return
-    end
-
-    local kcfg = pcfg.kinds.daily
-    if not kcfg.enabled then
-        tkutils.print_error("daily periodic notes are disabled")
-        return
-    end
-
-    local dinfo = opts.dates or os.date(dateutils.dateformats.date)
-    local fname, title, root_dir, _ =
-        periodic.build_path(pcfg, "daily", dinfo, config.options.extension)
-
-    local fexists = fileutils.file_exists(fname)
-    local picker_actions = tkpickers.picker_actions
-    local function picker()
-        if opts.journal_auto_open then
-            if opts.calendar == true then
-                -- ensure that the calendar window is not improperly overwritten
-                vim.cmd("wincmd w")
-            end
-            vim.cmd("e " .. fname)
-        else
-            fileutils.find_files_sorted({
-                prompt_title = "Goto day",
-                cwd = periodic.search_root(pcfg, "daily") or root_dir,
-                default_text = title,
-                find_command = config.options.find_command,
-                attach_mappings = tkpickers.apply_picker_mappings(
-                    opts,
-                    function(prompt_bufnr, _)
-                        actions.select_default:replace(function()
-                            actions.close(prompt_bufnr)
-
-                            -- open the new note
-                            if opts.calendar == true then
-                                vim.cmd("wincmd w")
-                            end
-                            vim.cmd("e " .. fname)
-                            picker_actions.post_open()
-                        end)
-                    end
-                ),
-            })
-        end
-    end
-
-    if (not fexists) and kcfg.create_if_missing then
-        fileutils.create_note_from_template(
-            title,
-            nil,
-            fname,
-            kcfg.template_file,
-            dinfo,
-            function()
-                opts.erase = true
-                opts.erase_file = fname
-                picker()
-            end
-        )
-        return
-    end
-
-    picker()
-end
-
---- GotoToday(opts)
--- Find today's daily note and create it if necessary.
--- @param opts table Options if they should differ from user's configuration
-local function GotoToday(opts)
-    opts = opts or {}
-
-    fileutils.global_dir_check(function(dir_check)
-        if not dir_check then
-            return
-        end
-
-        local today = os.date(dateutils.dateformats.date)
-        opts.date_table = os.date("*t")
-        opts.date = today
-        local pcfg = opts.periodic or config.options.periodic
-        local kcfg = pcfg.kinds.daily
-        kcfg.create_if_missing = true -- Always use template for GotoToday
-
-        GotoDate(opts)
-    end)
-end
-
 local function normalize_date_ref_key(ref, base)
     local monthname_to_ym = {
         month_name = "month_ym",
@@ -1386,10 +1272,11 @@ end
 --- month name refs, resolving them to the nearest accepted month date.
 --- @param date_ref string|nil A Date_ref which exists in the dateutils calculated date table
 --- @param calendar_monday CalendarStartDay Whether the calendar starts on Sunday or Monday
+--- @param date_tbl table A specific date table to use for calculations
 --- @return table|nil dinfo The Computed Date Info table
 --- @return string|nil derr Error message if date_ref is invalid or unsupported
-local function resolve_dinfo(date_ref, calendar_monday)
-    local base = dateutils.calculate_dates(nil, calendar_monday)
+local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
+    local base = dateutils.calculate_dates(date_tbl, calendar_monday)
 
     if date_ref == nil then
         return base, nil
@@ -1528,7 +1415,7 @@ end
 --- @return string prompt_title The Title to Show at the top of the picker
 local function build_prompt_title(kind, date_ref)
     if kind == "daily" then
-        return date_ref and ("Goto %s"):format(date_ref) or "Goto today"
+        return date_ref and ("Goto %s"):format(date_ref) or "Goto day"
     end
 
     local prompt_titles = {
@@ -1594,8 +1481,10 @@ local function GotoPeriodic(opts, kind, date_ref)
 
         local dinfo, derr = resolve_dinfo(
             date_ref,
-            config.options.calendar_opts.calendar_monday
+            config.options.calendar_opts.calendar_monday,
+            opts.date_table
         )
+
         if not dinfo then
             tkutils.print_error(derr)
             return
@@ -1689,11 +1578,10 @@ end
 -- @param _ any Unused
 -- TODO: Ensure it's safe to remove the extra paramters
 local function CalendarAction(day, month, year, _, _)
-    local opts = {}
-    opts.date = string.format("%04d-%02d-%02d", year, month, day)
-    opts.date_table = { year = year, month = month, day = day }
-    opts.calendar = true
-    GotoDate(opts)
+    GotoPeriodic({
+        date_table = { year = year, month = month, day = day },
+        calendar = true,
+    }, "daily")
 end
 
 --- ShowCalendar(opts)
