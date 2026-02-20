@@ -494,7 +494,7 @@ local function FindPeriodicNotes(opts, kind)
             tkutils.print_error("Periodic Notes are Disabled.")
             return
         end
-        
+
         if not periodic.is_enabled(pcfg, kind) then
             tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
             return
@@ -1359,8 +1359,31 @@ local function GotoToday(opts)
     end)
 end
 
+local function normalize_date_ref_key(ref, base)
+    local monthname_to_ym = {
+        month_name = "month_ym",
+        prev_month_name = "prev_month_ym",
+        next_month_name = "next_month_ym",
+    }
+    if monthname_to_ym[ref] then
+        return monthname_to_ym[ref]
+    end
+    local v = base[ref]
+    if type(v) == "string" and v:match("^%d+$") and ref:find("week") then
+        local iso_ref = "iso" .. ref
+        if type(base[iso_ref]) == "string" then
+            return iso_ref
+        end
+    end
+
+    return ref
+end
+
 --- resolve_dinfo(date_ref, calendar_monday)
---- Determines proper date info for a given date reference, defaulting to today
+--- Determines proper date info for a given date reference, defaulting to today.
+--- Supports date_refs that resolve to an accepted date format (eg. YYYY-MM-DD), as well
+--- as numeric only refs, as it resolves them to the nearest accepted full date format, and also supports
+--- month name refs, resolving them to the nearest accepted month date.
 --- @param date_ref string|nil A Date_ref which exists in the dateutils calculated date table
 --- @param calendar_monday CalendarStartDay Whether the calendar starts on Sunday or Monday
 --- @return table|nil dinfo The Computed Date Info table
@@ -1376,20 +1399,101 @@ local function resolve_dinfo(date_ref, calendar_monday)
         return nil, "date_ref must be a string or nil"
     end
 
-    local v = base[date_ref]
+    local ref = normalize_date_ref_key(date_ref, base)
+    local v = base[ref]
+    local dt
+
+    if type(v) == "number" then
+        if ref == "month" then
+            dt = { year = base.year, month = v, day = 1, hour = 12 }
+        elseif ref == "quarter" then
+            dt = dateutils.quarter_to_date(base.year, v)
+            dt.hour = 12
+        elseif ref == "year" then
+            dt = { year = v, month = 1, day = 1, hour = 12 }
+        else
+            return nil, ("Unsupported numeric date_ref: %s"):format(date_ref)
+        end
+        return dateutils.calculate_dates(dt, calendar_monday), nil
+    end
+
     if type(v) ~= "string" then
-        return nil, ("Unsupported date_ref (not found or not a string): %s"):format(date_ref)
+        return nil, ("Unsupported date_ref (not found or not a string/number): %s"):format(date_ref)
     end
 
-    local y, m, d = v:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
-    if not y then
-        return nil, ("Unsupported date_ref (does not resolve to YYYY-MM-DD): %s"):format(date_ref)
+    -- YYYY-MM-DD
+    do
+        local y, m, d = v:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+        if y then
+            dt = { year = tonumber(y), month = tonumber(m), day = tonumber(d), hour = 12 }
+        end
     end
 
-    local dt = { year = tonumber(y), month = tonumber(m), day = tonumber(d), hour = 12 }
+    -- YYYY-Www
+    if not dt then
+        local y, w = v:match("^(%d%d%d%d)%-W(%d%d)$")
+        if y then
+            dt = dateutils.isoweek_to_date(tonumber(y), tonumber(w))
+            dt.hour = 12
+        end
+    end
+
+    -- YYYY-QQ
+    if not dt then
+        local y, q = v:match("^(%d%d%d%d)%-Q(%d)$")
+        if y then
+            dt = dateutils.quarter_to_date(tonumber(y), tonumber(q))
+            dt.hour = 12
+        end
+    end
+
+    -- YYYY-MM
+    if not dt then
+        local y, m = v:match("^(%d%d%d%d)%-(%d%d)$")
+        if y then
+            dt = { year = tonumber(y), month = tonumber(m), day = 1, hour = 12 }
+        end
+    end
+
+    -- YYYY
+    if not dt then
+        local y = v:match("^(%d%d%d%d)$")
+        if y then
+            dt = { year = tonumber(y), month = 1, day = 1, hour = 12 }
+        end
+    end
+
+    if not dt then
+        return nil, ("Unsupported date_ref format: %s -> %s"):format(date_ref, v)
+    end
+
     local dinfo = dateutils.calculate_dates(dt, calendar_monday)
 
     return dinfo, nil
+end
+
+local function infer_kind_from_date_ref(date_ref, calendar_monday)
+    local base = dateutils.calculate_dates(nil, calendar_monday)
+    local ref = normalize_date_ref_key(date_ref, base)
+    local v = base[ref]
+
+    -- if this date_ref yields a string, infer by its format
+    if type(v) == "string" then
+        if v:match("^%d%d%d%d%-W%d%d$") then return "weekly" end
+        if v:match("^%d%d%d%d%-Q%d$") then return "quarterly" end
+        if v:match("^%d%d%d%d%-%d%d$") then return "monthly" end
+        if v:match("^%d%d%d%d$") then return "yearly" end
+        return "daily"
+    end
+
+    -- numeric refs
+    if type(v) == "number" then
+        if date_ref == "month" then return "monthly" end
+        if date_ref == "quarter" then return "quarterly" end
+        if date_ref == "year" then return "yearly" end
+    end
+
+    return "daily"
 end
 
 --- normalize_periodic_ref(periodic_ref, date_ref)
@@ -1398,18 +1502,20 @@ end
 ---     GoToPeriodic(opts)
 ---     GoToPeriodic(opts, kind)
 ---     GoToPeriodic(opts, date_ref)
----     GoToPeriodic(opts, kind, date_ref)\
+---     GoToPeriodic(opts, kind, date_ref)
 --- @param periodic_ref PeriodicKind|string Either a periodic kind string, or a string matching an entry in the date table
 --- @param date_ref string|nil Optional date_ref to an entry in the entry in the date table
+--- @param calendar_monday any
 --- @return PeriodicKind kind Normalized periodic kind (defaults to "daily")
 --- @return string|nil date_ref Normalized date_ref
-local function normalize_periodic_ref(periodic_ref, date_ref)
+local function normalize_periodic_ref(periodic_ref, date_ref, calendar_monday)
     if periodic_ref == nil then
         return "daily", date_ref
     end
 
     if date_ref == nil and not periodic.is_kind(periodic_ref) then
-        return "daily", periodic_ref
+        local inferred_kind = infer_kind_from_date_ref(periodic_ref, calendar_monday)
+        return inferred_kind, periodic_ref
     end
 
     return periodic_ref, date_ref
@@ -1448,7 +1554,16 @@ local function GotoPeriodic(opts, kind, date_ref)
         or config.options.close_after_yanking
     opts.journal_auto_open = opts.journal_auto_open
         or config.options.journal_auto_open
-    kind, date_ref = normalize_periodic_ref(kind, date_ref)
+    kind, date_ref = normalize_periodic_ref(
+        kind,
+        date_ref,
+        config.options.calendar_opts.calendar_monday
+    )
+    if not periodic.is_kind(kind) then
+        tkutils.print_error(("GoToPeriodic: inferred invalid kind '%s' from date_ref '%s'"):format(kind, tostring(date_ref)))
+        return
+    end
+
 
     if type(kind) ~= "string" then
         tkutils.print_error("GoToPeriodic: kind must be a string")
