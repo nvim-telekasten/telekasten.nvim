@@ -133,6 +133,58 @@ local function build_detection_patterns(periodic)
     return patterns
 end
 
+local function root_for_kind(periodic, kind)
+    if not periodic or periodic.enabled == false then
+        return nil
+    end
+
+    local kcfg = periodic.kinds[kind]
+    if not kcfg or kcfg.enabled == false then
+        return nil
+    end
+
+    if kcfg.root ~= "" then
+        return kcfg.root
+    end
+    return periodic.root
+end
+
+---Returns whether periodic (and optionally a specific kind) is enabled
+---@param periodic PeriodicConfig|nil
+---@param kind PeriodicKind|nil
+---@return boolean
+function M.is_enabled(periodic, kind)
+    if not periodic or periodic.enabled == false then
+        return false
+    end
+
+    if kind ~= nil then
+        local kcfg = periodic.kinds and periodic.kinds[kind]
+        if kcfg and kcfg.enabled == false then
+            return false
+        end
+    end
+
+    return true
+end
+
+---Returns whether the given string is a Periodic kind
+---@param s string String to be compared to periodic_kinds
+---@return boolean Whether the given string is a Periodic Kind or Not
+function M.is_kind(s)
+    if type(s) ~= "string" then
+        return false
+    end
+
+    for _, k in ipairs(M.periodic_kinds or {}) do
+        if k == s then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---@param periodic PeriodicConfig|nil
 ---@return PeriodicConfig
 function M.normalize_periodic(periodic)
@@ -173,22 +225,6 @@ function M.normalize_periodic(periodic)
     return periodic
 end
 
-local function root_for_kind(periodic, kind)
-    if not periodic or periodic.enabled == false then
-        return nil
-    end
-
-    local kcfg = periodic.kinds[kind]
-    if not kcfg or kcfg.enabled == false then
-        return nil
-    end
-
-    if kcfg.root ~= "" then
-        return kcfg.root
-    end
-    return periodic.root
-end
-
 --- Build full path for a periodic note.
 ---@param periodic PeriodicConfig
 ---@param kind PeriodicKind
@@ -199,14 +235,11 @@ end
 ---@return string|nil root_dir
 ---@return string|nil sub_dir
 function M.build_path(periodic, kind, dinfo, extension)
-    if not periodic or periodic.enabled == false then
+    if not M.is_enabled(periodic, kind) then
         return nil, nil, nil, nil
     end
 
     local kcfg = periodic.kinds[kind]
-    if not kcfg or kcfg.enabled == false then
-        return nil, nil, nil, nil
-    end
 
     local ctx = dinfo or {}
     local root_dir = root_for_kind(periodic, kind)
@@ -241,14 +274,11 @@ end
 ---@param extension string
 ---@return string|nil
 function M.filename_pattern(periodic, kind, extension)
-    if not periodic or periodic.enabled == false then
+    if not M.is_enabled(periodic, kind) then
         return nil
     end
 
     local kcfg = periodic.kinds[kind]
-    if not kcfg or kcfg.enabled == false then
-        return nil
-    end
 
     local pattern = kcfg.filename
     if pattern == "" then
