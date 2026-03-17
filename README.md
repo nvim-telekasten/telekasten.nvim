@@ -217,6 +217,8 @@ custom mappings.
 
 ```vim
 :lua require('telekasten').search_notes()
+:lua require('telekasten').goto_periodic("weekly")
+:lua require('telekasten').goto_periodic("daily", "prevday")
 ```
 
 </details>
@@ -228,20 +230,20 @@ The following sub-commands are defined:
 - `panel` : brings up the [command palette](#command-palette)
 - `find_notes` : Find notes by title (filename)
 - `show_tags` : brings up the tag list. From there you can select a tag to search for tagged notes - or yank or insert the tag
-- `find_daily_notes` : Find daily notes by title (date)
+- `find_daily_notes` : Find daily notes by title (date).
 - `search_notes` : Search (grep) in all notes
 - `insert_link` : Insert a link to a note
 - `follow_link` : Follow the link under the cursor
-- `goto_today` : Open today's daily note
+- `goto_today` : Open today's daily note.
 - `new_note` : Create a new note, prompts for title
-- `goto_thisweek` : Open this week's weekly note
-- `find_weekly_notes` : Find weekly notes by title (calendar week)
-- `goto_thismonth` : Open this month's monthly note
-- `find_monthly_notes` : Find monthly notes by title
-- `goto_thisquarter` : Open this quarter's quarterly note
-- `find_quarterly_notes` : Find quarterly notes by title
-- `goto_thisyear` : Open this year's yearly note
-- `find_yearly_notes` : Find yearly notes by title
+- `goto_thisweek` : Open this week's weekly note.
+- `find_weekly_notes` : Find weekly notes by title (calendar week).
+- `goto_thismonth` : Open this month's monthly note.
+- `find_monthly_notes` : Find monthly notes by title.
+- `goto_thisquarter` : Open this quarter's quarterly note.
+- `find_quarterly_notes` : Find quarterly notes by title.
+- `goto_thisyear` : Open this year's yearly note.
+- `find_yearly_notes` : Find yearly notes by title.
 - `yank_notelink` : Yank a link to the currently open note
 - `new_templated_note` : create a new note by template, prompts for title and template
 - `show_calendar` : Show the calendar
@@ -255,6 +257,10 @@ The following sub-commands are defined:
 - `rename_note` : Rename current note and update the links pointing to it
 - `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
   option for more.
+
+For periodic notes, the unified Lua entry points are `goto_periodic` and
+`find_periodic_notes` (daily/weekly/monthly/quarterly/yearly). The `goto_*` and
+`find_*` variants above are thin wrappers around these functions.
 
 ### Command palette
 
