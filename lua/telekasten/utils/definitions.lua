@@ -67,6 +67,7 @@
 ---@field close_after_yanking boolean
 ---@field insert_after_inserting boolean
 ---@field tag_notation "#tag" | "@tag" | ":tag:" | "yaml-bare"
+---@field panel_commands? string[]
 ---@field command_palette_theme "dropdown" | "ivy"
 ---@field show_tags_theme string
 ---@field template_handling "smart" | "prefer_new_note" | "always_ask"

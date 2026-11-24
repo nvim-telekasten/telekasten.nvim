@@ -122,6 +122,10 @@ telekasten.setup({opts})
       -- instead of a [[title only]] link
       subdirs_in_links = true,
 
+      -- Optional list of commands to display in the panel. Direct commands
+      -- and their completion always remain available.
+      -- panel_commands = { "find_notes", "new_note", "switch_vault" },
+
       -- Command palette theme: dropdown (window) or ivy (bottom panel)
       command_palette_theme = "ivy",
 
@@ -394,6 +398,15 @@ telekasten.setup({opts})
         - 'markdown' .. `![](image_subdir/image_name)`
 
         Default: 'markdown'
+
+                                          *telekasten.settings.panel_commands*
+    panel_commands: ~
+        Choose which available commands appear in this vault's command panel.
+        Omit the list to show all available commands, or use an empty list
+        to hide every entry. Direct commands and completion still work.
+        For example: >
+            panel_commands = { "find_notes", "new_note", "switch_vault" },
+<
 
                                     *telekasten.settings.sort*
     sort: ~

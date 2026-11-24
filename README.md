@@ -285,6 +285,11 @@ This can be especially useful if all your Telekasten mappings start with the
 same prefix. In that case, bind the command panel to the prefix only and it will
 pop-up when you hesitate to complete the mapping.
 
+Set `panel_commands` in a vault to choose which of its available commands
+appear in the panel. For example, `{ "find_notes", "new_note", "switch_vault" }`
+keeps the panel focused on those three commands. An empty list hides every
+entry. You can still run any command directly or find it with completion.
+
 ## Customization
 
 ### Highlights

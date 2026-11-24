@@ -2065,6 +2065,12 @@ TelekastenCmd.command = function(subcommand)
                 finder = finders.new_table({
                     results = TelekastenCmd.commands(),
                     entry_maker = function(entry)
+                        local visible = config.options.panel_commands
+                        if
+                            visible and not vim.tbl_contains(visible, entry[2])
+                        then
+                            return nil
+                        end
                         return {
                             value = entry,
                             display = entry[1],
@@ -2078,11 +2084,11 @@ TelekastenCmd.command = function(subcommand)
                         -- important: actions.close(bufnr) is not enough
                         -- it resulted in: preview_img NOT receiving the prompt as default text
                         -- apparently it has sth to do with keeping insert mode
-                        actions._close(prompt_bufnr, true)
-
-                        local selection =
-                            action_state.get_selected_entry().value[3]
-                        selection()
+                        local selection = action_state.get_selected_entry()
+                        if selection then
+                            actions._close(prompt_bufnr, true)
+                            selection.value[3]()
+                        end
                     end)
                     return true
                 end,
