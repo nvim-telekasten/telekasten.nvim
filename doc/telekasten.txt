@@ -234,6 +234,8 @@ telekasten.setup({opts})
                                          --   'left-fit'
       },
 
+      -- To start in a named vault instead of the top-level home, see
+      -- |telekasten.settings.default_vault|.
       vaults = {
         personal = {
           -- configuration for personal vault. E.g.:
@@ -1410,11 +1412,25 @@ the following default mappings apply:
     selected image.
 
 --------------------------------------------------------------------------------
-Section 3.6 Multiple home directories               *telekasten.switch_vaults*
+Section 3.7 Multiple home directories               *telekasten.switch_vaults*
 
-You can have multiple home directories setup in telekasten. The configuration
-for each vault is stored as a map in telekasten. You can use `switch_vaults
-to launch a picker to choose the vaults.
+                                              *telekasten.settings.default_vault*
+Use `default_vault` to select the startup vault by its key in `vaults`.
+Keep each vault's settings with its home directory. For example: >
+    require('telekasten').setup({
+      default_vault = "work",
+      vaults = {
+        work = {
+          home = vim.fn.expand("~/notes/work"),
+          periodic = { enabled = false },
+        },
+        personal = { home = vim.fn.expand("~/notes/personal") },
+      },
+    })
+<
+With no `default_vault`, Telekasten uses `vaults.default` if present.
+Otherwise, a top-level `home` and its settings become the default vault.
+Use `:Telekasten switch_vault` to choose another configured vault.
 
 
 ================================================================================

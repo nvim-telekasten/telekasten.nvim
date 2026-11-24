@@ -67,6 +67,7 @@ also just insert a link to the note or yank a link instead of opening the note.
   - [Highlights](#highlights)
   - [Mappings](#mappings)
 - [Features](#features)
+  - [Vaults](#vaults)
   - [Link notation](#link-notation)
   - [Tag notation](#tag-notation)
   - [Templates](#templates)
@@ -338,8 +339,23 @@ execution of a function to your specific need.
 ### Vaults
 
 Telekasten allows the user to have completely separated note collections and
-switch between them easily. Simply add data to the `vaults` table in the
-    configuration and configure each vault as you wish.
+switch between them with `:Telekasten switch_vault`. To choose which vault
+opens at startup, set `default_vault` to a key in `vaults`. Put each
+vault's settings inside its own entry.
+
+```lua
+require('telekasten').setup({
+  default_vault = "work",
+  vaults = {
+    work = { home = vim.fn.expand("~/notes/work"), periodic = { enabled = false } },
+    personal = { home = vim.fn.expand("~/notes/personal") },
+  },
+})
+```
+
+If you omit `default_vault`, a vault named `default` opens at startup.
+You can also keep `home` and its settings at the top level to use them as
+the default vault when neither startup option is set.
 
 ### Link notation
 
