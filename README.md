@@ -248,7 +248,10 @@ The following sub-commands are defined:
 - `yank_notelink` : Yank a link to the currently open note
 - `new_templated_note` : create a new note by template, prompts for title and template
 - `show_calendar` : Show the calendar
-- `paste_img_and_link` : Paste an image from the clipboard into a file and inserts a link to it
+- `paste_img_and_link` : Save a clipboard image and insert a link to it.
+  Images go in the vault home by default. Set `images = "img"` to use a
+  subdirectory, or give an absolute path. The older `image_subdir` setting
+  also works. If both are set, Telekasten uses `images`.
 - `toggle_todo` : Toggle `- [ ]` todo status of a line
 - `show_backlinks` : Show all notes linking to the current one
 - `find_friends` : Show all notes linking to the link under the cursor
@@ -256,8 +259,10 @@ The following sub-commands are defined:
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
 - `rename_note` : Rename current note and update the links pointing to it
-- `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
-  option for more.
+- `switch_vault` : Choose a vault. Enter activates the selected vault. To
+  also change Neovim’s global working directory, map a second key in the
+  active vault, for example
+  `keybinds = { picker = { switch_vault_cd = "<M-CR>" } }`.
 
 For periodic notes, the unified Lua entry points are `goto_periodic` and
 `find_periodic_notes` (daily/weekly/monthly/quarterly/yearly). The `goto_*` and
@@ -270,6 +275,10 @@ the different commands available. This feature is quite similar to the excellent
 [which-key.nvim](https://github.com/folke/which-key.nvim) plugin, although
 limited to Telekasten.
 
+Periodic Find and GoTo commands appear only for kinds enabled in the active
+vault. A disabled kind stays hidden even if its command is on a custom panel
+list. Reopen the panel after switching vaults to see the new selection.
+
 You can call this panel using
 
 ```vim
@@ -279,6 +288,11 @@ You can call this panel using
 This can be especially useful if all your Telekasten mappings start with the
 same prefix. In that case, bind the command panel to the prefix only and it will
 pop-up when you hesitate to complete the mapping.
+
+Set `panel_commands` in a vault to choose which of its available commands
+appear in the panel. For example, `{ "find_notes", "new_note", "switch_vault" }`
+keeps the panel focused on those three commands. An empty list hides every
+entry. You can still run any command directly or find it with completion.
 
 ## Customization
 

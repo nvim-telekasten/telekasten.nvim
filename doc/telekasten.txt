@@ -81,10 +81,8 @@ telekasten.setup({opts})
         -- home, as it checks both directories for the file
       template_new_note = '/path/to/file',      -- template for new notes
 
-      -- Image subdir for pasting
-        -- subdir name
-        -- or nil if pasted images shouldn't go into a special subdir
-      image_subdir = "img",
+      -- Directory for pasted images (absolute or relative to home)
+      images = "img",
 
       -- File extension for note files
       extension    = ".md",
@@ -123,6 +121,10 @@ telekasten.setup({opts})
       -- When linking to a note in subdir/, create a [[subdir/title]] link
       -- instead of a [[title only]] link
       subdirs_in_links = true,
+
+      -- Optional list of commands to display in the panel. Direct commands
+      -- and their completion always remain available.
+      -- panel_commands = { "find_notes", "new_note", "switch_vault" },
 
       -- Command palette theme: dropdown (window) or ivy (bottom panel)
       command_palette_theme = "ivy",
@@ -319,10 +321,12 @@ telekasten.setup({opts})
         Default: 'vim.fn.expand("~/zettelkasten")'
 
                                         *telekasten.settings.image_subdir*
-    image_subdir: ~
-        Path to the directory where pasted images should go to. Accepts
-        absolute path or sub-directory name.
-        Set to `nil` if images should not go into a sub-directory.
+                                             *telekasten.settings.images*
+    images: ~
+        Directory for pasted images. Use an absolute path or a directory
+        relative to the vault home. With neither setting, images go in home.
+        The older `image_subdir` setting is an alias. If both are set,
+        `images` takes precedence.
 
         Default: `nil`
 
@@ -394,6 +398,15 @@ telekasten.setup({opts})
         - 'markdown' .. `![](image_subdir/image_name)`
 
         Default: 'markdown'
+
+                                          *telekasten.settings.panel_commands*
+    panel_commands: ~
+        Choose which available commands appear in this vault's command panel.
+        Omit the list to show all available commands, or use an empty list
+        to hide every entry. Direct commands and completion still work.
+        For example: >
+            panel_commands = { "find_notes", "new_note", "switch_vault" },
+<
 
                                     *telekasten.settings.sort*
     sort: ~
@@ -560,6 +573,9 @@ telekasten.setup({opts})
         be deactivated. If periodic notes are or have been created manually,
         they will not be tracked, or available in their corresponding telescope
         pickers.
+
+        The panel lists Find and GoTo only for enabled kinds in the active
+        vault. A disabled kind stays hidden when you open that vault's panel.
 
         Default: `true`
 
@@ -1410,6 +1426,13 @@ the following default mappings apply:
     Usually opens the selected note or performs the action defined by the called
     function. E.g. `insert_img_link()`'s action is to insert a link to the
     selected image.
+
+                                  *telekasten.keybinds.picker.switch_vault_cd*
+In the vault picker, Enter switches vaults. To also change the global
+working directory to the selected vault home, map `switch_vault_cd` in the
+active vault. The key works in insert and normal mode. To bind Alt-Enter: >
+    keybinds = { picker = { switch_vault_cd = "<M-CR>" } }
+<
 
 --------------------------------------------------------------------------------
 Section 3.7 Multiple home directories               *telekasten.switch_vaults*

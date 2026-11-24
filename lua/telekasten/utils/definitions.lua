@@ -32,6 +32,7 @@
 ---@field kinds table<PeriodicKind, PeriodicKindConfig>
 ---
 ---@class PickerKeybinds
+---@field switch_vault_cd? string
 ---@field yank_link string
 ---@field paste_link string
 ---@field i_yank_link string
@@ -48,7 +49,8 @@
 ---@field auto_set_syntax boolean
 ---@field periodic PeriodicConfig
 ---@field templates string
----@field image_subdir string|nil Should be deprecated gracefully and replaced by "images"
+---@field images? string
+---@field image_subdir? string Alias for images
 ---@field extension "md" | string
 ---@field new_note_filename "title" | "uuid" | "uuid-title"
 ---@field uuid_type "%Y%m%d%H%M" | string
@@ -65,6 +67,7 @@
 ---@field close_after_yanking boolean
 ---@field insert_after_inserting boolean
 ---@field tag_notation "#tag" | "@tag" | ":tag:" | "yaml-bare"
+---@field panel_commands? string[]
 ---@field command_palette_theme "dropdown" | "ivy"
 ---@field show_tags_theme string
 ---@field template_handling "smart" | "prefer_new_note" | "always_ask"

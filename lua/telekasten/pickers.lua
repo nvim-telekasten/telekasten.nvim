@@ -21,6 +21,23 @@ function M.vaults(telekasten, opts)
     for k, v in pairs(vaults) do
         table.insert(_vaults, { k, v })
     end
+    local function select_vault(prompt_bufnr, change_directory)
+        local selection = action_state.get_selected_entry()
+        if selection then
+            local vault = selection.value[2]
+            if change_directory then
+                local ok, err =
+                    pcall(vim.cmd, "cd " .. vim.fn.fnameescape(vault.home))
+                if not ok then
+                    vim.notify(tostring(err), vim.log.levels.ERROR)
+                    return
+                end
+            end
+            actions.close(prompt_bufnr)
+            telekasten.chdir(vault)
+        end
+    end
+
     pickers
         .new(opts, {
             prompt_title = "Vaults",
@@ -35,15 +52,20 @@ function M.vaults(telekasten, opts)
                 end,
             }),
             sorter = conf.generic_sorter(opts),
-            attach_mappings = M.apply_picker_mappings(
-                opts,
-                function(prompt_bufnr, map)
-                    actions.close(prompt_bufnr)
-                    local selection = action_state.get_selected_entry()
-                    -- print(vim.inspect(selection))
-                    telekasten.chdir(selection.value[2])
+            attach_mappings = function(prompt_bufnr, map)
+                local key = config.options.keybinds.picker.switch_vault_cd
+                if key then
+                    for _, mode in ipairs({ "i", "n" }) do
+                        map(mode, key, function(bufnr)
+                            select_vault(bufnr, true)
+                        end)
+                    end
                 end
-            ),
+                return M.apply_picker_mappings(opts, select_vault)(
+                    prompt_bufnr,
+                    map
+                )
+            end,
         })
         :find()
 end

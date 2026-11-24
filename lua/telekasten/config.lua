@@ -99,7 +99,7 @@ function Config:get_defaults(home)
             },
         },
         templates = _home,
-        image_subdir = nil, -- Should be deprecated gracefully and replaced by "images"
+        images = nil,
         extension = ".md",
         new_note_filename = "title",
         uuid_type = "%Y%m%d%H%M",

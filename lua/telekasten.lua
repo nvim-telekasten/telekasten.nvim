@@ -127,9 +127,7 @@ local function imgFromClipboard()
 
         -- Get a destination to store the image in
         local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-        local pngdir = config.options.image_subdir
-                and config.options.image_subdir
-            or config.options.home
+        local pngdir = config.options.images or config.options.home
         local png = Path:new(pngdir, pngname).filename
         local relpath =
             linkutils.make_relative_path(vim.fn.expand("%:p"), png, "/")
@@ -254,7 +252,7 @@ local function PreviewImg(opts)
         vim.fn.setreg('"0', saved_reg)
 
         -- check if fname exists anywhere
-        local imageDir = config.options.image_subdir or config.options.home
+        local imageDir = config.options.images or config.options.home
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
 
         if fexists == true then
@@ -1913,8 +1911,9 @@ local function Setup(cfg)
     end
 
     -- Convert all directories in full path
-    config.options.image_subdir =
-        fileutils.make_config_path_absolute(config.options.image_subdir)
+    config.options.images =
+        fileutils.make_config_path_absolute(cfg.images or cfg.image_subdir)
+    config.options.image_subdir = config.options.images
     config.options.templates =
         fileutils.make_config_path_absolute(config.options.templates)
 
@@ -1952,6 +1951,15 @@ end
 -- Sets the available vaults and passes further configuration options to Setup
 ---@param cfg MultiVaultConfig | VaultConfig table of configuration values
 local function _setup(cfg)
+    -- Vault homes are relative to the directory where setup was called.
+    local function resolve_home(vault)
+        local home = vault.home or "~/zettelkasten"
+        home = vim.fn.simplify(vim.fn.fnamemodify(home .. "/.", ":p:h"))
+        return vim.tbl_extend("force", vault, { home = home })
+    end
+    if cfg.vaults then
+        cfg.vaults = vim.tbl_map(resolve_home, cfg.vaults)
+    end
     if cfg.vaults ~= nil and cfg.default_vault ~= nil then
         M.vaults = cfg.vaults
         cfg.vaults = nil
@@ -1964,8 +1972,8 @@ local function _setup(cfg)
         M.vaults = cfg.vaults or {}
         cfg.vaults = nil
         ---@cast cfg VaultConfig
-        M.vaults["default"] = cfg
-        Setup(cfg)
+        M.vaults["default"] = resolve_home(cfg)
+        Setup(M.vaults["default"])
     end
 end
 
@@ -1986,34 +1994,52 @@ end
 
 -- Telekasten command, completion
 local TelekastenCmd = {
-    commands = function()
-        return {
+    commands = function(visible_only)
+        local entries = {
             { "find notes", "find_notes", M.find_notes },
-            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            {
+                "find daily notes",
+                "find_daily_notes",
+                M.find_daily_notes,
+                "daily",
+            },
             { "search in notes", "search_notes", M.search_notes },
             { "insert link", "insert_link", M.insert_link },
             { "follow link", "follow_link", M.follow_link },
-            { "goto today", "goto_today", M.goto_today },
+            { "goto today", "goto_today", M.goto_today, "daily" },
             { "new note", "new_note", M.new_note },
-            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
-            { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "goto thismonth", "goto_thismonth", M.goto_thismonth },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek, "weekly" },
+            {
+                "find weekly notes",
+                "find_weekly_notes",
+                M.find_weekly_notes,
+                "weekly",
+            },
+            { "goto thismonth", "goto_thismonth", M.goto_thismonth, "monthly" },
             {
                 "find monthly notes",
                 "find_monthly_notes",
                 M.find_monthly_notes,
+                "monthly",
             },
-            { "goto thisquarter", "goto_thisquarter", M.goto_thisquarter },
+            {
+                "goto thisquarter",
+                "goto_thisquarter",
+                M.goto_thisquarter,
+                "quarterly",
+            },
             {
                 "find quarterly notes",
                 "find_quarterly_notes",
                 M.find_quarterly_notes,
+                "quarterly",
             },
-            { "goto thisyear", "goto_thisyear", M.goto_thisyear },
+            { "goto thisyear", "goto_thisyear", M.goto_thisyear, "yearly" },
             {
                 "find yearly notes",
                 "find_yearly_notes",
                 M.find_yearly_notes,
+                "yearly",
             },
             { "yank link to note", "yank_notelink", M.yank_notelink },
             { "rename note", "rename_note", M.rename_note },
@@ -2042,6 +2068,13 @@ local TelekastenCmd = {
             { "show tags", "show_tags", M.show_tags },
             { "switch vault", "switch_vault", M.switch_vault },
         }
+        if visible_only then
+            return vim.tbl_filter(function(entry)
+                return not entry[4]
+                    or periodic.is_enabled(config.options.periodic, entry[4])
+            end, entries)
+        end
+        return entries
     end,
 }
 
@@ -2055,8 +2088,14 @@ TelekastenCmd.command = function(subcommand)
             .new(opts, {
                 prompt_title = "Command palette",
                 finder = finders.new_table({
-                    results = TelekastenCmd.commands(),
+                    results = TelekastenCmd.commands(true),
                     entry_maker = function(entry)
+                        local visible = config.options.panel_commands
+                        if
+                            visible and not vim.tbl_contains(visible, entry[2])
+                        then
+                            return nil
+                        end
                         return {
                             value = entry,
                             display = entry[1],
@@ -2070,11 +2109,11 @@ TelekastenCmd.command = function(subcommand)
                         -- important: actions.close(bufnr) is not enough
                         -- it resulted in: preview_img NOT receiving the prompt as default text
                         -- apparently it has sth to do with keeping insert mode
-                        actions._close(prompt_bufnr, true)
-
-                        local selection =
-                            action_state.get_selected_entry().value[3]
-                        selection()
+                        local selection = action_state.get_selected_entry()
+                        if selection then
+                            actions._close(prompt_bufnr, true)
+                            selection.value[3]()
+                        end
                     end)
                     return true
                 end,
