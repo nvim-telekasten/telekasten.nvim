@@ -275,6 +275,10 @@ the different commands available. This feature is quite similar to the excellent
 [which-key.nvim](https://github.com/folke/which-key.nvim) plugin, although
 limited to Telekasten.
 
+Periodic Find and GoTo commands appear only for kinds enabled in the active
+vault. A disabled kind stays hidden even if its command is on a custom panel
+list. Reopen the panel after switching vaults to see the new selection.
+
 You can call this panel using
 
 ```vim

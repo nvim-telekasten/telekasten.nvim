@@ -574,6 +574,9 @@ telekasten.setup({opts})
         they will not be tracked, or available in their corresponding telescope
         pickers.
 
+        The panel lists Find and GoTo only for enabled kinds in the active
+        vault. A disabled kind stays hidden when you open that vault's panel.
+
         Default: `true`
 
                                             *telekasten.periodic.root*

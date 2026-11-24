@@ -1994,34 +1994,52 @@ end
 
 -- Telekasten command, completion
 local TelekastenCmd = {
-    commands = function()
-        return {
+    commands = function(visible_only)
+        local entries = {
             { "find notes", "find_notes", M.find_notes },
-            { "find daily notes", "find_daily_notes", M.find_daily_notes },
+            {
+                "find daily notes",
+                "find_daily_notes",
+                M.find_daily_notes,
+                "daily",
+            },
             { "search in notes", "search_notes", M.search_notes },
             { "insert link", "insert_link", M.insert_link },
             { "follow link", "follow_link", M.follow_link },
-            { "goto today", "goto_today", M.goto_today },
+            { "goto today", "goto_today", M.goto_today, "daily" },
             { "new note", "new_note", M.new_note },
-            { "goto thisweek", "goto_thisweek", M.goto_thisweek },
-            { "find weekly notes", "find_weekly_notes", M.find_weekly_notes },
-            { "goto thismonth", "goto_thismonth", M.goto_thismonth },
+            { "goto thisweek", "goto_thisweek", M.goto_thisweek, "weekly" },
+            {
+                "find weekly notes",
+                "find_weekly_notes",
+                M.find_weekly_notes,
+                "weekly",
+            },
+            { "goto thismonth", "goto_thismonth", M.goto_thismonth, "monthly" },
             {
                 "find monthly notes",
                 "find_monthly_notes",
                 M.find_monthly_notes,
+                "monthly",
             },
-            { "goto thisquarter", "goto_thisquarter", M.goto_thisquarter },
+            {
+                "goto thisquarter",
+                "goto_thisquarter",
+                M.goto_thisquarter,
+                "quarterly",
+            },
             {
                 "find quarterly notes",
                 "find_quarterly_notes",
                 M.find_quarterly_notes,
+                "quarterly",
             },
-            { "goto thisyear", "goto_thisyear", M.goto_thisyear },
+            { "goto thisyear", "goto_thisyear", M.goto_thisyear, "yearly" },
             {
                 "find yearly notes",
                 "find_yearly_notes",
                 M.find_yearly_notes,
+                "yearly",
             },
             { "yank link to note", "yank_notelink", M.yank_notelink },
             { "rename note", "rename_note", M.rename_note },
@@ -2050,6 +2068,13 @@ local TelekastenCmd = {
             { "show tags", "show_tags", M.show_tags },
             { "switch vault", "switch_vault", M.switch_vault },
         }
+        if visible_only then
+            return vim.tbl_filter(function(entry)
+                return not entry[4]
+                    or periodic.is_enabled(config.options.periodic, entry[4])
+            end, entries)
+        end
+        return entries
     end,
 }
 
@@ -2063,7 +2088,7 @@ TelekastenCmd.command = function(subcommand)
             .new(opts, {
                 prompt_title = "Command palette",
                 finder = finders.new_table({
-                    results = TelekastenCmd.commands(),
+                    results = TelekastenCmd.commands(true),
                     entry_maker = function(entry)
                         local visible = config.options.panel_commands
                         if
