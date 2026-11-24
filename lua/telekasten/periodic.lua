@@ -35,39 +35,39 @@ M.detection_patterns = {}
 -- NOTE: Different from detection_patterns! Only for specific template tokens.
 local token_meta = {
     year = {
-        pattern = "%d%d%d%d",
+        pattern = "(%d%d%d%d)",
         fields = { "year" },
     },
     month = {
-        pattern = "%d%d",
+        pattern = "(%d%d?)",
         fields = { "month" },
     },
     day = {
-        pattern = "%d%d",
+        pattern = "(%d%d?)",
         fields = { "day" },
     },
     week = {
-        pattern = "%d%d",
+        pattern = "(%d%d)",
         fields = { "week" },
     },
     quarter = {
-        pattern = "[1-4]",
+        pattern = "([1-4])",
         fields = { "quarter" },
     },
     quarter_yq = {
-        pattern = "%d%d%d%d%-Q[1-4]",
+        pattern = "(%d%d%d%d)%-Q([1-4])",
         fields = { "year", "quarter" },
     },
     month_ym = {
-        pattern = "%d%d%d%d%-%d%d",
-        fields = { "year", "day" },
+        pattern = "(%d%d%d%d)%-(%d%d)",
+        fields = { "year", "month" },
     },
     isoweek = {
-        pattern = "%d%d%d%d%-W%d%d",
+        pattern = "(%d%d%d%d)%-W(%d%d)",
         fields = { "year", "week" },
     },
     date = {
-        pattern = "%d%d%d%d%-%d%d%-%d%d",
+        pattern = "(%d%d%d%d)%-(%d%d)%-(%d%d)",
         fields = { "year", "month", "day" },
     },
 }
@@ -220,11 +220,12 @@ end
 ---@param kind PeriodicKind
 ---@param dinfo table  -- dateutils.calculate_dates result
 ---@param extension string
+---@param matched_title? string Existing link spelling when resolving a detected filename
 ---@return string|nil filepath
 ---@return string|nil title
 ---@return string|nil root_dir
 ---@return string|nil sub_dir
-function M.build_path(periodic, kind, dinfo, extension)
+function M.build_path(periodic, kind, dinfo, extension, matched_title)
     if kind == nil or not M.is_enabled(periodic, kind) then
         return nil, nil, nil, nil
     end
@@ -238,7 +239,7 @@ function M.build_path(periodic, kind, dinfo, extension)
     end
 
     local rel_folder = templates.expand_template(kcfg.folder_path, ctx)
-    local title = templates.expand_template(kcfg.filename, ctx)
+    local title = matched_title or templates.expand_template(kcfg.filename, ctx)
 
     local sub_dir = rel_folder ~= "" and rel_folder or ""
     local folder = root_dir

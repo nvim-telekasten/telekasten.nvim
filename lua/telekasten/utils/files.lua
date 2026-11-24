@@ -153,54 +153,40 @@ local function random_variable(length)
     return res
 end
 
-local function apply_match(kind, fields, caps, cal_monday)
+local function apply_match(kind, fields, caps, cal_monday, days_off)
     local dinfo = {}
-
     for i, field in ipairs(fields) do
-        local v = caps[i]
-
-        if periodic.periodic_kinds[field] then
-            v = tonumber(v)
-        end
-
-        dinfo[field] = v
+        dinfo[field] = tonumber(caps[i])
     end
 
-    -- SPECIAL CASE: weekly notes
-    -- If we have a year + week, then convert that ISO week to a proper date
-    -- (this gives us year/month/day anchored to the *start* of that week)
-    if dinfo.week ~= nil and dinfo.year ~= nil then
+    dinfo.year = dinfo.year or tonumber(os.date("%Y"))
+    local isoweek
+    if dinfo.week and not (dinfo.month and dinfo.day) then
+        if
+            dinfo.week < 1
+            or dinfo.week > dateutils.weeks_in_year(dinfo.year)
+        then
+            return nil
+        end
+        isoweek = string.format("%04d-W%02d", dinfo.year, dinfo.week)
         dinfo = dateutils.isoweek_to_date(dinfo.year, dinfo.week)
-        dinfo.calculate_dates(dinfo, cal_monday)
-        return kind, dinfo
-    end
-
-    -- SPECIAL CASE: quarterly notes
-    -- quarter -> anchor on the first month of that quarter
-    if dinfo.quarter ~= nil and dinfo.year ~= nil then
-        local qi = dinfo.quarter
-        if qi >= 1 and qi <= 4 then
-            local first_month = (qi - 1) * 3 + 1
-            dinfo.month = first_month
-            dinfo.day = 1
-        end
-    end
-
-    -- enforce sane defaults for monthlies and yearlies as well
-    if kind == "monthly" then
-        dinfo.day = dinfo.day or 1
-    elseif kind == "yearly" then
+    elseif dinfo.quarter and not dinfo.month then
+        dinfo = dateutils.quarter_to_date(dinfo.year, dinfo.quarter)
+    else
         dinfo.month = dinfo.month or 1
         dinfo.day = dinfo.day or 1
     end
 
-    dinfo = dateutils.calculate_dates(
-        dinfo,
-        cal_monday,
-        config.options.periodic.kinds.daily.days_off
-    )
-
-    return kind, dinfo
+    local dates =
+        dateutils.calculate_dates(vim.deepcopy(dinfo), cal_monday, days_off)
+    if
+        dates.year == dinfo.year
+        and dates.month == dinfo.month
+        and dates.day == dinfo.day
+    then
+        dates.isoweek = isoweek or dates.isoweek
+        return kind, dates
+    end
 end
 
 --- check_if_periodic(title)
@@ -213,14 +199,11 @@ end
 -- @return boolean True if yearly note
 -- @return table Date info
 local function check_if_periodic(title)
-    local cal_monday = config.options.calendar_opts.calendar_monday
-    local dateinfo = dateutils.calculate_dates(
-        nil,
-        cal_monday,
-        config.options.periodic.kinds.daily.days_off
-    ) -- sane default
-
     local pcfg = config.options.periodic
+    local cal_monday = config.options.calendar_opts.calendar_monday
+    local days_off = vim.tbl_get(pcfg, "kinds", "daily", "days_off")
+    local dateinfo = dateutils.calculate_dates(nil, cal_monday, days_off)
+
     if not periodic.is_enabled(pcfg) then
         return false, false, false, false, false, dateinfo
     end
@@ -238,7 +221,8 @@ local function check_if_periodic(title)
         local caps = { title:match(pattern) }
 
         if #caps > 0 then
-            local k, dinfo = apply_match(kind, fields, caps, cal_monday)
+            local k, dinfo =
+                apply_match(kind, fields, caps, cal_monday, days_off)
 
             if k == "daily" then
                 is_daily = true
@@ -252,8 +236,10 @@ local function check_if_periodic(title)
                 is_yearly = true
             end
 
-            dateinfo = dinfo
-            break
+            if k then
+                dateinfo = dinfo
+                break
+            end
         end
     end
 
@@ -644,6 +630,7 @@ function M.Pinfo:resolve_link(title, opts)
     self.is_daily = is_daily
     self.is_weekly = is_weekly
     self.is_monthly = is_monthly
+    self.is_quarterly = is_quarterly
     self.is_yearly = is_yearly
     self.is_periodic = is_daily
         or is_weekly
@@ -658,13 +645,20 @@ function M.Pinfo:resolve_link(title, opts)
         kind = "weekly"
     elseif is_monthly then
         kind = "monthly"
+    elseif is_quarterly then
+        kind = "quarterly"
     elseif is_yearly then
         kind = "yearly"
     end
 
     if not opts.for_creation and kind ~= nil then
-        local path, _, root_dir, _ =
-            periodic.build_path(opts.periodic, kind, dinfo, opts.extension)
+        local path, _, root_dir, _ = periodic.build_path(
+            opts.periodic,
+            kind,
+            dinfo,
+            opts.extension,
+            self.title
+        )
 
         if path and M.file_exists(path) then
             self.filepath = path
@@ -701,17 +695,14 @@ function M.Pinfo:resolve_link(title, opts)
     -- if we just cannot find the note, check if it's a periodic one
     -- Note that fexists is not changed; This is prep in case a new note is made
     if self.fexists == false then
-        -- TODO: if we're not smart, we also shouldn't need to try to set the calendar info..?
-        --       I bet someone will want the info in there, so let's put it in if possible
-        _, _, _, _, _, self.calendar_info = check_if_periodic(self.title) -- will set today as default, so leave in!
-
         if opts.new_note_location == "smart" then
             if kind ~= nil and self.calendar_info ~= nil then
                 local path, _, root_dir, _ = periodic.build_path(
                     opts.periodic,
                     kind,
                     self.calendar_info,
-                    opts.extension
+                    opts.extension,
+                    self.title
                 )
 
                 if path then
