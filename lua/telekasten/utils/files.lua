@@ -72,12 +72,12 @@ local function assemble_roots_specs(opts)
     add(config.options.home, "home")
 
     local pcfg = config.options.periodic
-    if pcfg and pcfg.enabled ~= false then
+    if periodic.is_enabled(pcfg) then
         add(pcfg.root, "proot")
 
         if pcfg.kinds then
-            for kind, kcfg in pairs(pcfg.kinds) do
-                if kcfg.enabled then
+            for kind in pairs(pcfg.kinds) do
+                if periodic.is_enabled(pcfg, kind) then
                     local root = periodic.search_root(pcfg, kind)
                     add(root, kind)
                 end
@@ -221,7 +221,7 @@ local function check_if_periodic(title)
     ) -- sane default
 
     local pcfg = config.options.periodic
-    if not pcfg or pcfg.enabled == false then
+    if not periodic.is_enabled(pcfg) then
         return false, false, false, false, false, dateinfo
     end
 

@@ -81,12 +81,12 @@ end
 local function build_detection_patterns(periodic)
     local patterns = {}
 
-    if not periodic or periodic.enabled == false or not periodic.kinds then
+    if not M.is_enabled(periodic) or not periodic.kinds then
         return patterns
     end
 
     for kind, kcfg in pairs(periodic.kinds) do
-        if kcfg ~= false then
+        if M.is_enabled(periodic, kind) then
             local tmpl = kcfg.filename or ""
             if tmpl ~= "" then
                 local pat = "^"
@@ -134,16 +134,12 @@ local function build_detection_patterns(periodic)
 end
 
 local function root_for_kind(periodic, kind)
-    if not periodic or periodic.enabled == false then
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil
     end
 
     local kcfg = periodic.kinds[kind]
-    if not kcfg or kcfg.enabled == false then
-        return nil
-    end
-
-    if kcfg.root ~= "" then
+    if kcfg.root and kcfg.root ~= "" then
         return kcfg.root
     end
     return periodic.root
@@ -160,9 +156,7 @@ function M.is_enabled(periodic, kind)
 
     if kind ~= nil then
         local kcfg = periodic.kinds and periodic.kinds[kind]
-        if kcfg and kcfg.enabled == false then
-            return false
-        end
+        return type(kcfg) == "table" and kcfg.enabled ~= false
     end
 
     return true
@@ -216,11 +210,7 @@ function M.normalize_periodic(periodic)
         periodic.kinds[kind] = kcfg
     end
 
-    if periodic.enabled == false then
-        M.detection_patterns = {}
-    else
-        M.detection_patterns = build_detection_patterns(periodic)
-    end
+    M.detection_patterns = build_detection_patterns(periodic)
 
     return periodic
 end
@@ -235,7 +225,7 @@ end
 ---@return string|nil root_dir
 ---@return string|nil sub_dir
 function M.build_path(periodic, kind, dinfo, extension)
-    if not M.is_enabled(periodic, kind) then
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil, nil, nil, nil
     end
 
@@ -274,7 +264,7 @@ end
 ---@param extension string
 ---@return string|nil
 function M.filename_pattern(periodic, kind, extension)
-    if not M.is_enabled(periodic, kind) then
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil
     end
 

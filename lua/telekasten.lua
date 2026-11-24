@@ -493,16 +493,16 @@ local function FindPeriodicNotes(opts, kind)
             return
         end
 
-        if not periodic.is_enabled(pcfg, kind) then
-            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
-            return
-        end
-
         local kcfg = pcfg.kinds[kind]
         if not kcfg then
             tkutils.print_error(
                 ("No config found for periodic kind: %s"):format(kind)
             )
+            return
+        end
+
+        if not periodic.is_enabled(pcfg, kind) then
+            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
             return
         end
 
@@ -1496,16 +1496,16 @@ local function GotoPeriodic(opts, kind, date_ref)
             return
         end
 
-        if not periodic.is_enabled(pcfg, kind) then
-            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
-            return
-        end
-
         local kcfg = pcfg.kinds[kind]
         if not kcfg then
             tkutils.print_error(
                 ("No config found for periodic kind: %s"):format(kind)
             )
+            return
+        end
+
+        if not periodic.is_enabled(pcfg, kind) then
+            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
             return
         end
 
@@ -1590,11 +1590,16 @@ end
 -- @param year number Year of the Gregorian calendar
 -- @return number Representing a boolean, 0 for false and 1 for true
 local function CalendarSignDay(day, month, year)
-    local daily_path = config.options.periodic.kinds.daily.folder_path
-    local fn = daily_path
-        .. "/"
-        .. string.format("%04d-%02d-%02d", year, month, day)
-        .. config.options.extension
+    local pcfg = config.options.periodic
+    if not periodic.is_enabled(pcfg, "daily") then
+        return 0
+    end
+    local dates = dateutils.calculate_dates(
+        { year = year, month = month, day = day },
+        config.options.calendar_opts.calendar_monday
+    )
+    local fn =
+        periodic.build_path(pcfg, "daily", dates, config.options.extension)
     if fileutils.file_exists(fn) then
         return 1
     end
