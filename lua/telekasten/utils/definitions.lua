@@ -32,6 +32,7 @@
 ---@field kinds table<PeriodicKind, PeriodicKindConfig>
 ---
 ---@class PickerKeybinds
+---@field switch_vault_cd? string
 ---@field yank_link string
 ---@field paste_link string
 ---@field i_yank_link string

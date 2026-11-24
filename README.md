@@ -259,8 +259,10 @@ The following sub-commands are defined:
 - `preview_img` : preview image under the cursor
 - `browse_media` : Browse images / media files
 - `rename_note` : Rename current note and update the links pointing to it
-- `switch_vault` : switch the vault. Brings up a picker. See the `vaults` config
-  option for more.
+- `switch_vault` : Choose a vault. Enter activates the selected vault. To
+  also change Neovim’s global working directory, map a second key in the
+  active vault, for example
+  `keybinds = { picker = { switch_vault_cd = "<M-CR>" } }`.
 
 For periodic notes, the unified Lua entry points are `goto_periodic` and
 `find_periodic_notes` (daily/weekly/monthly/quarterly/yearly). The `goto_*` and
