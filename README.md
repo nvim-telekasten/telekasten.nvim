@@ -218,8 +218,9 @@ custom mappings.
 
 ```vim
 :lua require('telekasten').search_notes()
-:lua require('telekasten').goto_periodic("weekly")
-:lua require('telekasten').goto_periodic("daily", "prevday")
+:lua require('telekasten').goto_periodic({}, "weekly")
+:lua require('telekasten').goto_periodic({}, "daily", "prevday")
+:lua require('telekasten').goto_periodic({}, "daily", "nextday")
 ```
 
 </details>

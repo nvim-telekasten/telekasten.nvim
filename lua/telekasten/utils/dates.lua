@@ -181,8 +181,19 @@ function M.calculate_dates(date, calendar_monday)
     dates.time24 = os.date(df.time24, time)
     dates.time12 = os.date(df.time12, time)
     dates.date = os.date(df.date, time)
-    dates.prevday = os.date(df.date, time - oneday)
-    dates.nextday = os.date(df.date, time + oneday)
+    local function adjacent_day(offset)
+        return os.date(
+            df.date,
+            os.time({
+                year = dinfo.year,
+                month = dinfo.month,
+                day = dinfo.day + offset,
+                hour = 12,
+            })
+        )
+    end
+    dates.prevday = adjacent_day(-1)
+    dates.nextday = adjacent_day(1)
 
     local cur_first_month = os.time({
         year = dinfo.year,

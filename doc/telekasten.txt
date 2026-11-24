@@ -888,6 +888,10 @@ telekasten.goto_periodic() ~
   `quarter_yq`, `year`). A list of available date_refs is listed under the
   template_files section, link below.
 
+  Use `goto_periodic({}, "daily", "prevday")` for yesterday and
+  `goto_periodic({}, "daily", "nextday")` for tomorrow. With `opts.date_table`,
+  both references are relative to that calendar date.
+
   If the specified periodic note is not present, it will be created if
   the respective kind's `create_if_missing` setting is set to `true`.
 
