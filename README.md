@@ -218,8 +218,8 @@ custom mappings.
 
 ```vim
 :lua require('telekasten').search_notes()
-:lua require('telekasten').goto_periodic("weekly")
-:lua require('telekasten').goto_periodic("daily", "prevday")
+:lua require('telekasten').goto_periodic({}, "weekly")
+:lua require('telekasten').goto_periodic({}, "daily", "prevday")
 ```
 
 </details>
@@ -236,7 +236,9 @@ The following sub-commands are defined:
 - `insert_link` : Insert a link to a note
 - `follow_link` : Follow the link under the cursor
 - `goto_today` : Open today's daily note.
-- `new_note` : Create a new note, prompts for title
+- `new_note` : Create a new note from the title you enter. Include a directory
+  to choose its location. For example, `bar` and `foo/bar` create two distinct
+  notes. Entering the same path again preserves the existing file.
 - `goto_thisweek` : Open this week's weekly note.
 - `find_weekly_notes` : Find weekly notes by title (calendar week).
 - `goto_thismonth` : Open this month's monthly note.
@@ -462,6 +464,12 @@ date:  {{date}}
 
 ```
 
+Use `{{nextworkday}}` and `{{prevworkday}}` for dates on the vault’s work
+calendar. Monday through Friday are working days by default. Set
+`periodic.kinds.daily.days_off` to the weekday numbers to skip (Sunday is 1,
+Saturday is 7). Use the same references with `goto_periodic({}, "nextworkday")`
+or `goto_periodic({}, "prevworkday")`.
+
 A complete list of substitutions can be found in the documentation (`:h
 telekasten.template_files`).
 
@@ -486,12 +494,13 @@ the following mappings apply:
 When invoking `show_calendar()`, a calendar showing the previous, current, and
 next month is shown at the right side of vim.
 
-- days that have a daily note associated with them are marked with a + sign and
+- when daily notes are enabled in this vault, days with a daily note at the
+  configured path are marked with a + sign and
   a different color
-- pressing enter on a day will open up a telescope finder with the associated
-  daily note selected and previewed. The daily note will be created if it
-  doesn't exist. If you choose to not open the note, you will return to the
-  calender so you can preview other notes.
+- press Enter on a day to open its daily note. With the default settings,
+  Telescope previews the note first. Cancel the preview to return to the
+  calendar and choose another day. Telekasten can create a missing note
+  when daily notes and their `create_if_missing` setting are enabled.
 
 If you want to see a big calendar showing the current month that fills your
 entire window, you can issue the following command in vim:

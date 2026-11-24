@@ -493,11 +493,6 @@ local function FindPeriodicNotes(opts, kind)
             return
         end
 
-        if not periodic.is_enabled(pcfg, kind) then
-            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
-            return
-        end
-
         local kcfg = pcfg.kinds[kind]
         if not kcfg then
             tkutils.print_error(
@@ -506,9 +501,15 @@ local function FindPeriodicNotes(opts, kind)
             return
         end
 
+        if not periodic.is_enabled(pcfg, kind) then
+            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
+            return
+        end
+
         local dinfo = dateutils.calculate_dates(
             nil,
-            config.options.calendar_opts.calendar_monday
+            config.options.calendar_opts.calendar_monday,
+            pcfg.kinds.daily.days_off
         )
 
         local fname, title, root_dir, _ =
@@ -687,10 +688,8 @@ local function on_create_with_template(opts, title)
     local picker_actions = tkpickers.picker_actions
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = fileutils.Pinfo:new({
-        title = fileutils.generate_note_filename(uuid, title),
-        opts,
-    })
+    local filename = fileutils.generate_note_filename(uuid, title)
+    local pinfo = fileutils.Pinfo:for_creation(filename, opts)
     local fname = pinfo.filepath
     if pinfo.fexists == true then
         -- open the new note
@@ -1273,7 +1272,8 @@ end
 --- @return table|nil dinfo The Computed Date Info table
 --- @return string|nil derr Error message if date_ref is invalid or unsupported
 local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
-    local base = dateutils.calculate_dates(date_tbl, calendar_monday)
+    local days_off = config.options.periodic.kinds.daily.days_off
+    local base = dateutils.calculate_dates(date_tbl, calendar_monday, days_off)
 
     if date_ref == nil then
         return base, nil
@@ -1298,7 +1298,7 @@ local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
         else
             return nil, ("Unsupported numeric date_ref: %s"):format(date_ref)
         end
-        return dateutils.calculate_dates(dt, calendar_monday), nil
+        return dateutils.calculate_dates(dt, calendar_monday, days_off), nil
     end
 
     if type(v) ~= "string" then
@@ -1360,7 +1360,7 @@ local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
             ("Unsupported date_ref format: %s -> %s"):format(date_ref, v)
     end
 
-    local dinfo = dateutils.calculate_dates(dt, calendar_monday)
+    local dinfo = dateutils.calculate_dates(dt, calendar_monday, days_off)
 
     return dinfo, nil
 end
@@ -1494,16 +1494,16 @@ local function GotoPeriodic(opts, kind, date_ref)
             return
         end
 
-        if not periodic.is_enabled(pcfg, kind) then
-            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
-            return
-        end
-
         local kcfg = pcfg.kinds[kind]
         if not kcfg then
             tkutils.print_error(
                 ("No config found for periodic kind: %s"):format(kind)
             )
+            return
+        end
+
+        if not periodic.is_enabled(pcfg, kind) then
+            tkutils.print_error(("Periodic kind %s is Disabled."):format(kind))
             return
         end
 
@@ -1588,11 +1588,16 @@ end
 -- @param year number Year of the Gregorian calendar
 -- @return number Representing a boolean, 0 for false and 1 for true
 local function CalendarSignDay(day, month, year)
-    local daily_path = config.options.periodic.kinds.daily.folder_path
-    local fn = daily_path
-        .. "/"
-        .. string.format("%04d-%02d-%02d", year, month, day)
-        .. config.options.extension
+    local pcfg = config.options.periodic
+    if not periodic.is_enabled(pcfg, "daily") then
+        return 0
+    end
+    local dates = dateutils.calculate_dates(
+        { year = year, month = month, day = day },
+        config.options.calendar_opts.calendar_monday
+    )
+    local fn =
+        periodic.build_path(pcfg, "daily", dates, config.options.extension)
     if fileutils.file_exists(fn) then
         return 1
     end

@@ -314,17 +314,15 @@ function M.on_create(opts, title)
     end
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = fileutils.Pinfo:new({
-        title = fileutils.generate_note_filename(uuid, title),
-        opts,
-    })
+    local filename = fileutils.generate_note_filename(uuid, title)
+    local pinfo = fileutils.Pinfo:for_creation(filename, opts)
     local fname = pinfo.filepath
 
     local function picker()
         fileutils.find_files_sorted({
             prompt_title = "Created note...",
             cwd = pinfo.root_dir,
-            default_text = fileutils.generate_note_filename(uuid, title),
+            default_text = filename,
             find_command = config.options.find_command,
             attach_mappings = M.apply_picker_mappings(opts),
         })

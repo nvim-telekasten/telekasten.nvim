@@ -35,39 +35,39 @@ M.detection_patterns = {}
 -- NOTE: Different from detection_patterns! Only for specific template tokens.
 local token_meta = {
     year = {
-        pattern = "%d%d%d%d",
+        pattern = "(%d%d%d%d)",
         fields = { "year" },
     },
     month = {
-        pattern = "%d%d",
+        pattern = "(%d%d?)",
         fields = { "month" },
     },
     day = {
-        pattern = "%d%d",
+        pattern = "(%d%d?)",
         fields = { "day" },
     },
     week = {
-        pattern = "%d%d",
+        pattern = "(%d%d)",
         fields = { "week" },
     },
     quarter = {
-        pattern = "[1-4]",
+        pattern = "([1-4])",
         fields = { "quarter" },
     },
     quarter_yq = {
-        pattern = "%d%d%d%d%-Q[1-4]",
+        pattern = "(%d%d%d%d)%-Q([1-4])",
         fields = { "year", "quarter" },
     },
     month_ym = {
-        pattern = "%d%d%d%d%-%d%d",
-        fields = { "year", "day" },
+        pattern = "(%d%d%d%d)%-(%d%d)",
+        fields = { "year", "month" },
     },
     isoweek = {
-        pattern = "%d%d%d%d%-W%d%d",
+        pattern = "(%d%d%d%d)%-W(%d%d)",
         fields = { "year", "week" },
     },
     date = {
-        pattern = "%d%d%d%d%-%d%d%-%d%d",
+        pattern = "(%d%d%d%d)%-(%d%d)%-(%d%d)",
         fields = { "year", "month", "day" },
     },
 }
@@ -81,12 +81,12 @@ end
 local function build_detection_patterns(periodic)
     local patterns = {}
 
-    if not periodic or periodic.enabled == false or not periodic.kinds then
+    if not M.is_enabled(periodic) or not periodic.kinds then
         return patterns
     end
 
     for kind, kcfg in pairs(periodic.kinds) do
-        if kcfg ~= false then
+        if M.is_enabled(periodic, kind) then
             local tmpl = kcfg.filename or ""
             if tmpl ~= "" then
                 local pat = "^"
@@ -134,16 +134,12 @@ local function build_detection_patterns(periodic)
 end
 
 local function root_for_kind(periodic, kind)
-    if not periodic or periodic.enabled == false then
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil
     end
 
     local kcfg = periodic.kinds[kind]
-    if not kcfg or kcfg.enabled == false then
-        return nil
-    end
-
-    if kcfg.root ~= "" then
+    if kcfg.root and kcfg.root ~= "" then
         return kcfg.root
     end
     return periodic.root
@@ -160,9 +156,7 @@ function M.is_enabled(periodic, kind)
 
     if kind ~= nil then
         local kcfg = periodic.kinds and periodic.kinds[kind]
-        if kcfg and kcfg.enabled == false then
-            return false
-        end
+        return type(kcfg) == "table" and kcfg.enabled ~= false
     end
 
     return true
@@ -216,11 +210,7 @@ function M.normalize_periodic(periodic)
         periodic.kinds[kind] = kcfg
     end
 
-    if periodic.enabled == false then
-        M.detection_patterns = {}
-    else
-        M.detection_patterns = build_detection_patterns(periodic)
-    end
+    M.detection_patterns = build_detection_patterns(periodic)
 
     return periodic
 end
@@ -230,12 +220,13 @@ end
 ---@param kind PeriodicKind
 ---@param dinfo table  -- dateutils.calculate_dates result
 ---@param extension string
+---@param matched_title? string Existing link spelling when resolving a detected filename
 ---@return string|nil filepath
 ---@return string|nil title
 ---@return string|nil root_dir
 ---@return string|nil sub_dir
-function M.build_path(periodic, kind, dinfo, extension)
-    if not M.is_enabled(periodic, kind) then
+function M.build_path(periodic, kind, dinfo, extension, matched_title)
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil, nil, nil, nil
     end
 
@@ -248,7 +239,7 @@ function M.build_path(periodic, kind, dinfo, extension)
     end
 
     local rel_folder = templates.expand_template(kcfg.folder_path, ctx)
-    local title = templates.expand_template(kcfg.filename, ctx)
+    local title = matched_title or templates.expand_template(kcfg.filename, ctx)
 
     local sub_dir = rel_folder ~= "" and rel_folder or ""
     local folder = root_dir
@@ -274,7 +265,7 @@ end
 ---@param extension string
 ---@return string|nil
 function M.filename_pattern(periodic, kind, extension)
-    if not M.is_enabled(periodic, kind) then
+    if kind == nil or not M.is_enabled(periodic, kind) then
         return nil
     end
 

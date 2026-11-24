@@ -139,7 +139,7 @@ M.dateformats = {
     time12 = "%I:%M:%S %p",
 }
 
-function M.calculate_dates(date, calendar_monday)
+function M.calculate_dates(date, calendar_monday, days_off)
     local time = os.time(date)
     local dinfo = os.date("*t", time) -- this normalizes the input to a full date table
     local oneday = 24 * 60 * 60 -- hours * days * seconds
@@ -181,8 +181,43 @@ function M.calculate_dates(date, calendar_monday)
     dates.time24 = os.date(df.time24, time)
     dates.time12 = os.date(df.time12, time)
     dates.date = os.date(df.date, time)
-    dates.prevday = os.date(df.date, time - oneday)
-    dates.nextday = os.date(df.date, time + oneday)
+    local function adjacent_day(offset)
+        return os.date(
+            df.date,
+            os.time({
+                year = dinfo.year,
+                month = dinfo.month,
+                day = dinfo.day + offset,
+                hour = 12,
+            })
+        )
+    end
+    dates.prevday = adjacent_day(-1)
+    dates.nextday = adjacent_day(1)
+
+    local function workday(step)
+        for distance = 1, 7 do
+            local candidate = os.time({
+                year = dinfo.year,
+                month = dinfo.month,
+                day = dinfo.day + step * distance,
+                hour = 12,
+            })
+            if
+                not vim.tbl_contains(
+                    days_off or { 1, 7 },
+                    os.date("*t", candidate).wday
+                )
+            then
+                return os.date(df.date, candidate)
+            end
+        end
+        error(
+            "periodic.kinds.daily.days_off must leave at least one working day"
+        )
+    end
+    dates.prevworkday = workday(-1)
+    dates.nextworkday = workday(1)
 
     local cur_first_month = os.time({
         year = dinfo.year,
