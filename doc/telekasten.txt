@@ -206,6 +206,9 @@ telekasten.setup({opts})
             },
             daily = {
                 enabled = true,
+                -- Days skipped by prevworkday and nextworkday (Sun=1, Sat=7).
+                -- An empty list includes every day. Keep at least one workday.
+                days_off = { 1, 7 },
                 root = "",
                 folder_path = "",
                 filename = "{date}",
@@ -611,8 +614,8 @@ telekasten.setup({opts})
         - 'quarterly'
         - 'yearly'
 
-        The list of available options for each kind are the same, so for
-        convenience sake, only the kind options are listed here:
+        All five kinds share the following options. Daily notes also accept
+        |telekasten.periodic.kinds.daily.days_off|.
 
         - `enabled`: 
             - see |telekasten.periodic.kinds.enabled|
@@ -629,6 +632,14 @@ telekasten.setup({opts})
 
         For further usage information: ~
             - see |telekasten.periodic_usage|
+
+                                    *telekasten.periodic.kinds.daily.days_off*
+    days_off (daily only): ~
+        Weekdays skipped by `{{prevworkday}}` and `{{nextworkday}}`. Sunday
+        is 1 and Saturday is 7. The default { 1, 7 } gives a Monday-to-Friday
+        workweek. Use {} for every day or leave at least one day enabled.
+        The calendar also applies to `goto_periodic({}, "nextworkday")` and
+        `goto_periodic({}, "prevworkday")`, even if a note exists on a day off.
 
                                     *telekasten.periodic.kinds.enabled*
         enabled: ~
@@ -1255,6 +1266,8 @@ The following substitutions will be made during new note creation:
 | `{{date}}`             | date in iso format              | 2021-11-21                  |
 | `{{time24}}`           | time with 24 hour clock         | 19:12:23                    |
 | `{{time12}}`           | time with 12 hour clock         | 07:12:23 PM                 |
+| `{{prevworkday}}`      | previous working day, iso       | 2021-11-19                  |
+| `{{nextworkday}}`      | next working day, iso           | 2021-11-22                  |
 | `{{prevday}}`          | previous day, iso               | 2021-11-20                  |
 | `{{nextday}}`          | next day, iso                   | 2021-11-22                  |
 | `{{hdate}}`            | date in long format             | Sunday, November 21st, 2021 |

@@ -465,6 +465,12 @@ date:  {{date}}
 
 ```
 
+Use `{{nextworkday}}` and `{{prevworkday}}` for dates on the vault’s work
+calendar. Monday through Friday are working days by default. Set
+`periodic.kinds.daily.days_off` to the weekday numbers to skip (Sunday is 1,
+Saturday is 7). Use the same references with `goto_periodic({}, "nextworkday")`
+or `goto_periodic({}, "prevworkday")`.
+
 A complete list of substitutions can be found in the documentation (`:h
 telekasten.template_files`).
 

@@ -508,7 +508,8 @@ local function FindPeriodicNotes(opts, kind)
 
         local dinfo = dateutils.calculate_dates(
             nil,
-            config.options.calendar_opts.calendar_monday
+            config.options.calendar_opts.calendar_monday,
+            pcfg.kinds.daily.days_off
         )
 
         local fname, title, root_dir, _ =
@@ -1273,7 +1274,8 @@ end
 --- @return table|nil dinfo The Computed Date Info table
 --- @return string|nil derr Error message if date_ref is invalid or unsupported
 local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
-    local base = dateutils.calculate_dates(date_tbl, calendar_monday)
+    local days_off = config.options.periodic.kinds.daily.days_off
+    local base = dateutils.calculate_dates(date_tbl, calendar_monday, days_off)
 
     if date_ref == nil then
         return base, nil
@@ -1298,7 +1300,7 @@ local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
         else
             return nil, ("Unsupported numeric date_ref: %s"):format(date_ref)
         end
-        return dateutils.calculate_dates(dt, calendar_monday), nil
+        return dateutils.calculate_dates(dt, calendar_monday, days_off), nil
     end
 
     if type(v) ~= "string" then
@@ -1360,7 +1362,7 @@ local function resolve_dinfo(date_ref, calendar_monday, date_tbl)
             ("Unsupported date_ref format: %s -> %s"):format(date_ref, v)
     end
 
-    local dinfo = dateutils.calculate_dates(dt, calendar_monday)
+    local dinfo = dateutils.calculate_dates(dt, calendar_monday, days_off)
 
     return dinfo, nil
 end

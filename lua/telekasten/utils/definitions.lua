@@ -25,6 +25,7 @@
 ---@field filename string
 ---@field template_file string|nil
 ---@field create_if_missing boolean
+---@field days_off? integer[] Daily notes only. Sunday is 1, Saturday is 7.
 
 ---@class PeriodicConfig
 ---@field enabled boolean

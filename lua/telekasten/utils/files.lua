@@ -194,7 +194,11 @@ local function apply_match(kind, fields, caps, cal_monday)
         dinfo.day = dinfo.day or 1
     end
 
-    dinfo = dateutils.calculate_dates(dinfo, cal_monday)
+    dinfo = dateutils.calculate_dates(
+        dinfo,
+        cal_monday,
+        config.options.periodic.kinds.daily.days_off
+    )
 
     return kind, dinfo
 end
@@ -210,7 +214,11 @@ end
 -- @return table Date info
 local function check_if_periodic(title)
     local cal_monday = config.options.calendar_opts.calendar_monday
-    local dateinfo = dateutils.calculate_dates(nil, cal_monday) -- sane default
+    local dateinfo = dateutils.calculate_dates(
+        nil,
+        cal_monday,
+        config.options.periodic.kinds.daily.days_off
+    ) -- sane default
 
     local pcfg = config.options.periodic
     if not pcfg or pcfg.enabled == false then
@@ -1017,6 +1025,12 @@ function M.create_note_from_template(
     callback
 )
     templatefn = resolve_template_file(templatefn)
+    calendar_info = calendar_info
+        or dateutils.calculate_dates(
+            nil,
+            config.options.calendar_opts.calendar_monday,
+            config.options.periodic.kinds.daily.days_off
+        )
 
     -- first, read the template file
     local lines = {}
