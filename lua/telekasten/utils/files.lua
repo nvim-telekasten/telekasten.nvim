@@ -510,6 +510,14 @@ function M.Pinfo:new(opts)
     return object
 end
 
+--- Resolve a new note's exact destination from its generated title.
+-- An existing note with the same basename elsewhere in the vault is a different note.
+function M.Pinfo:for_creation(title, opts)
+    local creation_opts =
+        vim.tbl_extend("keep", { for_creation = true }, opts or {})
+    return self:new():resolve_link(title, creation_opts)
+end
+
 --- resolve_path(p, opts)
 -- Inspects the path p and returns a Pinfo table
 -- @param p string Path to directory
@@ -595,7 +603,7 @@ end
 -- Returns a Pinfo table for the given title and options
 -- @param title string Title to be resolved to file path
 -- @param opts table Options, ideally including periodics, home, extension, template_handling,
--- new_note_location, and note_type_templates
+-- new_note_location, and note_type_templates. for_creation limits lookup to the exact destination.
 -- @return table Pinfo for note corresponding to title if found or detailing the failure
 function M.Pinfo:resolve_link(title, opts)
     -- Set options, preferring passed opts over user config

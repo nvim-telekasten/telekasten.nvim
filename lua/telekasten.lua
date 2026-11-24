@@ -688,10 +688,8 @@ local function on_create_with_template(opts, title)
     local picker_actions = tkpickers.picker_actions
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = fileutils.Pinfo:new(vim.tbl_extend("force", opts, {
-        title = fileutils.generate_note_filename(uuid, title),
-        for_creation = true,
-    }))
+    local filename = fileutils.generate_note_filename(uuid, title)
+    local pinfo = fileutils.Pinfo:for_creation(filename, opts)
     local fname = pinfo.filepath
     if pinfo.fexists == true then
         -- open the new note
