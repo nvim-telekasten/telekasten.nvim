@@ -220,7 +220,6 @@ custom mappings.
 :lua require('telekasten').search_notes()
 :lua require('telekasten').goto_periodic({}, "weekly")
 :lua require('telekasten').goto_periodic({}, "daily", "prevday")
-:lua require('telekasten').goto_periodic({}, "daily", "nextday")
 ```
 
 </details>
@@ -499,7 +498,8 @@ next month is shown at the right side of vim.
   configured path are marked with a + sign and
   a different color
 - press Enter on a day to open its daily note. With the default settings,
-  Telescope previews the note first. Telekasten can create a missing note
+  Telescope previews the note first. Cancel the preview to return to the
+  calendar and choose another day. Telekasten can create a missing note
   when daily notes and their `create_if_missing` setting are enabled.
 
 If you want to see a big calendar showing the current month that fills your
