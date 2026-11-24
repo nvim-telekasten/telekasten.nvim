@@ -583,25 +583,21 @@ local function InsertImgLink(opts)
             attach_mappings = tkpickers.apply_picker_mappings(
                 opts,
                 function(prompt_bufnr, _)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
-                        local selection = action_state.get_selected_entry()
-                        local fn = selection.value
-                        fn = linkutils.make_relative_path(
-                            vim.fn.expand("%:p"),
-                            fn,
-                            "/"
-                        )
-                        vim.api.nvim_put(
-                            { "![](" .. fn .. ")" },
-                            "",
-                            true,
-                            true
-                        )
-                        if opts.i then
-                            vim.api.nvim_feedkeys("A", "m", false)
-                        end
-                    end)
+                    local selection = action_state.get_selected_entry()
+                    if not selection then
+                        return
+                    end
+                    actions.close(prompt_bufnr)
+                    local fn = selection.value
+                    fn = linkutils.make_relative_path(
+                        vim.fn.expand("%:p"),
+                        fn,
+                        "/"
+                    )
+                    vim.api.nvim_put({ "![](" .. fn .. ")" }, "", true, true)
+                    if opts.i then
+                        vim.api.nvim_feedkeys("A", "m", false)
+                    end
                 end
             ),
             sort = config.options.sort,
@@ -712,24 +708,25 @@ local function on_create_with_template(opts, title)
         attach_mappings = tkpickers.apply_picker_mappings(
             opts,
             function(prompt_bufnr, _)
-                actions.select_default:replace(function()
-                    actions.close(prompt_bufnr)
-                    -- local template = M.Cfg.templates .. "/" .. action_state.get_selected_entry().value
-                    local template = action_state.get_selected_entry().value
-                    -- TODO: pass in the calendar_info returned from the pinfo
-                    fileutils.create_note_from_template(
-                        title,
-                        uuid,
-                        fname,
-                        template,
-                        pinfo.calendar_info,
-                        function()
-                            -- open the new note
-                            vim.cmd("e " .. fname)
-                            picker_actions.post_open()
-                        end
-                    )
-                end)
+                local selection = action_state.get_selected_entry()
+                if not selection then
+                    return
+                end
+                actions.close(prompt_bufnr)
+                local template = selection.value
+                -- TODO: pass in the calendar_info returned from the pinfo
+                fileutils.create_note_from_template(
+                    title,
+                    uuid,
+                    fname,
+                    template,
+                    pinfo.calendar_info,
+                    function()
+                        -- open the new note
+                        vim.cmd("e " .. fname)
+                        picker_actions.post_open()
+                    end
+                )
             end
         ),
     })
