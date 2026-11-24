@@ -654,7 +654,7 @@ function M.Pinfo:resolve_link(title, opts)
         kind = "yearly"
     end
 
-    if kind ~= nil then
+    if not opts.for_creation and kind ~= nil then
         local path, _, root_dir, _ =
             periodic.build_path(opts.periodic, kind, dinfo, opts.extension)
 
@@ -665,13 +665,16 @@ function M.Pinfo:resolve_link(title, opts)
         end
     end
 
-    if M.file_exists(opts.home .. "/" .. self.filename) then
+    if
+        not opts.for_creation
+        and M.file_exists(opts.home .. "/" .. self.filename)
+    then
         self.filepath = opts.home .. "/" .. self.filename
         self.fexists = true
     end
 
     -- If still nothing found, check subdirectories
-    if self.fexists == false then
+    if not opts.for_creation and self.fexists == false then
         -- now search for it in all subdirs
         local subdirs = scan.scan_dir(opts.home, { only_dirs = true })
         local tempfn
@@ -734,6 +737,10 @@ function M.Pinfo:resolve_link(title, opts)
         else
             -- default fn for creation
             self.filepath = opts.home .. "/" .. self.filename
+        end
+
+        if opts.for_creation then
+            self.fexists = M.file_exists(self.filepath)
         end
 
         -- final round, there still can be a subdir mess-up

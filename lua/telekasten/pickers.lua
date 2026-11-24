@@ -314,10 +314,10 @@ function M.on_create(opts, title)
     end
 
     local uuid = fileutils.new_uuid(uuid_type)
-    local pinfo = fileutils.Pinfo:new({
+    local pinfo = fileutils.Pinfo:new(vim.tbl_extend("force", opts, {
         title = fileutils.generate_note_filename(uuid, title),
-        opts,
-    })
+        for_creation = true,
+    }))
     local fname = pinfo.filepath
 
     local function picker()

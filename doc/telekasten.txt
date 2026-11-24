@@ -816,6 +816,10 @@ telekasten.new_note() ~
   Prompts for a title and creates a new note by the `new_note` template, then
   shows it in Telescope.
 
+  Include a directory in the title to choose the note's location. For example,
+  `bar` and `foo/bar` can both exist. Entering the same path again preserves the
+  existing file.
+
   See also: ~
       - |telekasten.settings.template_new_note|
       - |telekasten.templates|
