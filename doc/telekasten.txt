@@ -81,10 +81,8 @@ telekasten.setup({opts})
         -- home, as it checks both directories for the file
       template_new_note = '/path/to/file',      -- template for new notes
 
-      -- Image subdir for pasting
-        -- subdir name
-        -- or nil if pasted images shouldn't go into a special subdir
-      image_subdir = "img",
+      -- Directory for pasted images (absolute or relative to home)
+      images = "img",
 
       -- File extension for note files
       extension    = ".md",
@@ -319,10 +317,12 @@ telekasten.setup({opts})
         Default: 'vim.fn.expand("~/zettelkasten")'
 
                                         *telekasten.settings.image_subdir*
-    image_subdir: ~
-        Path to the directory where pasted images should go to. Accepts
-        absolute path or sub-directory name.
-        Set to `nil` if images should not go into a sub-directory.
+                                             *telekasten.settings.images*
+    images: ~
+        Directory for pasted images. Use an absolute path or a directory
+        relative to the vault home. With neither setting, images go in home.
+        The older `image_subdir` setting is an alias. If both are set,
+        `images` takes precedence.
 
         Default: `nil`
 

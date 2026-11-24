@@ -48,7 +48,8 @@
 ---@field auto_set_syntax boolean
 ---@field periodic PeriodicConfig
 ---@field templates string
----@field image_subdir string|nil Should be deprecated gracefully and replaced by "images"
+---@field images? string
+---@field image_subdir? string Alias for images
 ---@field extension "md" | string
 ---@field new_note_filename "title" | "uuid" | "uuid-title"
 ---@field uuid_type "%Y%m%d%H%M" | string

@@ -87,7 +87,7 @@ local function assemble_roots_specs(opts)
 
     if include_aux then
         add(config.options.templates, "templates")
-        add(config.options.image_subdir, "images")
+        add(config.options.images, "images")
     end
 
     return dirs

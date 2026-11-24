@@ -127,9 +127,7 @@ local function imgFromClipboard()
 
         -- Get a destination to store the image in
         local pngname = "pasted_img_" .. os.date("%Y%m%d%H%M%S") .. ".png"
-        local pngdir = config.options.image_subdir
-                and config.options.image_subdir
-            or config.options.home
+        local pngdir = config.options.images or config.options.home
         local png = Path:new(pngdir, pngname).filename
         local relpath =
             linkutils.make_relative_path(vim.fn.expand("%:p"), png, "/")
@@ -254,7 +252,7 @@ local function PreviewImg(opts)
         vim.fn.setreg('"0', saved_reg)
 
         -- check if fname exists anywhere
-        local imageDir = config.options.image_subdir or config.options.home
+        local imageDir = config.options.images or config.options.home
         local fexists = fileutils.file_exists(imageDir .. "/" .. fname)
 
         if fexists == true then
@@ -1913,8 +1911,9 @@ local function Setup(cfg)
     end
 
     -- Convert all directories in full path
-    config.options.image_subdir =
-        fileutils.make_config_path_absolute(config.options.image_subdir)
+    config.options.images =
+        fileutils.make_config_path_absolute(cfg.images or cfg.image_subdir)
+    config.options.image_subdir = config.options.images
     config.options.templates =
         fileutils.make_config_path_absolute(config.options.templates)
 

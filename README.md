@@ -248,7 +248,10 @@ The following sub-commands are defined:
 - `yank_notelink` : Yank a link to the currently open note
 - `new_templated_note` : create a new note by template, prompts for title and template
 - `show_calendar` : Show the calendar
-- `paste_img_and_link` : Paste an image from the clipboard into a file and inserts a link to it
+- `paste_img_and_link` : Save a clipboard image and insert a link to it.
+  Images go in the vault home by default. Set `images = "img"` to use a
+  subdirectory, or give an absolute path. The older `image_subdir` setting
+  also works. If both are set, Telekasten uses `images`.
 - `toggle_todo` : Toggle `- [ ]` todo status of a line
 - `show_backlinks` : Show all notes linking to the current one
 - `find_friends` : Show all notes linking to the link under the cursor
